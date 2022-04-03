@@ -11,6 +11,7 @@ STATUS: alpha. Please leave feedback.
   - [Generate lock file](#generate-lock-file)
   - [API](#api)
 - [Tutorial](#tutorial)
+- [Similar projects](#similar-projects)
 
 ## Introduction
 
@@ -444,3 +445,9 @@ code.
 ```
 nix run github:/jlesquembre/clj-demo-project#clj-kondo
 ```
+
+## Similar projects
+
+- [dwn](https://github.com/webnf/dwn)
+- [clj2nix](https://github.com/hlolli/clj2nix)
+- [mvn2nix](https://github.com/fzakaria/mvn2nix)
