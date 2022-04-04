@@ -253,7 +253,7 @@ git clone git@github.com:jlesquembre/clj-demo-project.git
 First thing we need to do is to generate a lock file:
 
 ```bash
-nix run jlesquembre:clj-nix#deps-lock
+nix run github:jlesquembre/clj-nix#deps-lock
 git add deps-lock.json
 ```
 
