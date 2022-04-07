@@ -4,6 +4,9 @@ Nix helpers for Clojure projects
 
 STATUS: alpha. Please leave feedback.
 
+Aliases and `local/root` dependencies are not supported, but I'm planning on
+adding support for both.
+
 ## Table of contents
 
 - [Introduction](#introduction)
@@ -61,7 +64,11 @@ git init
 git add .
 ```
 
-Remember that with flakes, only the files tracked by git are recognized by Nix
+Remember that with flakes, only the files tracked by git are recognized by Nix.
+
+Templates are for new projects. If you want to add `clj-nix` to an existing
+project, I suggest just copy the parts you need from the template (located here:
+[clj-nix/templates/default](https://github.com/jlesquembre/clj-nix/tree/main/templates/default))
 
 ### Generate lock file
 
