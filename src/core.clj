@@ -9,7 +9,12 @@
     [clojure.java.shell :as sh]
     [clojure.data.json :as json]
     [clojure.tools.build.api :as b]
-    [babashka.fs :as fs])
+    [babashka.fs :as fs]
+    [com.rpl.specter :as s]
+
+    [clojure.tools.deps.alpha.extensions :as ext]
+    [clojure.tools.deps.alpha.util.session :as session]
+    [clojure.tools.deps.alpha.util.dir :as dir])
   (:import
     [java.io File]
     [java.util Base64]
@@ -41,6 +46,7 @@
        string/trim))
 
 (defn maven-connector
+  "Returns a fn to resolve a maven dep to an url"
   ([local-repo]
    (maven-connector local-repo mvn/standard-repos))
   ([local-repo remote-repos]
@@ -67,6 +73,14 @@
           :type :mvn
           :nix-path (file->nix-path (.getFile artifact))
           :hash (sri-hash (.getFile artifact))})))))
+
+
+(def map-key-walker
+  #_{:clj-kondo/ignore [:unresolved-symbol]}
+  (s/recursive-path [akey] p
+                    (s/cond-path
+                      (s/pred akey) akey
+                      coll? [s/ALL p])))
 
 
 ;; TODO implement in pure clojure
@@ -305,3 +319,296 @@
     (paths {:deps "/home/jlle/projects/clj-demo-project/deps.edn"}))
 
   (expand-deps "/home/jlle/projects/babashka/deps2.edn"))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; NEW
+;;;; NEW
+;;;; NEW
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def dep-keys #{:deps :replace-deps :extra-deps :override-deps :default-deps})
+
+(def ^:dynamic *project-root* nil)
+
+(defn find-git-root
+  [path]
+  (let [f (io/file path)]
+    (cond
+      (nil? f) nil
+      (not (.exists f)) nil
+      (.isFile f) (find-git-root (.getParent f))
+      (.isDirectory f) (if (.exists (io/file f ".git"))
+                         (str f)
+                         (find-git-root (.getParent f))))))
+
+(defn get-edn-map
+  "Slurp a deps.edn file and merge it with root deps.edn (without aliases) file"
+  [deps-path]
+  (let [{:keys [root-edn]} (deps/find-edn-maps)
+        deps-map (deps/slurp-deps (io/file deps-path))]
+    (deps/merge-edns [(dissoc root-edn :aliases) deps-map])))
+
+(defn- flat-deps
+  [deps-map]
+  (into #{}
+    (mapcat
+      vec
+      (vals (select-keys deps-map dep-keys)))))
+
+(defn expand-relative-local-deps
+  "Canonicalize all relative paths for :local/root deps"
+  [x root]
+  (s/transform
+    #_[(map-key-walker :local/root) (complement #(string/starts-with? % "/"))]
+    [(map-key-walker :local/root) fs/relative?]
+    #(if (string? root)
+       (.getCanonicalPath (io/file root %))
+       (str (fs/canonicalize (fs/path root %))))
+    x))
+
+(defn get-all-deps
+  "Get all dependecies (optionally including aliases) in a deps.edn file.
+   Canonicalize local deps"
+  ([deps-path]
+   (get-all-deps deps-path false))
+  ([deps-path alias?]
+   (let [{:keys [aliases] :as config} (get-edn-map deps-path)
+         main-deps (flat-deps config)]
+     (-> main-deps
+       (cond-> alias? (into (mapcat flat-deps (vals aliases))))
+       (expand-relative-local-deps (fs/parent deps-path))))))
+
+(defn canonicalize
+  "Simplified version of ext/canonicalize"
+  [[lib coord]]
+  (ext/canonicalize lib coord {:mvn/repos mvn/standard-repos}))
+
+(defn coord-deps
+  "Simplified version of ext/coord-deps.
+   Canonicalize local deps"
+  [[lib coord]]
+  (let [{:deps/keys [root manifest] :as coord'} (ext/manifest-type lib coord nil)]
+    (cond-> (ext/coord-deps
+              lib
+              (if root coord' coord)
+              manifest
+              {:mvn/repos mvn/standard-repos})
+      root (expand-relative-local-deps root))))
+
+(defn coord-paths
+  "Simplified version of ext/coord-paths"
+  [[lib coord]]
+  (let [{:deps/keys [root manifest] :as coord'} (ext/manifest-type lib coord nil)]
+    (ext/coord-paths
+      lib
+      (if root coord' coord)
+      manifest
+      {:mvn/repos mvn/standard-repos})))
+
+(defn expand-deps-recursively
+  "Get all deps (including aliases) for a deps.edn file and expand to get all
+  the dependecies. Aliases are considered only for the top deps.edn file."
+  [deps-path]
+  (session/with-session
+    (loop [q (into (clojure.lang.PersistentQueue/EMPTY)
+                   (get-all-deps deps-path true))
+           deps #{}]
+      (if-let [next-dep (first q)]
+        (let [deps' (conj deps next-dep)]
+          (recur
+            (into (pop q) (remove deps' (coord-deps next-dep)))
+            deps'))
+        deps))))
+
+
+(defmulti get-nix-info
+  "Takes a dependency and returns a map with nix related data,
+   like download URL, hash, nix path, etc"
+  (fn [[_ coord]] (ext/coord-type coord)))
+
+(defmethod get-nix-info :local
+  [_]
+  nil)
+
+(defmethod get-nix-info :mvn
+  [[lib coord]]
+  (let [tmp-dir (fs/create-temp-dir {:prefix "mvn-deps"})
+        maven-resolver (maven-connector (str tmp-dir))
+        dep (maven-resolver lib coord)]
+   (fs/delete-tree tmp-dir)
+   (select-keys dep [:url :nix-path :hash :lib-name])))
+
+(defmethod get-nix-info :git
+  [dep]
+  (let [[lib {:git/keys [url sha]}] (canonicalize dep)]
+    [url sha]
+
+   (-> (sh/sh "nix-prefetch-git" url sha)
+      :out
+      (json/read-str :key-fn keyword)
+      (select-keys [:url :rev :sha256 :path])
+      (rename-keys {:path :nix-path})
+      (assoc :type :git
+             :lib-name lib))))
+
+(defmulti nixify-dep
+  "Takes a map entry generated by add-static-attrs and nixifies it.
+   For example, replaces the paths with nix store paths"
+  (fn [[_ {:keys [canonicalize]}]]
+    (ext/coord-type (second canonicalize))))
+
+(defmethod nixify-dep :mvn
+  [[dep {:keys [nix] :as data}]]
+  (vector dep
+          (assoc data :coord-paths [(:nix-path nix)])))
+
+(defmethod nixify-dep :git
+  [[dep {:keys [nix manifest-type] :as data}]]
+  (let [{:deps/keys [root]} manifest-type
+        {:keys [nix-path]} nix]
+    (vector dep
+            (-> data
+              (update :coord-paths (partial mapv #(string/replace-first % root nix-path)))
+              (assoc-in [:manifest-type :deps/root] nix-path)))))
+
+(defmethod nixify-dep :local
+  [[dep data]]
+  (when-not (fs/starts-with? (get-in dep [1 :local/root]) *project-root*)
+    (throw (ex-info "Local deps must be inside the project"
+                    {:project-root *project-root*
+                     :dep dep})))
+  (let [update-path (fn [p] (string/replace-first p *project-root* "@projectRoot@"))]
+    (vector (update-in dep [1 :local/root] update-path)
+            (-> data
+                (dissoc :nix)
+                (update :coord-paths (partial mapv update-path))
+                (update-in [:manifest-type :deps/root] update-path)
+                (update-in [:canonicalize 1 :local/root] update-path)))))
+
+(defn add-static-attrs
+  "Given a list of dependecies, collects data generated with tools.deps to be
+   used at nix build time, avoiding network requests"
+  [deps]
+  (let [config {:mvn/repos mvn/standard-repos}
+        deps (into deps (map canonicalize deps))]
+    (into {}
+          (comp
+            (map
+              (fn [[lib coord :as dep]]
+                (vector dep {:canonicalize (canonicalize dep)
+                             :manifest-type (ext/manifest-type lib coord config)
+                             :coord-deps (coord-deps dep)
+                             :coord-paths (coord-paths dep)
+                             :nix (get-nix-info dep)})))
+            (map nixify-dep))
+          deps)))
+
+(defn deps-lock-data
+  "Prints lock file for a given edn file"
+  [deps-path]
+  (let [deps-data (binding [*project-root* (find-git-root deps-path)]
+                    (-> deps-path
+                       expand-deps-recursively
+                       add-static-attrs))]
+    {:nix-data (into []
+                     (comp
+                       (map val)
+                       (map :nix)
+                       (remove nil?))
+                     deps-data)
+     :clj-runtime (prn-str deps-data)}))
+
+
+(defn deps-lock2
+  "Prints lock file for a given edn file"
+  [{:keys [deps-path]}]
+  (-> deps-path
+      deps-lock-data
+      (json/write-str :escape-slash false
+                      :escape-unicode false
+                      :escape-js-separators false)
+      println))
+
+(comment
+  (deps-lock-data "/home/jlle/projects/clojure-lsp/cli/deps.edn")
+
+  (get-edn-map "/home/jlle/projects/clojure-lsp/cli/deps.edn")
+
+  (get-all-deps "/home/jlle/projects/clojure-lsp/cli/deps.edn")
+
+  (expand-deps-recursively "/home/jlle/projects/clojure-lsp/deps.edn")
+
+  (get-nix-info ['org.clojure/core.specs.alpha #:mvn{:version "0.2.56"}])
+  (get-nix-info ['org.clojure/core.specs.alpha #:mvn{:version "LATEST"}])
+  (get-nix-info ['io.github.babashka/fs {:git/tag "v0.1.4"
+                                         :git/sha "2bf527f"}])
+
+
+  (nixify-dep (first {['org.clojure/core.specs.alpha #:mvn{:version "0.2.56"}]
+                      {:canonicalize
+                       ['org.clojure/core.specs.alpha #:mvn{:version "0.2.56"}],
+                       :manifest-type #:deps{:manifest :mvn},
+                       :coord-deps [],
+                       :coord-paths
+                       ["/home/jlle/.m2/repository/org/clojure/core.specs.alpha/0.2.56/core.specs.alpha-0.2.56.jar"],
+                       :nix
+                       {:url
+                        "https://repo1.maven.org/maven2/org/clojure/core.specs.alpha/0.2.56/core.specs.alpha-0.2.56.jar",
+                        :nix-path
+                        "/nix/store/6f3fq54dhbxcv3qg76r7aqqg43b777sz-core.specs.alpha-0.2.56.jar",
+                        :hash "sha256-/PRCveArBKhj8vzFjuaiowxM8Mlw99q4VjTwq3ERZrY=",
+                        :lib-name 'org.clojure/core.specs.alpha}}}))
+
+
+  (binding [*project-root* "/home/jlle/projects/clojure-lsp"]
+    (nixify-dep (first {['clojure-lsp/lib #:local{:root "/home/jlle/projects/clojure-lsp/lib"}]
+                        {:canonicalize
+                         ['clojure-lsp/lib
+                          #:local{:root "/home/jlle/projects/clojure-lsp/lib"}],
+                         :manifest-type
+                         #:deps{:manifest :deps, :root "/home/jlle/projects/clojure-lsp/lib"},
+                         :coord-deps [['org.clojure/clojure #:mvn{:version "1.11.1"}]],
+                         :coord-paths
+                         ["/home/jlle/projects/clojure-lsp/lib/src"
+                          "/home/jlle/projects/clojure-lsp/lib/resources"],
+                         :nix nil},})))
+
+  (nixify-dep (first {['io.github.babashka/fs #:git{:tag "v0.1.4", :sha "2bf527f"}]
+                      {:canonicalize
+                       ['io.github.babashka/fs
+                        #:git{:tag "v0.1.4",
+                              :sha "2bf527f797d69b3f14247940958e0d7b509f3ce2",
+                              :url "https://github.com/babashka/fs.git"}],
+                       :manifest-type
+                       #:deps{:manifest :deps,
+                              :root
+                              "/home/jlle/.gitlibs/libs/io.github.babashka/fs/2bf527f797d69b3f14247940958e0d7b509f3ce2"},
+                       :coord-deps [['org.clojure/clojure #:mvn{:version "1.10.3"}]],
+                       :coord-paths
+                       ["/home/jlle/.gitlibs/libs/io.github.babashka/fs/2bf527f797d69b3f14247940958e0d7b509f3ce2/src"],
+                       :nix
+                       {:url "https://github.com/babashka/fs.git",
+                        :rev "2bf527f797d69b3f14247940958e0d7b509f3ce2",
+                        :sha256 "0ax63cr9q08vrx3c0a66yjbia8l19cc59wzhc2d18q7v2arijnb8",
+                        :nix-path "/nix/store/r2csznkiv9i3z1wrw8ckyhdydcdbdqhh-fs-2bf527f",
+                        :type :git,
+                        :lib-name 'io.github.babashka/fs}},}))
+
+
+  (coord-deps ['io.github.babashka/fs {:git/sha "03c55063bea4df658dfa2edd3f9b4259d1c4144c"}])
+  (coord-deps ['io.github.babashka/fs {:git/tag "v0.1.4"
+                                       :git/sha "2bf527f"}])
+  (coord-deps ['org.clojure/clojure {:mvn/version "1.10.3"}])
+
+  (get-edn-map  "/home/jlle/projects/clojure-lsp/cli/deps.edn")
+
+  (get-all-deps "/home/jlle/projects/clj-nix/deps.edn"))
+
