@@ -117,6 +117,21 @@
       (deps/merge-edns [root-edn deps-map]))))
 
 
+(defn- canonical-path
+  [deps-path path]
+  (.getCanonicalPath
+    (io/file
+     (.getParent (io/file deps-path))
+     path)))
+
+(defn to-absolute-paths
+  [deps-path]
+  (s/transform
+    [(map-key-walker :local/root) #(string/starts-with? % ".")]
+    (partial canonical-path deps-path)
+    (deps/slurp-deps (io/file deps-path))))
+
+
 (defn clj-deps->nix-deps
   [deps]
   (let [{:keys [libs mvn/repos classpath classpath-roots]} (runtime-basis deps)
@@ -444,7 +459,7 @@
         maven-resolver (maven-connector (str tmp-dir))
         dep (maven-resolver lib coord)]
    (fs/delete-tree tmp-dir)
-   (select-keys dep [:url :nix-path :hash :lib-name])))
+   (select-keys dep [:url :nix-path :hash :lib-name :type])))
 
 (defmethod get-nix-info :git
   [dep]
@@ -518,11 +533,12 @@
                     (-> deps-path
                        expand-deps-recursively
                        add-static-attrs))]
-    {:nix-data (into []
+    {:nix-info (into []
                      (comp
                        (map val)
                        (map :nix)
-                       (remove nil?))
+                       (remove nil?)
+                       (distinct))
                      deps-data)
      :clj-runtime (prn-str deps-data)}))
 
@@ -536,6 +552,89 @@
                       :escape-unicode false
                       :escape-js-separators false)
       println))
+
+
+(defn- override-multi!
+  [lock-map]
+  (let [lock-no-exclusion (into {} (map
+                                     (fn [[[lib coord] v]]
+                                       [[lib (dissoc coord :exclusions)] v])
+                                     lock-map))
+        get-in-lock (fn [lib coord k]
+                      (if-let [result (get-in lock-map [(vector lib coord) k])]
+                        result
+                        (if-let [result (get-in lock-no-exclusion [(vector lib coord) k])]
+                          result
+                          (let [info {:lib lib
+                                      :coord coord
+                                      :method k}]
+                            (prn info)
+                            (throw
+                              (ex-info "Dependecy data not found!" info))))))]
+    (defmethod ext/canonicalize :mvn
+      [lib coord _config]
+      (get-in-lock lib coord :canonicalize))
+    (defmethod ext/canonicalize :git
+      [lib coord _config]
+      (get-in-lock lib coord :canonicalize))
+    (defmethod ext/canonicalize :local
+      [lib coord _config]
+      (get-in-lock lib coord :canonicalize))
+
+    (defmethod ext/manifest-type :git
+      [lib coord _config]
+      (get-in-lock lib coord :manifest-type))
+    (defmethod ext/manifest-type :local
+      [lib coord _config]
+      (get-in-lock lib coord :manifest-type))
+
+    (defmethod ext/coord-deps :mvn
+      [lib coord _manifest-type _config]
+      #_(get-in-lock lib coord :coord-deps)
+      (get-in-lock lib (select-keys coord [:mvn/version]) :coord-deps))
+    (defmethod ext/coord-deps :deps
+      [lib coord _manifest-type _config]
+      #_(get-in-lock lib coord :coord-deps)
+      (get-in-lock lib (dissoc coord :deps/manifest :deps/root :parents) :coord-deps))
+
+    (defmethod ext/coord-paths :mvn
+      [lib coord _manifest-type _config]
+      (get-in-lock lib (select-keys coord [:mvn/version]) :coord-paths))
+    (defmethod ext/coord-paths :deps
+      [lib coord _manifest-type _config]
+      #_(get-in-lock lib coord :coord-paths)
+      (get-in-lock lib (dissoc coord :deps/manifest :deps/root :parents) :coord-paths))))
+
+(defn create-basis'
+  "Modified version of clojure.tools.deps.alpha/create-basis.
+   See https://github.com/clojure/tools.deps.alpha/blob/5314a8347388f6ee1246f827035bd888dd1972f6/src/main/clojure/clojure/tools/deps/alpha.clj#L764"
+  [project-edn aliases]
+  (let [{:keys [root-edn]} (deps/find-edn-maps)
+        edn-maps [root-edn project-edn]
+        alias-data (->> edn-maps
+                     (map :aliases)
+                     (remove nil?)
+                     (apply merge-with merge))
+        argmap-data (->> aliases
+                      (remove nil?)
+                      (map #(get alias-data %)))
+        argmap (apply #'deps/merge-alias-maps argmap-data)
+        project-tooled-edn (deps/tool project-edn argmap)
+        master-edn (deps/merge-edns [root-edn project-tooled-edn])]
+    (deps/calc-basis master-edn {:resolve-args argmap :classpath-args argmap})))
+
+(defn classpath
+  [{:keys [lock-path deps-path aliases] :or {aliases []}}]
+  (let [lock (-> lock-path
+                slurp
+                (json/read-str :key-fn keyword)
+                :clj-runtime
+                edn/read-string)]
+    (override-multi! lock)
+    (-> deps-path
+      to-absolute-paths
+      (create-basis' aliases)
+      :classpath-roots)))
 
 (comment
   (deps-lock-data "/home/jlle/projects/clojure-lsp/cli/deps.edn")
