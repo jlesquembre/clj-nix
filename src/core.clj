@@ -127,7 +127,7 @@
 (defn to-absolute-paths
   [deps-path]
   (s/transform
-    [(map-key-walker :local/root) #(string/starts-with? % ".")]
+    [(map-key-walker :local/root) fs/relative?]
     (partial canonical-path deps-path)
     (deps/slurp-deps (io/file deps-path))))
 
@@ -225,19 +225,9 @@
 ;;;;
 ;;;;
 
-(defn deps-lock
-  "Generate and print lock file for a given edn file"
-  [{:keys [in out]}]
-  (println (json/write-str (-> {:in in}
-                               nix-deps
-                               (update :clj-runtime prn-str))
-                          :escape-slash false
-                          :escape-unicode false
-                          :escape-js-separators false)))
 (defn -main
   [& args]
-  (let [[in out] args]
-    (deps-lock {:in in})))
+  (println "I do nothing"))
 
 (defn paths
   "Extract paths from deps.edn file
@@ -352,17 +342,29 @@
 (def dep-keys #{:deps :replace-deps :extra-deps :override-deps :default-deps})
 
 (def ^:dynamic *project-root* nil)
+(def project-root-placeholder "@projectRoot@")
+
+(defn- throw+
+  [msg data]
+  (throw (ex-info (prn-str msg data) data)))
 
 (defn find-git-root
   [path]
-  (let [f (io/file path)]
+  (let [f (some-> path fs/canonicalize)]
     (cond
-      (nil? f) nil
-      (not (.exists f)) nil
-      (.isFile f) (find-git-root (.getParent f))
-      (.isDirectory f) (if (.exists (io/file f ".git"))
-                         (str f)
-                         (find-git-root (.getParent f))))))
+      (nil? f)
+      nil
+
+      (not (fs/exists? f))
+      nil
+
+      (fs/regular-file? f)
+      (find-git-root (fs/parent f))
+
+      (fs/directory? f)
+      (if (fs/exists? (fs/path f ".git"))
+        (str f)
+        (find-git-root (fs/parent f))))))
 
 (defn get-edn-map
   "Slurp a deps.edn file and merge it with root deps.edn (without aliases) file"
@@ -486,13 +488,19 @@
           (assoc data :coord-paths [(:nix-path nix)])))
 
 (defmethod nixify-dep :git
-  [[dep {:keys [nix manifest-type] :as data}]]
+  [[dep {:keys [nix manifest-type coord-paths] :as data}]]
   (let [{:deps/keys [root]} manifest-type
         {:keys [nix-path]} nix]
     (vector dep
             (-> data
-              (update :coord-paths (partial mapv #(string/replace-first % root nix-path)))
-              (assoc-in [:manifest-type :deps/root] nix-path)))))
+              (assoc-in [:manifest-type :deps/root] nix-path)
+              ; TODO Maybe this update is not needed
+              (update :nix (fn [m] (assoc m
+                                          :paths
+                                          (mapv
+                                            #(subs (string/replace-first % root "") 1)
+                                            coord-paths))))
+              (update :coord-paths (partial mapv #(string/replace-first % root nix-path)))))))
 
 (defmethod nixify-dep :local
   [[dep data]]
@@ -500,7 +508,7 @@
     (throw (ex-info "Local deps must be inside the project"
                     {:project-root *project-root*
                      :dep dep})))
-  (let [update-path (fn [p] (string/replace-first p *project-root* "@projectRoot@"))]
+  (let [update-path (fn [p] (string/replace-first p *project-root* project-root-placeholder))]
     (vector (update-in dep [1 :local/root] update-path)
             (-> data
                 (dissoc :nix)
@@ -528,26 +536,28 @@
 
 (defn deps-lock-data
   "Prints lock file for a given edn file"
-  [deps-path]
-  (let [deps-data (binding [*project-root* (find-git-root deps-path)]
-                    (-> deps-path
-                       expand-deps-recursively
-                       add-static-attrs))]
-    {:nix-info (into []
-                     (comp
-                       (map val)
-                       (map :nix)
-                       (remove nil?)
-                       (distinct))
-                     deps-data)
-     :clj-runtime (prn-str deps-data)}))
-
-
-(defn deps-lock2
-  "Prints lock file for a given edn file"
   [{:keys [deps-path]}]
-  (-> deps-path
-      deps-lock-data
+  (if-let [project-root (find-git-root deps-path)]
+    (let [deps-data (binding [*project-root* project-root]
+                      (-> deps-path
+                         expand-deps-recursively
+                         add-static-attrs))]
+      {:nix-info (into []
+                       (comp
+                         (map val)
+                         (map :nix)
+                         (remove nil?)
+                         (distinct))
+                       deps-data)
+       :clj-runtime (prn-str deps-data)})
+    (throw+ "Project root not found!" {:deps-path deps-path})))
+
+
+
+(defn deps-lock
+  "Prints lock file for a given edn file"
+  [args]
+  (-> (deps-lock-data args)
       (json/write-str :escape-slash false
                       :escape-unicode false
                       :escape-js-separators false)
@@ -565,12 +575,10 @@
                         result
                         (if-let [result (get-in lock-no-exclusion [(vector lib coord) k])]
                           result
-                          (let [info {:lib lib
-                                      :coord coord
-                                      :method k}]
-                            (prn info)
-                            (throw
-                              (ex-info "Dependecy data not found!" info))))))]
+                          (throw+ "Dependecy data not found!"
+                                  {:lib lib
+                                   :coord coord
+                                   :method k}))))]
     (defmethod ext/canonicalize :mvn
       [lib coord _config]
       (get-in-lock lib coord :canonicalize))
@@ -603,7 +611,8 @@
     (defmethod ext/coord-paths :deps
       [lib coord _manifest-type _config]
       #_(get-in-lock lib coord :coord-paths)
-      (get-in-lock lib (dissoc coord :deps/manifest :deps/root :parents) :coord-paths))))
+      (get-in-lock lib (dissoc coord :deps/manifest :deps/root :parents :dependents) :coord-paths))))
+
 
 (defn create-basis'
   "Modified version of clojure.tools.deps.alpha/create-basis.
@@ -624,17 +633,29 @@
     (deps/calc-basis master-edn {:resolve-args argmap :classpath-args argmap})))
 
 (defn classpath
-  [{:keys [lock-path deps-path aliases] :or {aliases []}}]
-  (let [lock (-> lock-path
+  [{:keys [lock-path deps-path aliases project-dir] :or {aliases []}}]
+  (let [deps-path (or deps-path (str project-dir "/deps.edn"))
+        lock-path (or lock-path (str project-dir "/deps-lock.json"))
+        lock (-> lock-path
                 slurp
                 (json/read-str :key-fn keyword)
                 :clj-runtime
-                edn/read-string)]
+                edn/read-string)
+        lock (s/transform
+               (s/walker #(string/starts-with? % project-root-placeholder))
+               #(string/replace % project-root-placeholder project-dir)
+               lock)]
     (override-multi! lock)
     (-> deps-path
       to-absolute-paths
       (create-basis' aliases)
       :classpath-roots)))
+
+(defn classpath-prn
+  [args]
+  (->> (classpath args)
+       (string/join ":")
+       println))
 
 (comment
   (deps-lock-data "/home/jlle/projects/clojure-lsp/cli/deps.edn")
