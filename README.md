@@ -4,9 +4,6 @@ Nix helpers for Clojure projects
 
 STATUS: alpha. Please leave feedback.
 
-Aliases and `local/root` dependencies are not supported, but I'm planning on
-adding support for both.
-
 ## Table of contents
 
 - [Introduction](#introduction)
@@ -87,7 +84,8 @@ Derivations:
 
 - [mkCljBin](#mkcljbin): Creates a clojure application
 - [customJdk](#customjdk): Creates a custom JDK with jlink. Optionally takes a
-  derivation created with `mkCljBin`
+  derivation created with `mkCljBin`. The intended use case is to create a
+  minimal JDK you can deploy in a container (like Docker)
 - [mkGraalBin](#mkgraalbin): Creates a binary with GraalVM from a derivation
   created with `mkCljBin`
 
@@ -119,10 +117,16 @@ default are mandatory):
 
 - **version**: Derivation and clojure project version. (Default: `DEV`)
 
+- **aliases**: Aliases to be used (Default: `[ ]`)
+
 - **main-ns**: Main clojure namespace. A `-main` function is expected here.
 
-- **compile**: A flag to decide if compile the clojure files in `projectSrc`.
-  (Default: `true`)
+- **ns-compile**: Namespace(s) to compile. The `filter-nses` argument for the
+  `compile-clj` function (Default: First `main-ns` segment. E.g.: If `main-ns`
+  is `demo.core`, `ns-compile` will be `demo`)
+
+- **ns-compile-extra**: Extra namespaces to compile. It will be appended to
+  `ns-compile` (Default: `[ ]`)
 
 - **java-opts**: Java options. Ignored if `compile` is false. (Default: `[ ]`)
 
@@ -458,3 +462,25 @@ nix run github:/jlesquembre/clj-demo-project#clj-kondo
 - [dwn](https://github.com/webnf/dwn)
 - [clj2nix](https://github.com/hlolli/clj2nix)
 - [mvn2nix](https://github.com/fzakaria/mvn2nix)
+- [clojure-nix-locker](https://github.com/bevuta/clojure-nix-locker)
+
+## Internals
+
+### JARs
+
+To run a clojure application, we don't generate an uberjar. Instead, we build
+the classpath with all the dependecies, and create a jar with our application
+(our application jar will be prepended to the classpath)
+
+[juxt/pack.alpha](https://github.com/juxt/pack.alpha#what-does-conflict-less-mean)
+takes a similiar approach to provide a conflict-less way to package clojure
+applications, see
+[juxt/pack.alpha: What does conflict-less mean?](https://github.com/juxt/pack.alpha#what-does-conflict-less-mean)
+
+### Classpath
+
+We use Clojure tools.deps to generate the classpath at build time. Information
+about the dependency tree is saved in the lock file. To avoid making http
+requests at build time, we are re-defining some multimethods (from the
+`clojure.tools.deps.alpha.extensions` namespace) to get the data about the
+dependecies from the lock file )

@@ -24,6 +24,8 @@
     [org.eclipse.aether.internal.impl Maven2RepositoryLayoutFactory]
     [org.eclipse.aether.repository RemoteRepository]))
 
+(def VERSION 1)
+
 (defn sri-hash
   [path]
   (let [path (.toPath (io/file path))
@@ -82,41 +84,6 @@
                       (s/pred akey) akey
                       coll? [s/ALL p])))
 
-
-;; TODO implement in pure clojure
-(defn- clj-git-dep->nix-dep
-  [[lib-name {:keys [git/sha git/url deps/root paths]}]]
-  (-> (sh/sh "nix-prefetch-git" url sha)
-     :out
-     (json/read-str :key-fn keyword)
-     (select-keys [:url :rev :sha256 :path])
-     (rename-keys {:path :nix-path})
-     (assoc :type :git
-            :lib-name lib-name
-            :paths (let [i (-> root count inc)]
-                     (mapv #(subs % i) paths)))))
-
-(defn- clj-mvn-deps->nix-deps
-  [libs repos]
-  (let [tmp-dir (fs/create-temp-dir {:prefix "mvn-deps"})
-        maven-resolver (maven-connector (str tmp-dir) repos)
-        deps (mapv #(apply maven-resolver %) libs)]
-   (fs/delete-tree tmp-dir)
-   deps))
-
-
-(defn split-deps
-  [libs]
-  {:mvn-deps (into {} (filter (comp :mvn/version val) libs))
-   :git-deps (into {} (filter (comp :git/url val) libs))})
-
-(defn- runtime-basis
-  [deps-map]
-  (let [{:keys [root-edn]} (deps/find-edn-maps)]
-    (deps/calc-basis
-      (deps/merge-edns [root-edn deps-map]))))
-
-
 (defn- canonical-path
   [deps-path path]
   (.getCanonicalPath
@@ -132,116 +99,6 @@
     (deps/slurp-deps (io/file deps-path))))
 
 
-(defn clj-deps->nix-deps
-  [deps]
-  (let [{:keys [libs mvn/repos classpath classpath-roots]} (runtime-basis deps)
-        {:keys [mvn-deps git-deps]} (split-deps libs)]
-    {:nix-info (cond-> []
-                       (seq mvn-deps) (into (clj-mvn-deps->nix-deps mvn-deps repos))
-                       (seq git-deps) (into (map clj-git-dep->nix-dep git-deps)))
-     :clj-runtime {:libs libs
-                   :mvn/repos repos
-                   :classpath classpath
-                   :classpath-roots classpath-roots}}))
-
-
-(defn dep-paths
-  "Returns the paths for a clj dependency"
-  [{:keys [nix-path paths] :as dep}]
-  (case (:type dep)
-    :mvn [nix-path]
-    :git (mapv #(str nix-path "/" %) paths)
-    (throw (ex-info "Only maven and git deps are supported"
-                    {:dep dep}))))
-
-
-(defn- local-dep
-  [[_ {:keys [local/root] :or {root "/"}}]]
-  (when-not (string/starts-with? root "/")
-    root))
-
-(defn expand-deps
-  "In case we have dependecies as git submodules (:local/root)"
-  [deps-file]
-  (let [deps (-> deps-file io/file deps/slurp-deps)
-        local-deps (->> (:deps deps)
-                        (map local-dep)
-                        (remove nil?))]
-
-    (reduce
-      (fn [deps local-dep]
-        (let [child-deps
-              (deps/slurp-deps (io/file (.getParent (io/file deps-file))
-                                       local-dep
-                                       "deps.edn"))]
-          (-> deps
-            (update :paths into (map
-                                  #(str (io/file local-dep %))
-                                  (get child-deps :paths ["src"])))
-            (update :deps merge (:deps child-deps)))))
-      deps
-      local-deps)))
-
-
-(defn nix-deps
-  [{:keys [in]}]
-  (let [lock (-> (or in "deps.edn")
-                 io/file
-                 deps/slurp-deps
-                 clj-deps->nix-deps)
-        dep->paths (into {} (map (juxt :lib-name dep-paths)
-                                 (:nix-info lock)))
-        dep->path-root (into {} (map (juxt :lib-name :nix-path)
-                                     (:nix-info lock)))]
-    (-> lock
-      (assoc-in [:clj-runtime :classpath-roots]
-                (into [] (mapcat val dep->paths)))
-
-      (assoc-in [:clj-runtime :classpath]
-                (apply hash-map
-                   (mapcat (fn [[k v]] (interleave v (repeat {:lib-name k})))
-                           dep->paths)))
-      (update-in [:clj-runtime :libs]
-                 #(reduce-kv
-                    (fn [m k v]
-                      (cond-> (assoc-in m [k :paths] (dep->paths k))
-                        (:deps/root v) (assoc-in [k :deps/root] (dep->path-root k))))
-                    %
-                    %))
-      (update :nix-info #(mapv
-                           (fn [m] (update m :lib-name str))
-                           %)))))
-
-(defn- get-paths
-  "Get paths from deps.edn file"
-  [deps]
-  (-> deps
-      expand-deps
-      :paths
-      (or ["src"])))
-;;;;
-;;;;
-;; External API, used by nix
-;;;;
-;;;;
-
-(defn -main
-  [& args]
-  (println "I do nothing"))
-
-(defn paths
-  "Extract paths from deps.edn file
-   Optionally format it as :json"
-  [{:keys [deps fmt]}]
-  (let [paths (get-paths deps)]
-    (println
-      (case fmt
-        :json (json/write-str paths
-                              :escape-slash false
-                              :escape-unicode false
-                              :escape-js-separators false)
-        (string/join " " paths)))))
-
 (defn remove-timestamp!
   [root-dir lib-name]
   (let [f (io/file root-dir "META-INF/maven" (str lib-name) "pom.properties")]
@@ -251,93 +108,6 @@
         (string/join "\n")
         (spit f))))
 
-
-(defn jar [{:keys [project-dir lib-name version main-ns java-opts]}]
-  (let [src-dirs (mapv (partial str project-dir "/")
-                       (get-paths (str project-dir "/deps.edn")))
-        class-dir (str project-dir "/target/classes")
-        basis (-> (str project-dir "/deps-lock.json")
-                  slurp
-                  (json/read-str :key-fn keyword)
-                  :clj-runtime
-                  edn/read-string)
-        basis-extra (-> basis
-                        (update :classpath-roots #(into src-dirs %))
-                        (update :classpath
-                                #(into % (for [d src-dirs] [d {:path-key :paths}]))))
-
-        lib-name (if (qualified-symbol? (symbol lib-name))
-                   (symbol lib-name)
-                   (symbol lib-name lib-name))
-        main main-ns
-        jar-file (format "%s/target/%s-%s.jar"
-                         project-dir
-                         (name lib-name)
-                         version)]
-
-
-      (b/copy-dir {:src-dirs src-dirs
-                   :target-dir class-dir})
-      ; TODO Add compile java step
-      (b/compile-clj (cond-> {:basis basis-extra
-                              :src-dirs src-dirs
-                              :class-dir class-dir}
-                       (seq java-opts) (assoc :java-opts java-opts)))
-      (b/write-pom {:class-dir class-dir
-                    :lib lib-name
-                    :version version
-                    :basis basis})
-                    ; :src-dirs src-dirs})
-
-      (remove-timestamp! class-dir lib-name)
-
-      (b/jar {:class-dir class-dir
-              :main main
-              :jar-file jar-file})
-      (print jar-file)))
-
-
-(comment
-  (sri-hash "/home/jlle/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar")
-
-  (runtime-basis '{:deps {org.clojure/clojure {:mvn/version "1.10.3"}}})
-                          ; io.github.clojure/tools.build {:git/tag "v0.7.7" :git/sha "1474ad6"}}})
-
-
-  (clj-deps->nix-deps '{:deps {org.clojure/clojure {:mvn/version "1.10.3"}}})
-                               ; io.github.clojure/tools.build {:git/tag "v0.7.7" :git/sha "1474ad6"}}})
-
-  (json/read-str
-    (with-out-str
-      (deps-lock {:in "/home/jlle/projects/clj-demo-project/deps.edn"})))
-
-  (nix-deps {:in "/home/jlle/projects/clj-demo-project/deps.edn"})
-
-  (:libs (runtime-basis "/home/jlle/projects/clj-demo-project/deps.edn"))
-  (runtime-basis "deps.edn")
-
-
-
-  (paths {:deps "/home/jlle/projects/clj-demo-project/deps.edn"})
-
-  (with-out-str
-    (paths {:deps "/home/jlle/projects/clj-demo-project/deps.edn"}))
-
-  (expand-deps "/home/jlle/projects/babashka/deps2.edn"))
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; NEW
-;;;; NEW
-;;;; NEW
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def dep-keys #{:deps :replace-deps :extra-deps :override-deps :default-deps})
 
@@ -384,7 +154,6 @@
   "Canonicalize all relative paths for :local/root deps"
   [x root]
   (s/transform
-    #_[(map-key-walker :local/root) (complement #(string/starts-with? % "/"))]
     [(map-key-walker :local/root) fs/relative?]
     #(if (string? root)
        (.getCanonicalPath (io/file root %))
@@ -467,7 +236,7 @@
   [dep]
   (let [[lib {:git/keys [url sha]}] (canonicalize dep)]
     [url sha]
-
+   ;; TODO implement in pure clojure
    (-> (sh/sh "nix-prefetch-git" url sha)
       :out
       (json/read-str :key-fn keyword)
@@ -542,16 +311,19 @@
                       (-> deps-path
                          expand-deps-recursively
                          add-static-attrs))]
-      {:nix-info (into []
-                       (comp
-                         (map val)
-                         (map :nix)
-                         (remove nil?)
-                         (distinct))
-                       deps-data)
+      {:version VERSION
+       :nix-info (sort-by
+                   :lib-name
+                   (into []
+                         (comp
+                           (map val)
+                           (map :nix)
+                           (remove nil?)
+                           (map #(update % :lib-name str))
+                           (distinct))
+                        deps-data))
        :clj-runtime (prn-str deps-data)})
     (throw+ "Project root not found!" {:deps-path deps-path})))
-
 
 
 (defn deps-lock
@@ -610,7 +382,6 @@
       (get-in-lock lib (select-keys coord [:mvn/version]) :coord-paths))
     (defmethod ext/coord-paths :deps
       [lib coord _manifest-type _config]
-      #_(get-in-lock lib coord :coord-paths)
       (get-in-lock lib (dissoc coord :deps/manifest :deps/root :parents :dependents) :coord-paths))))
 
 
@@ -632,33 +403,135 @@
         master-edn (deps/merge-edns [root-edn project-tooled-edn])]
     (deps/calc-basis master-edn {:resolve-args argmap :classpath-args argmap})))
 
-(defn classpath
+
+(defn- load-lock
+  [lock-path]
+  (let [lock (-> lock-path
+                slurp
+                (json/read-str :key-fn keyword))]
+    (if (not= (:version lock) VERSION)
+      (throw+ "deps-lock.json was generated with a different clj-nix version, try to generate it again"
+              {:lock-version (:version lock)
+               :expected-version VERSION})
+      (-> lock
+          :clj-runtime
+          edn/read-string))))
+
+(defn- str->kw
+  [s]
+  (keyword
+    (string/replace s ":" "")))
+
+(defn create-basis-nix
   [{:keys [lock-path deps-path aliases project-dir] :or {aliases []}}]
   (let [deps-path (or deps-path (str project-dir "/deps.edn"))
         lock-path (or lock-path (str project-dir "/deps-lock.json"))
-        lock (-> lock-path
-                slurp
-                (json/read-str :key-fn keyword)
-                :clj-runtime
-                edn/read-string)
         lock (s/transform
                (s/walker #(string/starts-with? % project-root-placeholder))
                #(string/replace % project-root-placeholder project-dir)
-               lock)]
+               (load-lock lock-path))]
+    lock
     (override-multi! lock)
     (-> deps-path
       to-absolute-paths
-      (create-basis' aliases)
-      :classpath-roots)))
+      (create-basis' (mapv str->kw aliases)))))
+
+
+(defn classpath
+  [args]
+  (:classpath-roots (create-basis-nix args)))
+
+
+(defn- get-paths
+  "Get paths from deps.edn file"
+  [deps]
+  (-> deps
+      ; expand-deps
+      :paths
+      (or ["src"])))
+
+(defn jar [{:keys [project-dir lib-name version main-ns java-opts ns-compile ns-compile-extra] :as args}]
+  (let [src-dirs (mapv (partial str project-dir "/")
+                       (get-paths (str project-dir "/deps.edn")))
+        class-dir (str project-dir "/target/classes")
+        basis (create-basis-nix args)
+        filter-nses (apply vector
+                           (if (empty? ns-compile)
+                             (first (string/split main-ns #"\."))
+                             ns-compile)
+                           ns-compile-extra)
+
+        lib-name (if (qualified-symbol? (symbol lib-name))
+                   (symbol lib-name)
+                   (symbol lib-name lib-name))
+        main main-ns
+        jar-file (format "%s/target/%s-%s.jar"
+                         project-dir
+                         (name lib-name)
+                         version)]
+
+
+      (b/copy-dir {:src-dirs src-dirs
+                   :target-dir class-dir})
+      ; TODO Add compile java step
+      (b/compile-clj (cond-> {:basis basis
+                              :src-dirs src-dirs
+                              :filter-nses filter-nses
+                              :class-dir class-dir}
+                       (seq java-opts) (assoc :java-opts java-opts)))
+      (b/write-pom {:class-dir class-dir
+                    :lib lib-name
+                    :version version
+                    :basis basis})
+                    ; :src-dirs src-dirs})
+
+      (remove-timestamp! class-dir lib-name)
+
+      (b/jar {:class-dir class-dir
+              :main main
+              :jar-file jar-file})
+      (print jar-file)))
+
+
 
 (defn classpath-prn
   [args]
-  (->> (classpath args)
-       (string/join ":")
-       println))
+  (let [cp (classpath args)]
+    (->> cp
+         (string/join ":")
+         println)
+    (->> cp
+         (filter fs/absolute?)
+         (filter #(string/starts-with? % "/nix/store"))
+         (string/join ":")
+         println)))
+
+
+(defn -main
+  [& args]
+  (println "I do nothing"))
+
 
 (comment
-  (deps-lock-data "/home/jlle/projects/clojure-lsp/cli/deps.edn")
+  (to-absolute-paths "/home/jlle/projects/clj-demo-project/deps.edn")
+
+  (let [data (-> "/home/jlle/projects/clj-demo-project/deps-lock.json"
+                slurp
+                (json/read-str :key-fn keyword)
+                :clj-runtime
+                edn/read-string)]
+    (s/transform
+      (s/walker #(string/starts-with? % project-root-placeholder))
+      #(string/replace % project-root-placeholder "XXXXX")
+      data)
+
+    (s/transform
+      (s/walker #(string/starts-with? % project-root-placeholder))
+      #(string/replace % project-root-placeholder "XXXXX"))))
+
+(comment
+  (deps-lock-data {:deps-path "/home/jlle/projects/clojure-lsp/cli/deps.edn"})
+  (find-git-root "/home/jlle/projects/clojure-lsp/cli/deps.edn")
 
   (get-edn-map "/home/jlle/projects/clojure-lsp/cli/deps.edn")
 
@@ -732,3 +605,147 @@
 
   (get-all-deps "/home/jlle/projects/clj-nix/deps.edn"))
 
+(comment
+
+  ;; methods with side effects
+  ; ext/canonicalize   -> Can have side effects for mvn and git.
+  ;                       For local deps returns the canonical path (absolute path)
+
+  ; ext/dep-id         -> Impure, calls ext/canonicalize
+
+  ; ext/manifest-type  -> Pure for maven. Impure for git and local  returns :root (absolute path)
+  ;                       Also returns :deps/manifest, used to dispatch ext/coord-deps and ext/coord-paths
+
+  ; ext/coord-deps     -> Impure, save these dependencies recursively
+  ; ext/coord-paths    -> Impure for maven, returns path to jar
+  ;                       For deps (git and local) seems pure
+
+  ;; Maven deps
+  (ext/canonicalize
+    'com.rpl/specter
+    {:mvn/version "1.1.4-SNAPSHOT"}
+    nil)
+  (ext/canonicalize
+    'org.eclipse.lsp4j/org.eclipse.lsp4j
+    {:mvn/version "0.12.0"  :exclusions ['org.eclipse.xtend/org.eclipse.xtend.lib
+                                         'com.google.code.gson/gson]}
+    nil)
+
+  (ext/dep-id
+    'com.rpl/specter
+    {:mvn/version "1.1.4"}
+    nil)
+  (ext/dep-id
+    'org.eclipse.lsp4j/org.eclipse.lsp4j
+    {:mvn/version "0.12.0"  :exclusions ['org.eclipse.xtend/org.eclipse.xtend.lib
+                                         'com.google.code.gson/gson]}
+    nil)
+
+  (ext/manifest-type
+    'com.rpl/specter
+    {:mvn/version "1.1.4"}
+    nil)
+
+  (ext/coord-deps
+    'com.rpl/specter
+    {:mvn/version "1.1.4"}
+    :mvn
+    {:mvn/repos mvn/standard-repos})
+
+  (ext/coord-deps
+    'com.rpl/specter
+    {:mvn/version "LATEST"}
+    :mvn
+    {:mvn/repos mvn/standard-repos})
+
+  (ext/coord-deps
+    'nasus/nasus
+    {:mvn/version "0.1.7"}
+    :mvn
+    {:mvn/repos mvn/standard-repos})
+  (ext/coord-deps
+    'org.clojure/clojure
+    {:mvn/version "1.10.0"}
+    :mvn
+    {:mvn/repos mvn/standard-repos})
+
+  (ext/coord-paths
+    'com.rpl/specter
+    {:mvn/version "1.1.4"}
+    :mvn
+    {:mvn/repos mvn/standard-repos})
+
+
+  ;; Git deps
+  (ext/canonicalize
+    'io.github.babashka/fs,
+    {:git/sha "03c55063bea4df658dfa2edd3f9b4259d1c4144c",
+     :git/url "https://github.com/babashka/fs.git",}
+    nil)
+  (ext/dep-id
+    'io.github.babashka/fs,
+    {:git/sha "03c55063bea4df658dfa2edd3f9b4259d1c4144c",
+     :git/url "https://github.com/babashka/fs.git",}
+    nil)
+  (ext/manifest-type 'org.clojure/spec.alpha
+    {:git/url "https://github.com/jlesquembre/clj-nix.git" :git/sha "7fdb0b261b19ad0ae5c3ce4c911b0b433f6a88be"}
+    nil)
+  (ext/manifest-type 'org.clojure/spec.alpha
+    {:git/url "https://github.com/clojure/spec.alpha.git" :git/sha "739c1af56dae621aedf1bb282025a0d676eff713"}
+    nil)
+  (ext/manifest-type
+    'io.github.babashka/fs,
+    {:git/sha "03c55063bea4df658dfa2edd3f9b4259d1c4144c",
+     :git/url "https://github.com/babashka/fs.git",}
+    nil)
+
+  (ext/manifest-type
+    'io.github.babashka/fs
+    {:git/tag "v0.1.4"
+     :git/sha "2bf527f"}
+    nil)
+
+
+  (ext/coord-deps
+      'io.github.babashka/fs,
+      {:deps/manifest :deps,
+       :deps/root "/home/jlle/.gitlibs/libs/io.github.babashka/fs/03c55063bea4df658dfa2edd3f9b4259d1c4144c"}
+      :deps,
+      nil)
+
+  (ext/coord-paths
+    'io.github.babashka/fs,
+    {:deps/root "/home/jlle/.gitlibs/libs/io.github.babashka/fs/03c55063bea4df658dfa2edd3f9b4259d1c4144c"}
+    :deps
+    nil)
+
+  (dir/with-dir (io/file "/home/jlle/projects/clojure-lsp/cli")
+    (ext/canonicalize
+      'clojure-lsp/lib
+      {:local/root "../lib"}
+      nil))
+  ;; Local deps
+  (ext/canonicalize
+    'clojure-lsp/lib
+    {:local/root "../lib"}
+    nil)
+  (ext/dep-id
+    'clojure-lsp/lib
+    {:local/root "../lib"}
+    nil)
+  (ext/manifest-type
+    'clojure-lsp/lib
+    {:local/root "/home/jlle/projects/clojure-lsp/lib"}
+    nil)
+
+  ;; create new session to avoid caching
+  (session/with-session
+    (ext/coord-paths
+      'clojure-lsp/cli
+      {:deps/root "/home/jlle/projects/clojure-lsp/cli"}
+      :deps
+      nil))
+
+  (ext/coord-type {:git/url "https://github.com/clojure/spec.alpha.git" :sha "739c1af56dae621aedf1bb282025a0d676eff713"})
+  (ext/coord-type {:mvn/version "1.1.4"})
+  (ext/coord-type {:mvn/version "0.12.0"  :exclusions ['org.eclipse.xtend/org.eclipse.xtend.lib]}))

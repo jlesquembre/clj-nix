@@ -58,7 +58,7 @@
                   help = "Update deps-lock.json";
                   command =
                     ''
-                      clj -X core/deps-lock :in '"deps.edn"' | jq . > deps-lock.json
+                      clj -X core/deps-lock :deps-path '"deps.edn"' | jq . > deps-lock.json
                     '';
                 }
               ];
