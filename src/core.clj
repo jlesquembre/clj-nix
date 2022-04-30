@@ -47,6 +47,29 @@
        :out
        string/trim))
 
+(defn network-exception? [e]
+  (let [msg (.getMessage e)]
+    (boolean
+     (or (re-find #"(?i)Connect.*timed out" msg)
+         (re-find #"(?i)Could not resolve host" msg)))))
+
+(defn retry-on-network-exception [f]
+  (loop [sleep-ms 2000
+         n 5]
+    (if (zero? n)
+      (f)
+      (let [result (try
+                     (f)
+                     (catch Exception e
+                       (if (network-exception? e)
+                         ::retry
+                         (throw e))))]
+        (if (not= ::retry result)
+          result
+          (do
+            (Thread/sleep sleep-ms)
+            (recur (* 2 sleep-ms) (dec n))))))))
+
 (defn maven-connector
   "Returns a fn to resolve a maven dep to an url"
   ([local-repo]
@@ -61,7 +84,8 @@
                        (.setArtifact (mvn/coord->artifact lib coord))
                        (.setRepositories repos))
 
-             result (.resolveArtifact system session request)
+             result (retry-on-network-exception
+                     #(.resolveArtifact system session request))
              artifact (.getArtifact result)
              repo ^RemoteRepository (.getRepository result)
 
@@ -175,7 +199,8 @@
 (defn canonicalize
   "Simplified version of ext/canonicalize"
   [[lib coord]]
-  (ext/canonicalize lib coord {:mvn/repos mvn/standard-repos}))
+  (retry-on-network-exception
+   #(ext/canonicalize lib coord {:mvn/repos mvn/standard-repos})))
 
 (defn coord-deps
   "Simplified version of ext/coord-deps.
