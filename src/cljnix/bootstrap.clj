@@ -9,7 +9,8 @@
     [clojure.math.combinatorics :as combo]
     [clojure.data.json :as json]
     [babashka.fs :as fs]
-    [cljnix.utils :refer [sri-hash throw+]]))
+    [cljnix.utils :refer [throw+]]
+    [cljnix.nix :refer [nix-hash]]))
 
 
 (def mvn-path (deref mvn/cached-local-repo))
@@ -37,40 +38,29 @@
       ((complement string/ends-with?) repo-url "/") (str repo-url "/")
       :else repo-url)))
 
-;; TODO implement in pure clojure
-(defn- add-nix-hash
-  [{:keys [url sha] :as m}]
-  (-> (sh/sh "nix-prefetch-git" url sha)
-     :out
-     (json/read-str :key-fn keyword)
-     :sha256
-     (as-> $ (assoc m :sha256 $))))
 
-(defn- git-coords
-  [path]
-  (let [parts (string/split
-                (str (fs/relativize gitlib-path path))
-                #"/")
-        src-path (string/join "/" (drop 3 parts))]
-    {:sha (first (drop 2 parts))
-     :paths [src-path]
-     :url (string/trim
-            (:out
-              (sh/with-sh-dir (string/replace path src-path "")
-                (sh/sh "git" "remote" "get-url" "origin"))))}))
 (defn nixify-mvn
   [path]
-  (let [url (str
-              (get-repo-url path)
-              (fs/relativize mvn-path path))]
+  (let [url (str (get-repo-url path)
+                 (fs/relativize mvn-path path))]
     {:url url
-     :hash (sri-hash path)}))
+     :hash (nix-hash path)}))
 
 (defn nixify-git
+  "For a path in the gitlibs local cache, e.g.:
+   ~/.gitlibs/libs/com.github.babashka/fs/dc73460e63ff10c701c353227f2689b3d7c33a43/src
+   return the git data"
   [path]
-  (-> path
-      git-coords
-      add-nix-hash))
+  (let [[group artifact rev & src-path] (fs/components (fs/relativize gitlib-path path))
+        repo-root (fs/path gitlib-path group artifact rev)]
+    {:rev (str rev)
+     :paths [(str (apply fs/path src-path))]
+     :hash (nix-hash repo-root)
+     :url (string/trim
+            (:out
+              (sh/with-sh-dir (str repo-root)
+                (sh/sh "git" "remote" "get-url" "origin"))))}))
+
 
 (defn nixify-dep
   [path]
@@ -81,8 +71,9 @@
 
 (defn- same-git-dep?
   [a b]
-  (= (dissoc a :paths)
-     (dissoc b :paths)))
+  (= (select-keys a [:rev :url])
+     (select-keys b [:rev :url])))
+
 
 (defn nixify-classpath
   [deps-path]
@@ -105,9 +96,6 @@
 
 (comment
   (nixify-classpath "/home/jlle/projects/clojure-lsp/cli/deps.edn"))
-
-
-
 
 
 (comment

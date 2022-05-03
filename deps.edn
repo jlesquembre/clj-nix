@@ -1,8 +1,10 @@
 {:deps {org.clojure/clojure {:mvn/version "1.11.1"}
-        org.clojure/tools.deps.alpha {:mvn/version "0.12.1148"}
+        org.clojure/tools.deps.alpha {:mvn/version "0.14.1178"}
         org.clojure/data.json {:mvn/version "2.4.0"}
-        babashka/fs {:mvn/version "0.1.2"}
+        babashka/fs {:mvn/version "0.1.5"}
         com.rpl/specter {:mvn/version "1.1.4"}
+        org.clojure/math.combinatorics {:mvn/version "0.1.6"}
+        org.clj-commons/byte-streams {:mvn/version "0.3.0"}
         io.github.clojure/tools.build {:git/tag "v0.8.1"
                                        :git/sha "7d40500863818c6f9a6e077b18db305d02149384"}}
 
