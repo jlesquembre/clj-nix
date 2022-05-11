@@ -58,7 +58,16 @@
                   help = "Update deps-lock.json";
                   command =
                     ''
-                      clj -X core/deps-lock :deps-path '"deps.edn"' | jq . > deps-lock.json
+                      # clj -X core/deps-lock :deps-path '"deps.edn"' | jq . > deps-lock.json
+                      clj -X core/classpath-prn :project-dir '"."' > builder.classpath
+                    '';
+                }
+                {
+                  name = "kaocha";
+                  help = "Run tests with kaocha";
+                  command =
+                    ''
+                      clojure -M:test -m kaocha.runner "$@"
                     '';
                 }
               ];
