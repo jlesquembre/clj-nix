@@ -1,7 +1,8 @@
 .nrepl-port
 .lsp/
 .cpcache/
-.clj-kondo/
+**/.clj-kondo/*
+!.clj-kondo/config.edn
 .direnv/
 result
 target/

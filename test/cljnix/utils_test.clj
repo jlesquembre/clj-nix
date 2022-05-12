@@ -1,17 +1,16 @@
 (ns cljnix.utils-test
   (:require
+    [clojure.test :refer [deftest is use-fixtures]]
     [cljnix.utils :as utils]
-    [clojure.java.io :as io]
     [clojure.tools.deps.alpha.util.maven :as mvn]
     [babashka.fs :as fs]
-    [clojure.tools.cli.api :as tools]
-    [clojure.test :refer [deftest is use-fixtures]]))
+    [cljnix.test-helpers :as h]))
 
-(def cache-dir "/tmp/cljnix-test/cache")
+(def my-deps '{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
+                      babashka/fs {:mvn/version "0.1.5"}}})
 
 (defn deps-cache-fixture [f]
-  (tools/prep {:user nil
-               :project (str (fs/file (io/resource "resources/test-deps.edn")))})
+  (h/prep-deps my-deps)
   (f))
 
 (use-fixtures :once deps-cache-fixture)

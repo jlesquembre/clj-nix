@@ -159,29 +159,31 @@
 
 (defn- git-deps-seq
   [cache-dir]
-  (let [repo-level 3]
-    (into []
-          (comp
-            (filter #(= repo-level (:level %)))
-            (map :dir)
-            (map (fn [local-path]
-                   (let [url (utils/git-remote-url local-path)]
-                     {:url url
-                      :git-dir (utils/git-dir url)
-                      :local-path (str local-path)
-                      :rev (fs/file-name local-path)
-                      :lib (->> (fs/parent local-path)
-                                (fs/components)
-                                (take-last 2)
-                                (map str)
-                                (apply symbol))}))))
+  (if (not (fs/exists? (fs/path cache-dir "libs")))
+    []
+    (let [repo-level 3]
+      (into []
+            (comp
+              (filter #(= repo-level (:level %)))
+              (map :dir)
+              (map (fn [local-path]
+                     (let [url (utils/git-remote-url local-path)]
+                       {:url url
+                        :git-dir (utils/git-dir url)
+                        :local-path (str local-path)
+                        :rev (fs/file-name local-path)
+                        :lib (->> (fs/parent local-path)
+                                  (fs/components)
+                                  (take-last 2)
+                                  (map str)
+                                  (apply symbol))}))))
 
-          (tree-seq
-            (fn [{:keys [_ level]}] (not= repo-level level))
-            (fn [{:keys [dir level]}] (map #(hash-map :dir % :level (inc level))
-                                           (fs/list-dir dir)))
-            {:dir (fs/path cache-dir "libs")
-             :level 0}))))
+            (tree-seq
+              (fn [{:keys [_ level]}] (not= repo-level level))
+              (fn [{:keys [dir level]}] (map #(hash-map :dir % :level (inc level))
+                                             (fs/list-dir dir)))
+              {:dir (fs/path cache-dir "libs")
+               :level 0})))))
 
 ; TODO add test
 (defn missing-git-deps
