@@ -185,7 +185,6 @@
               {:dir (fs/path cache-dir "libs")
                :level 0})))))
 
-; TODO add test
 (defn missing-git-deps
   [deps cache-dir]
   (let [deps-set (into #{} (map git-dep-id) deps)]
