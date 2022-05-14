@@ -1,6 +1,6 @@
 (ns cljnix.nix-test
   (:require
-    [clojure.test :refer [deftest is use-fixtures testing]]
+    [clojure.test :refer [deftest is use-fixtures]]
     [babashka.fs :as fs]
     [cljnix.test-helpers :as h]
     [cljnix.nix :as nix]

@@ -9,26 +9,12 @@
     [clojure.data.json :as json]
     [babashka.fs :as fs]
     [cljnix.utils :refer [throw+] :as utils]
-    [cljnix.nix :refer [nix-hash]]))
+    [cljnix.nix :refer [nix-hash]]
+    [clojure.tools.deps.alpha.util.dir :as tools-deps.dir])
+  (:import
+    [java.io FileReader]
+    [org.apache.maven.model.io.xpp3 MavenXpp3Reader]))
 
-
-
-(comment
-  ; (load-cache
-  ;   "/home/jlle/projects/clojure-lsp/cli/deps.edn")
-
-  (tools/list {:format :edn
-               :user nil
-               :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"})
-
-
-  (:classpath-roots (deps/create-basis {:log :debug
-                                        :user nil
-                                        :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"}))
-
-  (:libs (deps/create-basis {:log :debug
-                             :user nil
-                             :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"})))
 
 (defn- mvn?
   [[_ {:keys [mvn/version]}]]
@@ -44,9 +30,28 @@
     (str (subs s 0 end)
          "pom")))
 
+(defn- artifact->pom
+  [path]
+  (str (first (fs/glob (fs/parent path) "*.pom"))))
 
-;; TODO Expand parent POMs
-;; use libs and not basis???
+(defn get-parent
+ [pom-path]
+ (when (= "pom" (fs/extension pom-path)) get-parent
+   (let [f (FileReader. pom-path)
+         pom (.read (MavenXpp3Reader.) f)
+         parent (.getParent pom)]
+     (when parent
+       (let [parent-path
+             (fs/path
+               @mvn/cached-local-repo
+               (string/replace (.getGroupId parent) "." "/")
+               (.getArtifactId parent)
+               (.getVersion parent)
+               (format "%s-%s.pom" (.getArtifactId parent) (.getVersion parent)))]
+         (when (fs/exists? parent-path)
+           (str parent-path)))))))
+
+
 (defn maven-deps
   [basis]
   (into []
@@ -56,19 +61,25 @@
                  (when-not (= 1 (count paths))
                    (throw+ "Maven deps can have only 1 path" {:lib lib :paths paths}))
                  (let [local-path (first paths)
-                       {:keys [mvn-path mvn-repo]} (utils/mvn-repo-info local-path @mvn/cached-local-repo)]
+                       {:keys [mvn-path mvn-repo]} (utils/mvn-repo-info local-path)]
                    {:lib lib
                     :version version
                     :mvn-path mvn-path
                     :mvn-repo mvn-repo
-                    :hash (nix-hash local-path)
                     :local-path local-path})))
-          (mapcat (fn [{:keys [local-path mvn-path mvn-repo] :as m}]
-                    (let [local-path (jar->pom local-path)]
-                      [m {:local-path local-path
-                          :mvn-repo mvn-repo
-                          :mvn-path (jar->pom mvn-path)
-                          :hash (nix-hash local-path)}]))))
+          (mapcat (juxt identity
+                        (fn [{:keys [local-path]}]
+                          (let [pom-path (artifact->pom local-path)]
+                            (assoc (utils/mvn-repo-info pom-path)
+                                   :local-path pom-path)))))
+          (mapcat (juxt identity
+                        (fn [{:keys [local-path]}]
+                          (when-let [parent-pom-path (get-parent local-path)]
+                            (assoc (utils/mvn-repo-info parent-pom-path)
+                                   :local-path parent-pom-path)))))
+          (remove nil?)
+          (distinct)
+          (map #(assoc % :hash (nix-hash (:local-path %)))))
         (:libs basis)))
 
 
@@ -91,7 +102,8 @@
 (defn make-maven-cache!
   [deps cache-path]
   (doseq [{:keys [mvn-path local-path]} deps
-          :let [new-path (fs/path cache-path mvn-path)]]
+          :let [new-path (fs/path cache-path mvn-path)]
+          :when (not (fs/exists? new-path))]
      (fs/create-dirs (fs/parent new-path))
      (fs/copy local-path new-path)))
 
@@ -99,7 +111,8 @@
   [deps cache-path]
   (doseq [{:keys [lib rev git-dir local-path]} deps
           :let [new-path (fs/path cache-path "libs" (str lib) rev)
-                config (fs/path cache-path git-dir "config")]]
+                config (fs/path cache-path git-dir "config")]
+          :when (not (fs/exists? new-path))]
      (fs/create-dirs (fs/parent new-path))
      (fs/copy-tree local-path new-path)
 
@@ -196,31 +209,86 @@
           (git-deps-seq cache-dir))))
 
 
+; (comment
+;   (def data (main "/home/jlle/projects/clojure-lsp/cli/deps.edn"))
+;   (missing-git-deps (:git-deps data) (:git-cache data)))
+
+
+
+(defn get-deps!
+  "Given a deps.edn file, a cache dir, and optionally, some aliases, return a
+   list of git and maven dependecies.
+   Cache dir is populated with .m2 and .gitlibs deps."
+  ([deps-path cache-dir]
+   (get-deps! deps-path cache-dir nil))
+  ([deps-path cache-dir aliases]
+
+   (println "Processing '" deps-path "' with aliases " (string/join ", " aliases))
+   (tools-deps.dir/with-dir (fs/file (fs/parent deps-path))
+     (let [options {:user nil :project deps-path :aliases aliases}]
+       ; Make sure evething is in the cache
+       (tools/prep options)
+
+       (let [basis (deps/create-basis options)
+             mvn-deps (maven-deps basis)
+             git-deps (git-deps basis)
+             ; cache-dir (fs/create-temp-dir {:prefix "clj-cache"})
+             [mvn-cache git-cache] (make-cache! :mvn-deps mvn-deps
+                                                :git-deps git-deps
+                                                :cache-dir cache-dir
+                                                :deps-path deps-path)]
+
+         #_(sorted-map :mvn (->> (concat mvn-deps (missing-mvn-deps mvn-deps mvn-cache))
+                                 (distinct)
+                                 (sort-by :mvn-path)
+                                 (mapv #(into (sorted-map) (select-keys % [:mvn-repo :mvn-path :hash]))))
+                       :git-deps (->> (concat git-deps (missing-git-deps git-deps git-cache))
+                                      (distinct)
+                                      (map #(update % :lib str))
+                                      (sort-by :lib)
+                                      (mapv #(into (sorted-map) (select-keys % [:lib :rev :url :git-dir :hash])))))
+         {:mvn mvn-deps
+          :git git-deps})))))
+
+; TODO add test
+(defn- aliases-combinations
+  [deps-file aliases]
+  (let [deps-file (str deps-file)]
+    (into [[deps-file nil]]
+          (comp
+            (mapcat #(combo/permuted-combinations aliases %))
+            (map #(vector deps-file %)))
+          (range 1 (inc (count aliases))))))
+
 (comment
-  (def data (main "/home/jlle/projects/clojure-lsp/cli/deps.edn"))
-  (missing-git-deps (:git-deps data) (:git-cache data)))
+  (aliases-combinations "foo" nil)
+  (aliases-combinations "foo" [:build])
+  (aliases-combinations "foo" [:build :test]))
 
 (defn main
-  [deps-path]
-
-  ; Make sure evething is in the cache
-  (tools/prep {:user nil :project deps-path})
-
-  (let [basis (deps/create-basis {:user nil :project deps-path})
-        mvn-deps (maven-deps basis)
-        git-deps (git-deps basis)
-        cache-dir (fs/create-temp-dir {:prefix "clj-cache"})
-        [mvn-cache git-cache] (make-cache! :mvn-deps mvn-deps
-                                           :git-deps git-deps
-                                           :cache-dir cache-dir
-                                           :deps-path deps-path)]
-
-    (sorted-map :mvn (->> (concat mvn-deps (missing-mvn-deps mvn-deps mvn-cache))
-                          (sort-by :mvn-path)
-                          (mapv #(into (sorted-map) (select-keys % [:mvn-repo :mvn-path :hash]))))
-                :git-deps git-deps
-                :git-cache git-cache)))
-
+  [project-dir]
+  (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
+    #_(into []
+            (comp
+              (filter #(= "deps.edn" (fs/file-name %)))
+              (map (juxt identity #(-> % deps/slurp-deps :aliases keys)))
+              (mapcat #(apply aliases-combinations %))
+              (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
+            (file-seq (fs/file project-dir)))
+    (transduce
+      (comp
+        (filter #(= "deps.edn" (fs/file-name %)))
+        (map (juxt identity #(-> % deps/slurp-deps :aliases keys)))
+        (mapcat #(apply aliases-combinations %))
+        (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
+      (completing
+        (fn [acc {:keys [mvn git]}] (-> acc
+                                      (update :mvn conj mvn)
+                                      (update :git conj git))))
+      {:mvn [] :git []}
+      (file-seq (fs/file project-dir)))))
+(comment
+  (main "/home/jlle/projects/clojure-lsp"))
 
 
 (comment
@@ -240,4 +308,8 @@
                         :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"})
     (tools/prep {:log :debug
                  :user nil
-                 :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"})))
+                 :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"})
+
+    (maven-deps
+      (deps/create-basis {:user nil
+                          :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"}))))
