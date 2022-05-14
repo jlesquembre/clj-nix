@@ -250,7 +250,6 @@
          {:mvn mvn-deps
           :git git-deps})))))
 
-; TODO add test
 (defn- aliases-combinations
   [deps-file aliases]
   (let [deps-file (str deps-file)]
@@ -260,10 +259,6 @@
             (map #(vector deps-file %)))
           (range 1 (inc (count aliases))))))
 
-(comment
-  (aliases-combinations "foo" nil)
-  (aliases-combinations "foo" [:build])
-  (aliases-combinations "foo" [:build :test]))
 
 (defn main
   [project-dir]
@@ -312,4 +307,8 @@
 
     (maven-deps
       (deps/create-basis {:user nil
-                          :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"}))))
+                          :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"})))
+
+  (aliases-combinations "deps.edn" nil)
+  (aliases-combinations "deps.edn" [:build])
+  (aliases-combinations "deps.edn" [:build :test :foo]))
