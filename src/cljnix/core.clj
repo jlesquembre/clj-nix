@@ -7,13 +7,11 @@
     [clojure.tools.gitlibs.config :as gitlibs-config]
     [clojure.math.combinatorics :as combo]
     [clojure.data.json :as json]
+    [version-clj.core :as version]
     [babashka.fs :as fs]
     [cljnix.utils :refer [throw+] :as utils]
     [cljnix.nix :refer [nix-hash]]
-    [clojure.tools.deps.alpha.util.dir :as tools-deps.dir])
-  (:import
-    [java.io FileReader]
-    [org.apache.maven.model.io.xpp3 MavenXpp3Reader]))
+    [clojure.tools.deps.alpha.util.dir :as tools-deps.dir]))
 
 
 (defn- mvn?
@@ -34,22 +32,6 @@
   [path]
   (str (first (fs/glob (fs/parent path) "*.pom"))))
 
-(defn get-parent
- [pom-path]
- (when (= "pom" (fs/extension pom-path)) get-parent
-   (let [f (FileReader. pom-path)
-         pom (.read (MavenXpp3Reader.) f)
-         parent (.getParent pom)]
-     (when parent
-       (let [parent-path
-             (fs/path
-               @mvn/cached-local-repo
-               (string/replace (.getGroupId parent) "." "/")
-               (.getArtifactId parent)
-               (.getVersion parent)
-               (format "%s-%s.pom" (.getArtifactId parent) (.getVersion parent)))]
-         (when (fs/exists? parent-path)
-           (str parent-path)))))))
 
 
 (defn maven-deps
@@ -60,22 +42,23 @@
           (map (fn [[lib {:keys [mvn/version paths]}]]
                  (when-not (= 1 (count paths))
                    (throw+ "Maven deps can have only 1 path" {:lib lib :paths paths}))
-                 (let [local-path (first paths)
-                       {:keys [mvn-path mvn-repo]} (utils/mvn-repo-info local-path)]
-                   {:lib lib
-                    :version version
-                    :mvn-path mvn-path
-                    :mvn-repo mvn-repo
-                    :local-path local-path})))
+                 (let [local-path (first paths)]
+                   (assoc (utils/mvn-repo-info local-path {:exact-version version})
+                          :lib lib
+                          :version version
+                          :local-path local-path))))
+          ; Add POM
           (mapcat (juxt identity
-                        (fn [{:keys [local-path]}]
+                        (fn [{:keys [local-path version]}]
                           (let [pom-path (artifact->pom local-path)]
-                            (assoc (utils/mvn-repo-info pom-path)
+                            (assoc (utils/mvn-repo-info pom-path {:exact-version version})
+                                   :version version
                                    :local-path pom-path)))))
+          ; Add parent POM
           (mapcat (juxt identity
                         (fn [{:keys [local-path]}]
-                          (when-let [parent-pom-path (get-parent local-path)]
-                            (assoc (utils/mvn-repo-info parent-pom-path)
+                          (when-let [parent-pom-path (utils/get-parent local-path)]
+                            (assoc (utils/mvn-repo-info parent-pom-path {})
                                    :local-path parent-pom-path)))))
           (remove nil?)
           (distinct)
@@ -98,20 +81,40 @@
         (:libs basis)))
 
 
+(def mvn-cache-subdir "mvn")
+(def git-cache-subdir "git")
+
+(defn- copy-if-needed
+  "Copy if dest doesn't exist"
+  [src dest]
+  (let [dest (cond-> dest (fs/directory? dest) (fs/path (fs/file-name src)))]
+    (when-not (fs/exists? (cond-> dest))
+      (fs/copy src dest))))
 
 (defn make-maven-cache!
   [deps cache-path]
-  (doseq [{:keys [mvn-path local-path]} deps
-          :let [new-path (fs/path cache-path mvn-path)]
+  (doseq [{:keys [mvn-path local-path snapshot]} deps
+          :let [new-path (fs/path cache-path mvn-cache-subdir mvn-path)]
           :when (not (fs/exists? new-path))]
      (fs/create-dirs (fs/parent new-path))
-     (fs/copy local-path new-path)))
+     (fs/copy local-path new-path)
+     (copy-if-needed
+       (fs/path (fs/parent local-path) "_remote.repositories")
+       (fs/parent new-path))
+
+     (when snapshot
+       (copy-if-needed
+         (fs/path (fs/parent local-path) snapshot)
+         (fs/parent new-path)))
+     #_(doseq [path (fs/glob (fs/parent local-path) "maven-metadata*.xml")]
+          (copy-if-needed path (fs/parent new-path)))))
+
 
 (defn make-git-cache!
   [deps cache-path]
   (doseq [{:keys [lib rev git-dir local-path]} deps
-          :let [new-path (fs/path cache-path "libs" (str lib) rev)
-                config (fs/path cache-path git-dir "config")]
+          :let [new-path (fs/path cache-path git-cache-subdir "libs" (str lib) rev)
+                config (fs/path cache-path git-cache-subdir git-dir "config")]
           :when (not (fs/exists? new-path))]
      (fs/create-dirs (fs/parent new-path))
      (fs/copy-tree local-path new-path)
@@ -126,19 +129,19 @@
    First populates the cache with the data from mvn-deps and git-deps (if provided)
    Afterwards calls clojure.tools.cli.api/prep to make sure that all
    dependecies are installed"
-  [& {:keys [mvn-deps git-deps cache-dir deps-path]}]
-  (let [[mvn-cache git-cache] (map #(fs/path cache-dir %) ["mvn" "git"])]
-    (when mvn-deps
-      (make-maven-cache! mvn-deps mvn-cache))
-    (when git-deps
-      (make-git-cache! git-deps git-cache))
+  [{:keys [mvn-deps git-deps cache-dir deps-path]}]
+  (when mvn-deps
+    (make-maven-cache! mvn-deps cache-dir))
+  (when git-deps
+    (make-git-cache! git-deps cache-dir))
 
-    (with-redefs [mvn/cached-local-repo (delay (str mvn-cache))
-                  gitlibs-config/CONFIG (delay #:gitlibs{:dir (str git-cache)
-                                                         :command "git"
-                                                         :debug true
-                                                         :terminal false})]
-      (tools/prep {:user nil :project deps-path}))
+  (with-redefs [mvn/cached-local-repo (delay (str (fs/path cache-dir mvn-cache-subdir)))
+                gitlibs-config/CONFIG (delay #:gitlibs{:dir (str (fs/path cache-dir git-cache-subdir))
+                                                       :command "git"
+                                                       :debug true
+                                                       :terminal false})]
+    (tools/prep {:user nil :project deps-path})))
+
 
 
     [mvn-cache git-cache]))
@@ -150,7 +153,12 @@
 
 (defn missing-mvn-deps
   [deps cache-dir]
-  (let [deps-set (into #{} (map :mvn-path) deps)]
+  (let [cache-dir (fs/path cache-dir mvn-cache-subdir)
+        deps-set (into #{} (mapcat (fn [{:keys [snapshot mvn-path]}]
+                                     (if-not snapshot
+                                       [mvn-path]
+                                       [mvn-path (str (fs/path (fs/parent mvn-path) snapshot))])))
+                           deps)]
     (into []
           (comp
             (filter fs/regular-file?)
@@ -160,7 +168,9 @@
             (remove deps-set)
             (map (fn [mvn-path]
                    (let [full-path (fs/path cache-dir mvn-path)]
-                     (assoc (utils/mvn-repo-info full-path cache-dir)
+                     (prn {:full full-path
+                           :cache-dir cache-dir})
+                     (assoc (utils/mvn-repo-info full-path {:cache-dir cache-dir})
                             :hash (nix-hash full-path))))))
 
           (file-seq (fs/file cache-dir)))))
@@ -200,7 +210,8 @@
 
 (defn missing-git-deps
   [deps cache-dir]
-  (let [deps-set (into #{} (map git-dep-id) deps)]
+  (let [cache-dir (fs/path cache-dir git-cache-subdir)
+        deps-set (into #{} (map git-dep-id) deps)]
     (into []
           (comp
             (remove
@@ -223,7 +234,7 @@
    (get-deps! deps-path cache-dir nil))
   ([deps-path cache-dir aliases]
 
-   (println "Processing '" deps-path "' with aliases " (string/join ", " aliases))
+   (println "Processing" deps-path "with aliases" (string/join ", " aliases))
    (tools-deps.dir/with-dir (fs/file (fs/parent deps-path))
      (let [options {:user nil :project deps-path :aliases aliases}]
        ; Make sure evething is in the cache
@@ -232,11 +243,10 @@
        (let [basis (deps/create-basis options)
              mvn-deps (maven-deps basis)
              git-deps (git-deps basis)
-             ; cache-dir (fs/create-temp-dir {:prefix "clj-cache"})
-             [mvn-cache git-cache] (make-cache! :mvn-deps mvn-deps
-                                                :git-deps git-deps
-                                                :cache-dir cache-dir
-                                                :deps-path deps-path)]
+             _ (make-cache! {:mvn-deps mvn-deps
+                             :git-deps git-deps
+                             :cache-dir cache-dir
+                             :deps-path deps-path})]
 
          #_(sorted-map :mvn (->> (concat mvn-deps (missing-mvn-deps mvn-deps mvn-cache))
                                  (distinct)
@@ -277,9 +287,21 @@
         (mapcat #(apply aliases-combinations %))
         (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
       (completing
-        (fn [acc {:keys [mvn git]}] (-> acc
-                                      (update :mvn conj mvn)
-                                      (update :git conj git))))
+        (fn [acc {:keys [mvn git]}]
+          (-> acc
+            (update :mvn into mvn)
+            (update :git into git)))
+        (fn [{:keys [mvn git]}]
+          (sorted-map :mvn (->> (concat mvn (missing-mvn-deps mvn cache-dir))
+                                (distinct)
+                                (sort-by :mvn-path)
+                                (mapv #(into (sorted-map) (select-keys % [:mvn-repo :mvn-path :hash :snapshot]))))
+                      :git-deps (->> (concat git (missing-git-deps git cache-dir))
+                                     (distinct)
+                                     (map #(update % :lib str))
+                                     (sort-by :lib)
+                                     (mapv #(into (sorted-map) (select-keys % [:lib :rev :url :git-dir :hash])))))))
+
       {:mvn [] :git []}
       (file-seq (fs/file project-dir)))))
 (comment

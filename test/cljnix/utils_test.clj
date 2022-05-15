@@ -36,3 +36,9 @@
          (utils/mvn-repo-info
            (fs/path @mvn/cached-local-repo "babashka/fs/0.1.5/fs-0.1.5.jar")
            @mvn/cached-local-repo))))
+
+(deftest get-parent-test
+  (is (= (str (fs/path @mvn/cached-local-repo "org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"))
+         (utils/get-parent (fs/path @mvn/cached-local-repo "org/clojure/core.specs.alpha/0.2.62/core.specs.alpha-0.2.62.pom"))))
+  (is (= nil
+         (utils/get-parent (fs/path @mvn/cached-local-repo "org/clojure/core.specs.alpha/0.2.62/core.specs.alpha-0.2.62.jar")))))
