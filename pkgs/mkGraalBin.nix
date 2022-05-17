@@ -1,6 +1,5 @@
 # Adapted from
 # https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/build-graalvm-native-image/default.nix
-
 { lib
 , stdenv
 , fetchurl
@@ -8,12 +7,6 @@
 , glibcLocales
 , writeShellScript
 , writeText
-
-  # User options
-, cljDrv
-, name ? cljDrv.artifactId
-, version ? cljDrv.version
-, graalvm ? graalvmCEPackages.graalvm17-ce
 
 , nativeBuildInputs ? [ ]
 
@@ -37,9 +30,24 @@
 , graalvmXmx ? "-J-Xmx6g"
 }:
 
+{ cljDrv
+, name ? cljDrv.artifactId
+, version ? cljDrv.version
+, graalvm ? graalvmCEPackages.graalvm17-ce
+}:
+
+assert cljDrv != null "mkGraalBin called without required argument cljDrv";
+assert
+(
+  lib.assertMsg
+    (lib.strings.hasInfix "." cljDrv.main-ns)
+    ''
+      Single segment namespaces not supported: ${cljDrv.main-ns}
+    ''
+);
+
 let
   classpath =
-    if cljDrv == null then null else
     lib.removeSuffix
       "\n"
       (builtins.readFile "${cljDrv.dev}/classpath");
@@ -49,15 +57,6 @@ let
   };
 
 in
-
-assert
-(
-  lib.assertMsg
-    (lib.strings.hasInfix "." cljDrv.main-ns)
-    ''
-      Single segment namespaces not supported: ${cljDrv.main-ns}
-    ''
-);
 
 stdenv.mkDerivation
 {

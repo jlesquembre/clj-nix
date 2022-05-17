@@ -13,11 +13,12 @@ let default-lock-file = "deps-lock.json"; in
   # Used by clj tools.build to compile the code
 , jdk
 
-
-  # User options
-
+  # Custom utils
+, clj-builder
+}:
+{
   # Runtime jdk
-, jdkRunner ? jdk
+  jdkRunner ? jdk
 , projectSrc
 , name
 , version ? "DEV"
@@ -25,9 +26,6 @@ let default-lock-file = "deps-lock.json"; in
 , lock-file ? default-lock-file
 , compile ? true
 , java-opts ? [ ]
-
-  # Custom utils
-, clj-builder
 }:
 let
 

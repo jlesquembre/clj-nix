@@ -64,16 +64,15 @@
         {
           clj-builder = prev.callPackage utils.clj-builder { };
 
-          deps-lock = prev.callPackage utils.deps-lock
-            {
-              inherit (final) clj-builder;
-            };
+          deps-lock = prev.callPackage utils.deps-lock {
+            inherit (final) clj-builder;
+          };
 
-          mkCljBin = attrs: prev.callPackage ./pkgs/mkCljBin.nix
-            ({ inherit (final) clj-builder; }
-            // attrs);
+          mkCljBin = prev.callPackage ./pkgs/mkCljBin.nix {
+            inherit (final) clj-builder;
+          };
 
-          mkGraalBin = attrs: prev.callPackage ./pkgs/mkGraalBin.nix attrs;
+          mkGraalBin = prev.callPackage ./pkgs/mkGraalBin.nix { };
 
           customJdk = prev.callPackage ./pkgs/customJdk.nix;
         };
