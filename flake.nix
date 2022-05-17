@@ -15,29 +15,14 @@
 
     flake-utils.lib.eachDefaultSystem
       (system:
-        let
-          pkgs = inputs.nixpkgs.legacyPackages.${system};
-          utils = import ./pkgs/utils.nix;
-        in
         {
-          packages = {
-
-            clj-builder = pkgs.callPackage utils.clj-builder { };
-
-            deps-lock = pkgs.callPackage utils.deps-lock
-              {
-                clj-builder = self.packages."${system}".clj-builder;
-              };
-
-            mkCljBin = attrs: pkgs.callPackage ./pkgs/mkCljBin.nix
-              ({ clj-builder = self.packages."${system}".clj-builder; }
-              // attrs);
-
-            mkGraalBin = attrs: pkgs.callPackage ./pkgs/mkGraalBin.nix attrs;
-
-            customJdk = pkgs.callPackage ./pkgs/customJdk.nix;
-
-          };
+          packages = let pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [ self.overlay ];
+          }; in
+            {
+              inherit (pkgs) clj-builder deps-lock mkCljBin mkGraalBin customJdk;
+            };
           devShell =
             let
               pkgs = import nixpkgs {
@@ -72,7 +57,25 @@
         path = ./templates/default;
         description = "A simple clj-nix project";
       };
+      overlay = final: prev:
+        let
+          utils = import ./pkgs/utils.nix;
+        in
+        {
+          clj-builder = prev.callPackage utils.clj-builder { };
 
+          deps-lock = prev.callPackage utils.deps-lock
+            {
+              inherit (final) clj-builder;
+            };
+
+          mkCljBin = attrs: prev.callPackage ./pkgs/mkCljBin.nix
+            ({ inherit (final) clj-builder; }
+            // attrs);
+
+          mkGraalBin = attrs: prev.callPackage ./pkgs/mkGraalBin.nix attrs;
+
+          customJdk = prev.callPackage ./pkgs/customJdk.nix;
+        };
     };
-
 }
