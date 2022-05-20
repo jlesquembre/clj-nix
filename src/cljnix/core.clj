@@ -5,9 +5,7 @@
     [clojure.tools.cli.api :as tools]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.gitlibs.config :as gitlibs-config]
-    [clojure.math.combinatorics :as combo]
     [clojure.data.json :as json]
-    [version-clj.core :as version]
     [babashka.fs :as fs]
     [cljnix.utils :refer [throw+] :as utils]
     [cljnix.nix :refer [nix-hash]]
@@ -22,16 +20,9 @@
   [[_ {:keys [git/url]}]]
   (boolean url))
 
-(defn- jar->pom
-  [s]
-  (let [end (- (count s) 3)]
-    (str (subs s 0 end)
-         "pom")))
-
 (defn- artifact->pom
   [path]
   (str (first (fs/glob (fs/parent path) "*.pom"))))
-
 
 
 (defn maven-deps
@@ -91,6 +82,7 @@
     (when-not (fs/exists? (cond-> dest))
       (fs/copy src dest))))
 
+
 (defn make-maven-cache!
   [deps cache-path]
   (doseq [{:keys [mvn-path local-path snapshot]} deps
@@ -138,17 +130,9 @@
   (with-redefs [mvn/cached-local-repo (delay (str (fs/path cache-dir mvn-cache-subdir)))
                 gitlibs-config/CONFIG (delay #:gitlibs{:dir (str (fs/path cache-dir git-cache-subdir))
                                                        :command "git"
-                                                       :debug true
+                                                       :debug false
                                                        :terminal false})]
     (tools/prep {:user nil :project deps-path})))
-
-
-
-    [mvn-cache git-cache]))
-
-(comment
-  (make-cache! :deps-path "/home/jlle/projects/clojure-lsp/cli/deps.edn"
-               :cache-dir "/tmp/clj-cache"))
 
 
 (defn missing-mvn-deps
@@ -168,8 +152,6 @@
             (remove deps-set)
             (map (fn [mvn-path]
                    (let [full-path (fs/path cache-dir mvn-path)]
-                     (prn {:full full-path
-                           :cache-dir cache-dir})
                      (assoc (utils/mvn-repo-info full-path {:cache-dir cache-dir})
                             :hash (nix-hash full-path))))))
 
@@ -220,23 +202,21 @@
           (git-deps-seq cache-dir))))
 
 
-; (comment
-;   (def data (main "/home/jlle/projects/clojure-lsp/cli/deps.edn"))
-;   (missing-git-deps (:git-deps data) (:git-cache data)))
-
-
-
 (defn get-deps!
   "Given a deps.edn file, a cache dir, and optionally, some aliases, return a
    list of git and maven dependecies.
    Cache dir is populated with .m2 and .gitlibs deps."
   ([deps-path cache-dir]
    (get-deps! deps-path cache-dir nil))
-  ([deps-path cache-dir aliases]
+  ([deps-path cache-dir deps-alias]
 
-   (println "Processing" deps-path "with aliases" (string/join ", " aliases))
+   (if deps-alias
+     (println "Processing" deps-path "with alias" deps-alias)
+     (println "Processing" deps-path "without aliases"))
+
    (tools-deps.dir/with-dir (fs/file (fs/parent deps-path))
-     (let [options {:user nil :project deps-path :aliases aliases}]
+     (let [options (cond-> {:user nil :project deps-path}
+                     deps-alias (assoc :aliases [deps-alias]))]
        ; Make sure evething is in the cache
        (tools/prep options)
 
@@ -248,43 +228,40 @@
                              :cache-dir cache-dir
                              :deps-path deps-path})]
 
-         #_(sorted-map :mvn (->> (concat mvn-deps (missing-mvn-deps mvn-deps mvn-cache))
-                                 (distinct)
-                                 (sort-by :mvn-path)
-                                 (mapv #(into (sorted-map) (select-keys % [:mvn-repo :mvn-path :hash]))))
-                       :git-deps (->> (concat git-deps (missing-git-deps git-deps git-cache))
-                                      (distinct)
-                                      (map #(update % :lib str))
-                                      (sort-by :lib)
-                                      (mapv #(into (sorted-map) (select-keys % [:lib :rev :url :git-dir :hash])))))
          {:mvn mvn-deps
           :git git-deps})))))
 
 (defn- aliases-combinations
-  [deps-file aliases]
+  [[deps-file aliases]]
   (let [deps-file (str deps-file)]
     (into [[deps-file nil]]
-          (comp
-            (mapcat #(combo/permuted-combinations aliases %))
-            (map #(vector deps-file %)))
-          (range 1 (inc (count aliases))))))
+          (map #(vector deps-file %))
+          aliases)))
+
+(defn- map-comparator
+  [a b]
+  (let [m {:mvn-path 1
+           :snapshot 2
+           :mvn-repo 3
+
+           :lib 10
+           :url 11
+           :rev 12
+           :git-dir 13
+
+           :hash 20}]
+    (compare (get m a 1000)
+             (get m b 1000))))
 
 
-(defn main
+(defn lock-file
   [project-dir]
   (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
-    #_(into []
-            (comp
-              (filter #(= "deps.edn" (fs/file-name %)))
-              (map (juxt identity #(-> % deps/slurp-deps :aliases keys)))
-              (mapcat #(apply aliases-combinations %))
-              (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
-            (file-seq (fs/file project-dir)))
     (transduce
       (comp
         (filter #(= "deps.edn" (fs/file-name %)))
         (map (juxt identity #(-> % deps/slurp-deps :aliases keys)))
-        (mapcat #(apply aliases-combinations %))
+        (mapcat aliases-combinations)
         (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
       (completing
         (fn [acc {:keys [mvn git]}]
@@ -295,42 +272,31 @@
           (sorted-map :mvn (->> (concat mvn (missing-mvn-deps mvn cache-dir))
                                 (distinct)
                                 (sort-by :mvn-path)
-                                (mapv #(into (sorted-map) (select-keys % [:mvn-repo :mvn-path :hash :snapshot]))))
+                                (mapv #(into (sorted-map-by map-comparator)
+                                             (select-keys % [:mvn-repo :mvn-path :hash :snapshot]))))
                       :git-deps (->> (concat git (missing-git-deps git cache-dir))
                                      (distinct)
                                      (map #(update % :lib str))
                                      (sort-by :lib)
-                                     (mapv #(into (sorted-map) (select-keys % [:lib :rev :url :git-dir :hash])))))))
+                                     (mapv #(into (sorted-map-by map-comparator)
+                                                  (select-keys % [:lib :rev :url :git-dir :hash])))))))
 
       {:mvn [] :git []}
       (file-seq (fs/file project-dir)))))
+
+(defn -main
+  [& args]
+  (println (json/write-str (lock-file ".")
+                           :escape-slash false
+                           :escape-unicode false
+                           :escape-js-separators false)))
+
 (comment
-  (main "/home/jlle/projects/clojure-lsp"))
 
+  (lock-file "/home/jlle/projects/clojure-lsp")
 
-(comment
-
-  (def data (main "/home/jlle/projects/clojure-lsp/cli/deps.edn"))
-  (missing-mvn-deps (:mvn-deps data) (:mvn-cache data))
-
-  (:mvn-deps data)
-  (identity data)
-
-  (with-redefs [mvn/cached-local-repo (delay (str (:mvn-cache data)))
-                gitlibs-config/CONFIG (delay #:gitlibs{:dir (str (:git-cache data))
-                                                       :command "git"
-                                                       :debug false
-                                                       :terminal false})]
-    (deps/create-basis {:user nil
-                        :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"})
-    (tools/prep {:log :debug
-                 :user nil
-                 :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"})
-
-    (maven-deps
-      (deps/create-basis {:user nil
-                          :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"})))
-
-  (aliases-combinations "deps.edn" nil)
-  (aliases-combinations "deps.edn" [:build])
-  (aliases-combinations "deps.edn" [:build :test :foo]))
+  (let [deps-path (fs/expand-home "~/projects/clojure-lsp/cli/deps.edn")]
+    (tools-deps.dir/with-dir (fs/file (fs/parent deps-path))
+      (maven-deps
+        (deps/create-basis {:user nil
+                            :project (str deps-path)})))))

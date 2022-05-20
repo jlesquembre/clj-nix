@@ -78,39 +78,25 @@
 (deftest all-aliases-combinations
   (let [aliases-combinations #'c/aliases-combinations]
     (is (= [["deps.edn" nil]]
-           (aliases-combinations "deps.edn" nil)))
+           (aliases-combinations ["deps.edn" nil])))
 
     (is (match? (m/in-any-order
                   [["deps.edn" nil]
-                   ["deps.edn" [:test]]])
-                (aliases-combinations "deps.edn" [:test])))
+                   ["deps.edn" :test]])
+                (aliases-combinations ["deps.edn" [:test]])))
 
     (is (match? (m/in-any-order
                   [["deps.edn" nil]
-                   ["deps.edn" [:test]]
-                   ["deps.edn" [:build]]
-                   ["deps.edn" [:test :build]]
-                   ["deps.edn" [:build :test]]])
-                (aliases-combinations "deps.edn" [:test :build])))
+                   ["deps.edn" :test]
+                   ["deps.edn" :build]])
+                (aliases-combinations ["deps.edn" [:test :build]])))
 
     (is (match? (m/in-any-order
                   [["deps.edn" nil]
-                   ["deps.edn" [:build]]
-                   ["deps.edn" [:test]]
-                   ["deps.edn" [:foo]]
-                   ["deps.edn" [:build :test]]
-                   ["deps.edn" [:test :build]]
-                   ["deps.edn" [:build :foo]]
-                   ["deps.edn" [:foo :build]]
-                   ["deps.edn" [:test :foo]]
-                   ["deps.edn" [:foo :test]]
-                   ["deps.edn" [:build :test :foo]]
-                   ["deps.edn" [:build :foo :test]]
-                   ["deps.edn" [:test :build :foo]]
-                   ["deps.edn" [:test :foo :build]]
-                   ["deps.edn" [:foo :build :test]]
-                   ["deps.edn" [:foo :test :build]]])
-                (aliases-combinations "deps.edn" [:test :build :foo])))))
+                   ["deps.edn" :build]
+                   ["deps.edn" :test]
+                   ["deps.edn" :foo]])
+                (aliases-combinations ["deps.edn" [:test :build :foo]])))))
 
 (deftest maven-deps-test
 
