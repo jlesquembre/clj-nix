@@ -1,11 +1,9 @@
 (ns cljnix.bootstrap
   (:require
-    [clojure.string :as string]
     [clojure.tools.deps.alpha.util.maven :as mvn]
     [clojure.tools.cli.api :as tools]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.gitlibs.config :as gitlibs-config]
-    [clojure.math.combinatorics :as combo]
     [clojure.data.json :as json]
     [babashka.fs :as fs]
     [cljnix.utils :refer [throw+ *mvn-repos*] :as utils]
@@ -16,10 +14,20 @@
 (def gitlib-path (fs/path (:gitlibs/dir @gitlibs-config/CONFIG) "libs"))
 
 
+(defn- map-comparator
+  [a b]
+  (let [m {:url 1
+           :rev 2
+           :paths 3
+           :hash 4}]
+    (compare (get m a 1000)
+             (get m b 1000))))
+
 (defn nixify-mvn
   [path]
-  {:url (:url (utils/mvn-repo-info path))
-   :hash (nix-hash path)})
+  (sorted-map-by map-comparator
+                 :url (:url (utils/mvn-repo-info path {}))
+                 :hash (nix-hash path)))
 
 (defn nixify-git
   "For a path in the gitlibs local cache, e.g.:
@@ -28,10 +36,11 @@
   [path]
   (let [[group artifact rev & src-path] (fs/components (fs/relativize gitlib-path path))
         repo-root (fs/path gitlib-path group artifact rev)]
-    {:rev (str rev)
-     :paths [(str (apply fs/path src-path))]
-     :hash (nix-hash repo-root)
-     :url (utils/git-remote-url repo-root)}))
+    (sorted-map-by map-comparator
+                   :rev (str rev)
+                   :paths [(str (apply fs/path src-path))]
+                   :hash (nix-hash repo-root)
+                   :url (utils/git-remote-url repo-root))))
 
 
 (defn nixify-dep
@@ -62,57 +71,18 @@
           (fn [acc v]
             (if (same-git-dep? (peek acc) v)
               (update-in acc [(dec (count acc)) :paths] #(into % (:paths v)))
-              (conj acc v))))
+              (conj acc v)))
+          #(into [] (sort-by :url %)))
         []
         classpath-roots))))
 
+(defn as-json
+  [{:keys [deps-path]}]
+  (println (json/write-str (nixify-classpath deps-path)
+                           :escape-slash false
+                           :escape-unicode false
+                           :escape-js-separators false)))
+
 (comment
-  (nixify-classpath "/home/jlle/projects/clojure-lsp/cli/deps.edn"))
-
-
-(comment
-  (System/getenv "JAVA_TOOL_OPTIONS")
-  (System/getProperty "user.home")
-  (System/setProperty "user.home" "/tmp/bar")
-
-  (System/setProperty "clojure.gitlibs.dir" "/tmp/bar/gitlibs")
-
-  (tools/prep {:log :debug
-               :project "/home/jlle/projects/clojure-lsp/cli/deps.edn"})
-
-  ; (.getAbsolutePath (io/file (System/getProperty "user.home") ".m2" "repository"))
-
-  (deref gitlibs-config/CONFIG)
-
-  (type mvn/cached-local-repo)
-  (reset! mvn/cached-local-repo "/tmp/bar")
-
-
-  (alter-var-root (var mvn/cached-local-repo)
-                  (constantly (delay "/tmp/bar")))
-
-  (alter-var-root (var gitlibs-config/CONFIG)
-                  (fn [config]
-                    (delay
-                      (assoc @config :gitlibs/dir "/tmp/bar/gitlibs"))))
-
-
-
-  (for [al [:foo :bar :xxx]]
-    al)
-
-  (def aliases [:build :alias :foo])
-
-  (combo/permutations aliases)
-  (count aliases)
-  (combo/permuted-combinations aliases 1)
-  (combo/permuted-combinations aliases 2)
-  (combo/permuted-combinations aliases 3)
-
-  (mapcat
-    #(combo/permuted-combinations aliases %)
-    (range 1 4))
-
-  (combo/combinations aliases 1)
-  (combo/combinations aliases 2)
-  (combo/combinations aliases 3))
+  (nixify-classpath "deps.edn")
+  (as-json "deps.edn"))
