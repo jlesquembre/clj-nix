@@ -9,7 +9,8 @@
     [babashka.fs :as fs]
     [cljnix.utils :refer [throw+] :as utils]
     [cljnix.nix :refer [nix-hash]]
-    [clojure.tools.deps.alpha.util.dir :as tools-deps.dir]))
+    [clojure.tools.deps.alpha.util.dir :as tools-deps.dir]
+    [clojure.tools.deps.alpha.util.io :refer [printerrln]]))
 
 
 (defn- mvn?
@@ -211,8 +212,8 @@
   ([deps-path cache-dir deps-alias]
 
    (if deps-alias
-     (println "Processing" deps-path "with alias" deps-alias)
-     (println "Processing" deps-path "without aliases"))
+     (printerrln "Processing" deps-path "with alias" deps-alias)
+     (printerrln "Processing" deps-path "without aliases"))
 
    (tools-deps.dir/with-dir (fs/file (fs/parent deps-path))
      (let [options (cond-> {:user nil :project deps-path}
@@ -289,7 +290,8 @@
   (println (json/write-str (lock-file ".")
                            :escape-slash false
                            :escape-unicode false
-                           :escape-js-separators false)))
+                           :escape-js-separators false))
+  (shutdown-agents))
 
 (comment
 

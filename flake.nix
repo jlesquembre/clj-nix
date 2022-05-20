@@ -22,9 +22,9 @@
         {
           packages = {
 
-            clj-builder = pkgs.callPackage utils.clj-builder { };
+            clj-builder = pkgs.callPackage ./pkgs/cljBuilder.nix { };
 
-            deps-lock = pkgs.callPackage utils.deps-lock
+            deps-lock = pkgs.callPackage ./pkgs/depsLock.nix
               {
                 clj-builder = self.packages."${system}".clj-builder;
               };
@@ -55,11 +55,10 @@
               commands = [
                 {
                   name = "update-deps";
-                  help = "Update deps-lock.json";
+                  help = "Update builder-lock.json";
                   command =
                     ''
-                      # clj -X core/deps-lock :deps-path '"deps.edn"' | jq . > deps-lock.json
-                      clj -X core/classpath-prn :project-dir '"."' > builder.classpath
+                      clj -X cljnix.bootstrap/as-json :deps-path '"deps.edn"' | jq . > pkgs/builder-lock.json
                     '';
                 }
                 {
