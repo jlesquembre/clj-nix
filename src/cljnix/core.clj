@@ -1,6 +1,9 @@
 (ns cljnix.core
   (:require
     [clojure.string :as string]
+    [clojure.java.io :as io]
+    [clojure.edn :as edn]
+    [clojure.pprint :as pp]
     [clojure.tools.deps.alpha.util.maven :as mvn]
     [clojure.tools.cli.api :as tools]
     [clojure.tools.deps.alpha :as deps]
@@ -12,6 +15,8 @@
     [clojure.tools.deps.alpha.util.dir :as tools-deps.dir]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]))
 
+
+(def LOCK-VERSION 2)
 
 (defn- mvn?
   [[_ {:keys [mvn/version]}]]
@@ -251,52 +256,99 @@
            :rev 12
            :git-dir 13
 
-           :hash 20}]
+           :hash 20
+
+           :lock-version 100
+           :clojure-version 101
+           :git-deps 102
+           :mvn-deps 103}]
     (compare (get m a 1000)
              (get m b 1000))))
 
 
 (defn lock-file
-  [project-dir]
-  (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
-    (transduce
-      (comp
-        (filter #(= "deps.edn" (fs/file-name %)))
-        (map (juxt identity #(-> % deps/slurp-deps :aliases keys)))
-        (mapcat aliases-combinations)
-        (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
-      (completing
-        (fn [acc {:keys [mvn git]}]
-          (-> acc
-            (update :mvn into mvn)
-            (update :git into git)))
-        (fn [{:keys [mvn git]}]
-          (sorted-map :mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir))
-                                     (distinct)
-                                     (sort-by :mvn-path)
-                                     (mapv #(into (sorted-map-by map-comparator)
-                                                  (select-keys % [:mvn-repo :mvn-path :hash :snapshot]))))
-                      :git-deps (->> (concat git (missing-git-deps git cache-dir))
-                                     (distinct)
-                                     (map #(update % :lib str))
-                                     (sort-by :lib)
-                                     (mapv #(into (sorted-map-by map-comparator)
-                                                  (select-keys % [:lib :rev :url :git-dir :hash])))))))
+  ([project-dir]
+   (lock-file project-dir {}))
+  ([project-dir {:keys [extra-mvn extra-git]
+                 :or {extra-mvn []
+                      extra-git []}}]
+   (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
+     (transduce
+       (comp
+         (filter #(= "deps.edn" (fs/file-name %)))
+         (map (juxt identity #(-> % deps/slurp-deps :aliases keys)))
+         (mapcat aliases-combinations)
+         (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
+       (completing
+         (fn [acc {:keys [mvn git]}]
+           (-> acc
+             (update :mvn into mvn)
+             (update :git into git)))
+         (fn [{:keys [mvn git]}]
+           (sorted-map-by
+             map-comparator
+             :lock-version LOCK-VERSION
+             :mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir))
+                            (sort-by :mvn-path)
+                            (map #(into (sorted-map-by map-comparator)
+                                        (select-keys % [:mvn-repo :mvn-path :hash :snapshot])))
+                            (distinct)
+                            (into []))
+             :git-deps (->> (concat git (missing-git-deps git cache-dir))
+                            (map #(update % :lib str))
+                            (sort-by :lib)
+                            (mapv #(into (sorted-map-by map-comparator)
+                                         (select-keys % [:lib :rev :url :git-dir :hash])))
+                            (distinct)
+                            (into [])))))
 
-      {:mvn [] :git []}
-      (file-seq (fs/file project-dir)))))
+       {:mvn extra-mvn
+        :git extra-git}
+       (file-seq (fs/file project-dir))))))
 
 (defn -main
   [& args]
-  (println (json/write-str (lock-file (str (fs/canonicalize ".")))
+  (println (json/write-str (lock-file
+                             (str (fs/canonicalize "."))
+                             {:extra-mvn (-> (io/resource "clojure-deps.edn")
+                                             slurp
+                                             edn/read-string)})
                            :escape-slash false
                            :escape-unicode false
                            :escape-js-separators false))
   (shutdown-agents))
 
+; We need all clojure versions in nixpkgs, in case the flake consumer wants to
+; use a different nixpkgs version
+; Minimum supported version is 1.10.3
+(def clojure-versions ["1.10.3" "1.11.0" "1.11.1"])
+
+(defn clojure-deps
+  []
+  (fs/with-temp-dir [tmp-project {:prefix "clojure_deps"}]
+    (spit
+      (str (fs/path tmp-project "deps.edn"))
+      {:aliases
+       (into {}
+             (map (juxt #(str "clojure-" (string/replace % "." "_"))
+                        (fn [v] {:override-deps
+                                 {'org.clojure/clojure {:mvn/version v}}})))
+             clojure-versions)})
+    (:mvn-deps (lock-file (str tmp-project)))))
+
+(defn clojure-deps-str
+  [_]
+  (pp/pprint (clojure-deps)))
+
+
 (comment
 
+  (clojure-deps)
   (lock-file "/home/jlle/projects/clojure-lsp")
+  (lock-file "/home/jlle/projects/clj-demo-project"
+             {:extra-mvn (-> (io/resource "clojure-deps.edn")
+                             slurp
+                             edn/read-string)})
 
   (let [deps-path (fs/expand-home "~/projects/clojure-lsp/cli/deps.edn")]
     (tools-deps.dir/with-dir (fs/file (fs/parent deps-path))

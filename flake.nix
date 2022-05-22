@@ -54,16 +54,17 @@
               packages = [
                 pkgs.nix-prefetch-git
                 pkgs.jq
-                # pkgs.jdk
+                pkgs.clojure
                 pkgs.graalvmCEPackages.graalvm17-ce
               ];
               commands = [
                 {
                   name = "update-deps";
-                  help = "Update builder-lock.json";
+                  help = "Update builder-lock.json and clojure-deps.edn";
                   command =
                     ''
                       clj -X cljnix.bootstrap/as-json :deps-path '"deps.edn"' | jq . > pkgs/builder-lock.json
+                      clj -X cljnix.core/clojure-deps-str > src/clojure-deps.edn
                     '';
                 }
                 {
