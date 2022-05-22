@@ -112,8 +112,9 @@
      (fs/create-dirs (fs/parent new-path))
      (fs/copy-tree local-path new-path)
 
-     (fs/create-dirs (fs/parent config))
-     (fs/create-file config)))
+     (when-not (fs/exists? config)
+       (fs/create-dirs (fs/parent config))
+       (fs/create-file config))))
 
 
 (defn make-cache!
@@ -287,7 +288,7 @@
 
 (defn -main
   [& args]
-  (println (json/write-str (lock-file ".")
+  (println (json/write-str (lock-file (str (fs/canonicalize ".")))
                            :escape-slash false
                            :escape-unicode false
                            :escape-js-separators false))
