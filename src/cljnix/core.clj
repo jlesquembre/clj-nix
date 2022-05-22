@@ -128,7 +128,7 @@
    First populates the cache with the data from mvn-deps and git-deps (if provided)
    Afterwards calls clojure.tools.cli.api/prep to make sure that all
    dependecies are installed"
-  [{:keys [mvn-deps git-deps cache-dir deps-path]}]
+  [{:keys [mvn-deps git-deps cache-dir prep-options]}]
   (when mvn-deps
     (make-maven-cache! mvn-deps cache-dir))
   (when git-deps
@@ -139,7 +139,7 @@
                                                        :command "git"
                                                        :debug false
                                                        :terminal false})]
-    (tools/prep {:user nil :project deps-path})))
+    (tools/prep prep-options)))
 
 
 (defn missing-mvn-deps
@@ -224,7 +224,7 @@
    (tools-deps.dir/with-dir (fs/file (fs/parent deps-path))
      (let [options (cond-> {:user nil :project deps-path}
                      deps-alias (assoc :aliases [deps-alias]))]
-       ; Make sure evething is in the cache
+       ; Make sure evething is in the real system cache
        (tools/prep options)
 
        (let [basis (deps/create-basis options)
@@ -233,7 +233,7 @@
              _ (make-cache! {:mvn-deps mvn-deps
                              :git-deps git-deps
                              :cache-dir cache-dir
-                             :deps-path deps-path})]
+                             :prep-options options})]
 
          {:mvn mvn-deps
           :git git-deps})))))
