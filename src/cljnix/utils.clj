@@ -141,7 +141,7 @@
   "Relative path to the git dir for a given URL"
   [url]
   (str (fs/relativize
-         (:gitlibs/dir @gitlibs-config/CONFIG)
+         (fs/path (:gitlibs/dir @gitlibs-config/CONFIG) "_repos")
          (gli/git-dir url))))
 
 (comment

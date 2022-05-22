@@ -107,7 +107,7 @@
   [deps cache-path]
   (doseq [{:keys [lib rev git-dir local-path]} deps
           :let [new-path (fs/path cache-path git-cache-subdir "libs" (str lib) rev)
-                config (fs/path cache-path git-cache-subdir git-dir "config")]
+                config (fs/path cache-path git-cache-subdir "_repos" git-dir "config")]
           :when (not (fs/exists? new-path))]
      (fs/create-dirs (fs/parent new-path))
      (fs/copy-tree local-path new-path)
@@ -270,11 +270,11 @@
             (update :mvn into mvn)
             (update :git into git)))
         (fn [{:keys [mvn git]}]
-          (sorted-map :mvn (->> (concat mvn (missing-mvn-deps mvn cache-dir))
-                                (distinct)
-                                (sort-by :mvn-path)
-                                (mapv #(into (sorted-map-by map-comparator)
-                                             (select-keys % [:mvn-repo :mvn-path :hash :snapshot]))))
+          (sorted-map :mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir))
+                                     (distinct)
+                                     (sort-by :mvn-path)
+                                     (mapv #(into (sorted-map-by map-comparator)
+                                                  (select-keys % [:mvn-repo :mvn-path :hash :snapshot]))))
                       :git-deps (->> (concat git (missing-git-deps git cache-dir))
                                      (distinct)
                                      (map #(update % :lib str))

@@ -49,7 +49,7 @@
            (missing-git-deps all-deps all-deps))))
 
   (testing "Some missing git deps"
-    (is (match? [{:git-dir "_repos/https/github.com/babashka/fs",
+    (is (match? [{:git-dir "https/github.com/babashka/fs",
                   :hash "sha256-L+tsBCOxr2kJpIEPJ0A+s8/Ud2jLgfiDQIB+U3/PcG0=",
                   :lib 'io.github.babashka/fs,
                   :rev "7adcefeb773bd786408cdc788582f145f79626a6",
@@ -60,12 +60,12 @@
 
   (testing "Should get all deps"
     (is (match? (m/in-any-order
-                  [{:git-dir "_repos/https/github.com/weavejester/medley",
+                  [{:git-dir "https/github.com/weavejester/medley",
                     :hash "sha256-drh0opl3JjrpGadg74wIdOcDTaP2GT31X3O1PGXkvqk=",
                     :lib 'io.github.weavejester/medley,
                     :rev "0044c6aacc0b23eafa3b58091f49c794f5a1f5aa",
                     :url "https://github.com/weavejester/medley.git"}
-                   {:git-dir "_repos/https/github.com/babashka/fs",
+                   {:git-dir "https/github.com/babashka/fs",
                     :hash "sha256-L+tsBCOxr2kJpIEPJ0A+s8/Ud2jLgfiDQIB+U3/PcG0=",
                     :lib 'io.github.babashka/fs,
                     :rev "7adcefeb773bd786408cdc788582f145f79626a6",
@@ -142,24 +142,25 @@
 
 
   (testing "Latest SNAPSHOT version is used"
-    (let [mvn-deps (c/maven-deps (h/basis {:deps {'clj-kondo/clj-kondo {:mvn/version "2022.04.26-SNAPSHOT"}}}))]
+    (let [mvn-deps (c/maven-deps (h/basis {:deps {'clj-kondo/clj-kondo {:mvn/version "2022.04.26-SNAPSHOT"}}}))
+          snapshot-resolved-version "2022.04.26-20220521.114536-16"]
       (is (match?
-            {:mvn-path "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220517.201936-14.jar",
+            {:mvn-path (str "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-" snapshot-resolved-version ".jar",)
              :mvn-repo "https://repo.clojars.org/",
              :snapshot "clj-kondo-2022.04.26-SNAPSHOT.jar",}
             (first (filter #(= 'clj-kondo/clj-kondo (:lib %)) mvn-deps))))
       (is (match?
-            {:mvn-path "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220517.201936-14.pom",
+            {:mvn-path (str "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-" snapshot-resolved-version ".pom")
              :mvn-repo "https://repo.clojars.org/",
              :snapshot "clj-kondo-2022.04.26-SNAPSHOT.pom",}
             (first (filter (every-pred #(string/starts-with? (:mvn-path %) "clj-kondo/clj-kondo")
                                        #(string/ends-with? (:mvn-path %) ".pom"))
                            mvn-deps))))
       (is (match?
-            (m/embeds [{:mvn-path "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220517.201936-14.jar",
+            (m/embeds [{:mvn-path (str "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-" snapshot-resolved-version ".jar",)
                         :mvn-repo "https://repo.clojars.org/",
                         :snapshot "clj-kondo-2022.04.26-SNAPSHOT.jar",}
-                       {:mvn-path "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220517.201936-14.pom",
+                       {:mvn-path (str "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-" snapshot-resolved-version ".pom")
                         :mvn-repo "https://repo.clojars.org/",
                         :snapshot "clj-kondo-2022.04.26-SNAPSHOT.pom"}])
             mvn-deps))))
@@ -187,3 +188,7 @@
                         :mvn-repo "https://repo.clojars.org/",
                         :snapshot "clj-kondo-2022.04.26-SNAPSHOT.pom"}])
             mvn-deps)))))
+
+; TODO test missing-mvn-deps with snapshots!
+
+; TODO add test to create mvn cache with snapshots?
