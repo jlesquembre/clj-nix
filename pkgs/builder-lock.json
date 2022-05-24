@@ -1,20 +1,20 @@
 [
   {
     "url": "https://github.com/clojure/tools.build.git",
-    "rev": "7d40500863818c6f9a6e077b18db305d02149384",
+    "rev": "ba1a2bf421838802e7bdefc541b41f57582e53b6",
     "paths": [
       "src/main/clojure",
       "src/main/resources"
     ],
-    "hash": "sha256-nuPBuNQ4su6IAh7rB9kX/Iwv5LsV+FOl/uHro6VcL7c="
+    "hash": "sha256-p8kdg9UmpUq+JeyxL+g5R0GwdcP7cOI6wZuJnXK9Y8I="
   },
   {
-    "url": "https://repo.clojars.org/babashka/fs/0.1.5/fs-0.1.5.jar",
-    "hash": "sha256-2TM3OWax18RkJZBq50vfXBx2AWRmlmO5RGRrZTv9490="
+    "url": "https://repo.clojars.org/babashka/fs/0.1.6/fs-0.1.6.jar",
+    "hash": "sha256-10dINOFvu1Kk2bexqmBSyk0BucZx0f9BWYIxwaF1Vr4="
   },
   {
-    "url": "https://repo.clojars.org/com/rpl/specter/1.1.4/specter-1.1.4.jar",
-    "hash": "sha256-CVULaSn2ltYO7d/QaNCMR+rwkwkJGWPoBa5nRMkR3tY="
+    "url": "https://repo.clojars.org/borkdude/rewrite-edn/0.2.0/rewrite-edn-0.2.0.jar",
+    "hash": "sha256-xEsgLvDRpJdCTfWh5jRpLAw0KWcpsl9IMNChK29uR7g="
   },
   {
     "url": "https://repo.clojars.org/manifold/manifold/0.2.3/manifold-0.2.3.jar",
@@ -27,6 +27,10 @@
   {
     "url": "https://repo.clojars.org/org/clj-commons/primitive-math/1.0.0/primitive-math-1.0.0.jar",
     "hash": "sha256-jf43Wpf+4h86ri7BjxNoQVQNzyOUAIzUv6hTA39pXK4="
+  },
+  {
+    "url": "https://repo.clojars.org/rewrite-clj/rewrite-clj/1.0.572-alpha/rewrite-clj-1.0.572-alpha.jar",
+    "hash": "sha256-/ktU4zGJG8IsU37VINOM6PJgLwRq/m8CkJPX91EI9pY="
   },
   {
     "url": "https://repo.clojars.org/riddley/riddley/0.1.15/riddley-0.1.15.jar",
@@ -241,10 +245,6 @@
     "hash": "sha256-wU4OEDBKXlz9LMdC+976wfUpPuxgcML/6JA/tcf+fW8="
   },
   {
-    "url": "https://repo1.maven.org/maven2/org/clojure/math.combinatorics/0.1.6/math.combinatorics-0.1.6.jar",
-    "hash": "sha256-hayruPhhPvNzpRh1yrfwMuK+BzsZNxZeItmC0okbUns="
-  },
-  {
     "url": "https://repo1.maven.org/maven2/org/clojure/spec.alpha/0.3.218/spec.alpha-0.3.218.jar",
     "hash": "sha256-Z+yJjrVcZqlXpVJ53YXRN2u5lL2HZosrDeHrO5foquA="
   },
@@ -273,8 +273,8 @@
     "hash": "sha256-ypmZQW48xbcgNJNsi8xZnyqGhQ67nOtDFqSiaH8xW2s="
   },
   {
-    "url": "https://repo1.maven.org/maven2/org/clojure/tools.namespace/1.2.0/tools.namespace-1.2.0.jar",
-    "hash": "sha256-vJrJkFEIlHOUPVs9MIfQnS02WtrgZEBnHl+4oAYb1+k="
+    "url": "https://repo1.maven.org/maven2/org/clojure/tools.namespace/1.3.0/tools.namespace-1.3.0.jar",
+    "hash": "sha256-EnUzqx4eenAMgjitfVjUtCxBjW2PNMMEcRUDvIguOnA="
   },
   {
     "url": "https://repo1.maven.org/maven2/org/clojure/tools.reader/1.3.6/tools.reader-1.3.6.jar",

@@ -307,15 +307,20 @@
        (file-seq (fs/file project-dir))))))
 
 (defn -main
-  [& args]
-  (println (json/write-str (lock-file
-                             (str (fs/canonicalize "."))
-                             {:extra-mvn (-> (io/resource "clojure-deps.edn")
-                                             slurp
-                                             edn/read-string)})
-                           :escape-slash false
-                           :escape-unicode false
-                           :escape-js-separators false))
+  [& [flag value]]
+  (cond
+    (= flag "--patch-git-sha")
+    (utils/expand-shas! value)
+
+    :else
+    (println (json/write-str (lock-file
+                               (str (fs/canonicalize "."))
+                               {:extra-mvn (-> (io/resource "clojure-deps.edn")
+                                               slurp
+                                               edn/read-string)})
+                             :escape-slash false
+                             :escape-unicode false
+                             :escape-js-separators false)))
   (shutdown-agents))
 
 ; We need all clojure versions in nixpkgs, in case the flake consumer wants to

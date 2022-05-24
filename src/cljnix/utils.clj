@@ -2,11 +2,16 @@
   (:require
     [clojure.java.shell :as sh]
     [clojure.string :as string]
+    [clojure.edn :as edn]
+    [clojure.data.json :as json]
     [clojure.tools.deps.alpha.util.maven :as mvn]
     [clojure.tools.gitlibs.config :as gitlibs-config]
     [clojure.tools.gitlibs.impl :as gli]
+    [clojure.tools.deps.alpha :as deps]
     [babashka.fs :as fs]
-    [version-clj.core :as version])
+    [version-clj.core :as version]
+    [clojure.zip :as zip]
+    [borkdude.rewrite-edn :as r])
   (:import
     [java.io FileReader]
     [org.apache.maven.model.io.xpp3 MavenXpp3Reader]
@@ -144,7 +149,77 @@
          (fs/path (:gitlibs/dir @gitlibs-config/CONFIG) "_repos")
          (gli/git-dir url))))
 
+
+(defn paths-to-gitdeps
+  [deps-data]
+  (some->> deps-data
+           (zip/zipper coll? seq nil)
+           (iterate zip/next)
+           (take-while (complement zip/end?))
+           (filter (comp (some-fn :sha :git/sha) zip/node))
+           (mapv #(some->> (zip/path %)
+                           (filter map-entry?)
+                           (mapv key)))))
+
+(defn- full-sha?'
+  [sha]
+  (boolean (and sha (= 40 (count sha)))))
+
+(defn full-sha?
+  [git-dep]
+  (or (full-sha?' (:sha git-dep))
+      (full-sha?' (:git/sha git-dep))))
+
+(def partial-sha? (complement full-sha?))
+
+
+(defn- expand-hash
+  [git-deps lib node]
+  (let [node-data (r/sexpr node)
+        sha (or (:sha node-data)
+                (:git/sha node-data))
+        full-sha (:rev (first (filter #(and
+                                         (= (str lib) (:lib %))
+                                         (string/starts-with? (:rev %) sha))
+                                      git-deps)))]
+    (when-not full-sha
+      (throw+ "Can't expand full sha"
+              {:lib lib
+               :node (edn/read-string (str node))}))
+    (if (:sha node-data)
+      (r/assoc node :sha full-sha)
+      (r/assoc node :git/sha full-sha))))
+
+
+(defn expand-shas!
+  [project-dir]
+  (let [dep-files (filter #(= "deps.edn" (str (fs/file-name %)))
+                          (file-seq (fs/file project-dir)))
+        {:keys [git-deps]} (json/read-str
+                            (slurp (str (fs/path project-dir "deps-lock.json")))
+                            :key-fn keyword)]
+    (doseq [my-deps dep-files
+            :let [deps (deps/slurp-deps (fs/file my-deps))
+                  git-deps-paths (paths-to-gitdeps deps)
+                  partial-sha-paths (->> git-deps-paths
+                                         (filter #(partial-sha? (get-in deps %)))
+                                         #_(map #(add-sha-key % deps)))]]
+        (as-> (r/parse-string (slurp my-deps)) nodes
+          (reduce
+            (fn [acc path] (r/update-in acc path (partial expand-hash git-deps (last path))))
+            nodes
+            partial-sha-paths)
+          (reduce
+            (fn [acc path] (r/update-in acc path #(-> % (r/dissoc :tag)
+                                                        (r/dissoc :git/tag))))
+            nodes
+            git-deps-paths)
+          (spit my-deps (str nodes))))))
+
+
 (comment
+  (expand-shas! "/home/jlle/projects/clojure-lsp")
+
   (mvn-repo-info "/home/jlle/.m2/repository/org/clojure/clojure/1.11.1/clojure-1.11.1.jar"
                  @mvn/cached-local-repo)
   (mvn-repo-info "/home/jlle/.m2/repository/org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"
