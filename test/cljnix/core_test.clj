@@ -14,7 +14,8 @@
                        clj-kondo/clj-kondo {:mvn/version "2022.04.26-20220502.201054-5"}
                        cider/piggieback    {:mvn/version "0.4.1-SNAPSHOT"}
                        io.github.babashka/fs {:git/sha "7adcefeb773bd786408cdc788582f145f79626a6"}
-                       io.github.weavejester/medley {:git/sha "0044c6aacc0b23eafa3b58091f49c794f5a1f5aa"}}})
+                       io.github.weavejester/medley {:git/tag "1.4.0"
+                                                     :git/sha "0044c6a"}}})
 
 (defn- dissoc-dep
   [m dep]
@@ -143,7 +144,7 @@
 
   (testing "Latest SNAPSHOT version is used"
     (let [mvn-deps (c/maven-deps (h/basis {:deps {'clj-kondo/clj-kondo {:mvn/version "2022.04.26-SNAPSHOT"}}}))
-          snapshot-resolved-version "2022.04.26-20220521.114536-16"]
+          snapshot-resolved-version "2022.04.26-20220526.102312-18"]
       (is (match?
             {:mvn-path (str "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-" snapshot-resolved-version ".jar",)
              :mvn-repo "https://repo.clojars.org/",
@@ -188,6 +189,19 @@
                         :mvn-repo "https://repo.clojars.org/",
                         :snapshot "clj-kondo-2022.04.26-SNAPSHOT.pom"}])
             mvn-deps)))))
+
+(deftest expand-sha-tests
+  (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
+    (let [spit-helper (h/make-spit-helper project-dir)]
+      (spit-helper "deps.edn" {:deps {'io.github.babashka/fs
+                                      {:git/tag "v0.1.6"
+                                       :git/sha "31f8b93"}}})
+      (is (= [{:lib "io.github.babashka/fs",
+                :url "https://github.com/babashka/fs.git",
+                :rev "31f8b93638530f8ea7148c22b008ce1d0ccd4b87",
+                :git-dir "https/github.com/babashka/fs",
+                :hash "sha256-rlC+1cPnDYNP4UznIWH9MC2xSVQn/XbvKE10tbcsNNI="}]
+             (:git-deps (c/lock-file project-dir)))))))
 
 ; TODO test missing-mvn-deps with snapshots!
 

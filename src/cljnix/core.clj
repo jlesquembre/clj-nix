@@ -111,15 +111,18 @@
 (defn make-git-cache!
   [deps cache-path]
   (doseq [{:keys [lib rev git-dir local-path]} deps
-          :let [new-path (fs/path cache-path git-cache-subdir "libs" (str lib) rev)
-                config (fs/path cache-path git-cache-subdir "_repos" git-dir "config")]
+          :let [new-path (fs/path cache-path git-cache-subdir "libs" (str lib) rev)]
           :when (not (fs/exists? new-path))]
      (fs/create-dirs (fs/parent new-path))
      (fs/copy-tree local-path new-path)
 
-     (when-not (fs/exists? config)
-       (fs/create-dirs (fs/parent config))
-       (fs/create-file config))))
+     (let [system-git-repo (fs/path (:gitlibs/dir @gitlibs-config/CONFIG) "_repos" git-dir)
+           temp-git-repo (fs/path cache-path git-cache-subdir "_repos" git-dir)]
+       (when (and
+               (fs/exists? system-git-repo)
+               (not (fs/exists? temp-git-repo)))
+         (fs/create-dirs (fs/parent temp-git-repo))
+         (fs/copy-tree system-git-repo temp-git-repo)))))
 
 
 (defn make-cache!

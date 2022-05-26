@@ -5,9 +5,7 @@
     [cljnix.test-helpers :as h]
     [clojure.tools.deps.alpha.util.maven :as mvn]
     [babashka.fs :as fs]
-    [clojure.data.json :as json]
-    [clojure.tools.deps.alpha :as deps]
-    [clojure.pprint :as pp]))
+    [clojure.tools.deps.alpha :as deps]))
 
 (def my-deps '{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
                       babashka/fs {:mvn/version "0.1.5"}}})
@@ -77,18 +75,6 @@
                 "mvn-deps" []})
 
 
-
-(defn- spit-helper
-  [project-dir path content & {:keys [json?]}]
-  (binding [*print-namespace-maps* false]
-    (spit (str (fs/path project-dir path))
-          (if json?
-            (json/write-str content
-              :escape-slash false
-              :escape-unicode false
-              :escape-js-separators false)
-            (with-out-str (pp/pprint content))))))
-
 (deftest paths-to-gitdeps-test
   (is (= [[:deps 'io.github.clojure/tools.build]
           [:aliases :pod-test :replace-deps 'cognitect/test-runner]
@@ -106,7 +92,7 @@
 
 (deftest expand-sha-tests
   (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
-    (let [spit-helper (partial spit-helper project-dir)]
+    (let [spit-helper (h/make-spit-helper project-dir)]
       (spit-helper "deps.edn" deps-data)
       (spit-helper "deps-lock.json" lock-data {:json? true})
       (utils/expand-shas! project-dir)
@@ -114,5 +100,6 @@
              (deps/slurp-deps (fs/file project-dir "deps.edn")))))))
 
 (comment
-  (spit-helper "/tmp/foo" "deps.edn" deps-data)
-  (spit-helper "/tmp/foo" "deps-lock.json" lock-data {:json? true}))
+  (def spit-helper (h/make-spit-helper "/tmp/foo"))
+  (spit-helper "deps.edn" deps-data)
+  (spit-helper "deps-lock.json" lock-data {:json? true}))
