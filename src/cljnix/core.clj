@@ -12,6 +12,7 @@
     [babashka.fs :as fs]
     [cljnix.utils :refer [throw+] :as utils]
     [cljnix.nix :refer [nix-hash]]
+    [cljnix.build :as build]
     [clojure.tools.deps.alpha.util.dir :as tools-deps.dir]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]))
 
@@ -310,10 +311,22 @@
        (file-seq (fs/file project-dir))))))
 
 (defn -main
-  [& [flag value]]
+  [& [flag value & more]]
   (cond
     (= flag "--patch-git-sha")
     (utils/expand-shas! value)
+
+    (= flag "--jar")
+    (build/jar
+      (interleave
+        [:lib-name :version :main-ns]
+        (apply vector value more)))
+
+    (= flag "--uber")
+    (build/uber
+      (interleave
+        [:lib-name :version :main-ns :java-opts]
+        (apply vector value more)))
 
     :else
     (println (json/write-str (lock-file

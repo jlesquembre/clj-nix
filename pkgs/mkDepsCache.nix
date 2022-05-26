@@ -68,7 +68,21 @@ let
       echo "{}" > $out/deps.edn
       echo "{}" > $out/tools/tools.edn
     '';
+  version = lock.lock-version or 0;
 in
+assert
+(
+  lib.assertMsg
+    (version == 2)
+    ''
+      Lock file generated with a different clj-nix version.
+      Current version: ${builtins.toString version}
+      Expected version: 2
+
+      Re-generate the lock file with
+      nix run github:jlesquembre/clj-nix#deps-lock
+    ''
+);
 linkFarm "clj-cache" [
   {
     name = ".m2/repository";
