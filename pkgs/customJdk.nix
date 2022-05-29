@@ -9,36 +9,42 @@
 , runtimeShell
 
 , jdk17_headless
+}:
 
-  # API
-, jdkBase ? jdk17_headless
-
+{ jdkBase ? jdk17_headless
 , name ? "customJDK"
 , version ? "DEV"
 , cljDrv ? null
   # Manually set the modules
 , jdkModules ? null
 , locales ? null
-}:
+, ...
+}@attrs:
 
 let
-  classpath =
-    if cljDrv == null then null else
-    lib.removeSuffix
-      "\n"
-      (builtins.readFile "${cljDrv.dev}/classpath");
+
+  extra-attrs = builtins.removeAttrs attrs [
+    "jdkBase"
+    "name"
+    "version"
+    "cljDrv"
+    "jdkModules"
+    "locales"
+  ];
 
   template =
     ''
       #!${runtimeShell}
 
       exec "@jdk@/bin/java" \
-          -classpath "@classpath@" clojure.main -m @mainNs@ "$@"
+          -jar "@jar@" "$@"
     '';
 
 in
-stdenv.mkDerivation {
-  inherit name version classpath locales template;
+stdenv.mkDerivation ({
+  inherit locales template;
+  name = if cljDrv == null then name else cljDrv.name;
+  version = if cljDrv == null then version else cljDrv.version;
 
   passAsFile = [ "template" ];
   stripDebugFlags = [ "--strip-unneeded" ];
@@ -65,7 +71,7 @@ stdenv.mkDerivation {
       ''
     else
       ''
-        export jdkModules=''$(jdeps -cp "$classpath" --print-module-deps "${cljDrv.lib}/${cljDrv.name}.jar")
+        export jdkModules=''$(jdeps --print-module-deps "${cljDrv.lib}/${cljDrv.name}.jar")
       '')
     +
 
@@ -80,11 +86,9 @@ stdenv.mkDerivation {
         --no-header-files \
         --no-man-pages \
         --add-modules ''${jdkModules} \
-        ${if locales==null then "" else ''--include-locales  ${locales}''} \
+        ${if locales==null then "" else ''--include-locales ${locales}''} \
         --compress 2 \
-        --output ${if classpath == null then "$out" else "$jdk"}
-
-
+        --output ${if cljDrv == null then "$out" else "$jdk"}
     ''
     +
 
@@ -93,12 +97,11 @@ stdenv.mkDerivation {
       mkdir -p $out/bin
 
       binary="$out/bin/${cljDrv.pname}"
-      touch $binary
+      # touch $binary
 
       substitute "$templatePath" "$binary" \
-        --subst-var classpath \
-        --subst-var-by jdk "$jdk" \
-        --subst-var-by mainNs "${cljDrv.main-ns}"
+        --subst-var-by jar "${cljDrv.lib}/${cljDrv.name}.jar" \
+        --subst-var-by jdk "$jdk"
       chmod +x "$binary"
     '')
     +
@@ -107,10 +110,4 @@ stdenv.mkDerivation {
       runHook postInstall
     '';
 
-  passthru = if cljDrv == null then { } else
-  {
-    main-ns = cljDrv.main-ns;
-    classpath = classpath;
-  };
-
-}
+} // extra-attrs)

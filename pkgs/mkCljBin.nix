@@ -1,5 +1,3 @@
-let default-lock-file = "deps-lock.json"; in
-
 { stdenv
 , lib
 , runtimeShell
@@ -21,7 +19,6 @@ let default-lock-file = "deps-lock.json"; in
 , name
 , version ? "DEV"
 , main-ns
-, lock-file ? default-lock-file
 , java-opts ? [ ]
 , buildCommand ? null
 , ...
@@ -35,7 +32,6 @@ let
     "name"
     "version"
     "main-ns"
-    "lock-file"
     "java-opts"
     "buildCommand"
   ];

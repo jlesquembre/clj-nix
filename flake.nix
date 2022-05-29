@@ -39,7 +39,7 @@
 
             mkGraalBin = attrs: pkgs.callPackage ./pkgs/mkGraalBin.nix attrs;
 
-            customJdk = pkgs.callPackage ./pkgs/customJdk.nix;
+            customJdk = pkgs.callPackage ./pkgs/customJdk.nix { };
 
           };
           devShell =
