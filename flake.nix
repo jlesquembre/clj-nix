@@ -31,12 +31,11 @@
 
             mk-deps-cache = pkgs.callPackage ./pkgs/mkDepsCache.nix;
 
-            mkCljBin = attrs: pkgs.callPackage ./pkgs/mkCljBin.nix
-              ({
+            mkCljBin = pkgs.callPackage ./pkgs/mkCljBin.nix
+              {
                 clj-builder = self.packages."${system}".clj-builder;
                 mk-deps-cache = self.packages."${system}".mk-deps-cache;
-              }
-              // attrs);
+              };
 
             mkGraalBin = attrs: pkgs.callPackage ./pkgs/mkGraalBin.nix attrs;
 

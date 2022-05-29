@@ -2,24 +2,21 @@ let default-lock-file = "deps-lock.json"; in
 
 { stdenv
 , lib
-, callPackage
-, fetchurl
-, fetchgit
-, writeShellScript
-, writeText
-, runCommand
 , runtimeShell
-, gnused
 , clojure
 
   # Used by clj tools.build to compile the code
 , jdk
 
+  # Custom utils
+, clj-builder
+, mk-deps-cache
 
+}:
+
+{
   # User options
-
-  # Runtime jdk
-, jdkRunner ? jdk
+  jdkRunner ? jdk # Runtime jdk
 , projectSrc
 , name
 , version ? "DEV"
@@ -27,12 +24,21 @@ let default-lock-file = "deps-lock.json"; in
 , lock-file ? default-lock-file
 , java-opts ? [ ]
 , buildCommand ? null
+, ...
+}@attrs:
 
-  # Custom utils
-, clj-builder
-, mk-deps-cache
-}:
 let
+
+  extra-attrs = builtins.removeAttrs attrs [
+    "jdkRunner"
+    "projectSrc"
+    "name"
+    "version"
+    "main-ns"
+    "lock-file"
+    "java-opts"
+    "buildCommand"
+  ];
 
   deps-cache = mk-deps-cache {
     lockfile = (projectSrc + "/deps-lock.json");
@@ -53,9 +59,8 @@ let
       exec "${jdkRunner}/bin/java" \
           -jar "@jar@" "$@"
     '';
-
 in
-stdenv.mkDerivation {
+stdenv.mkDerivation ({
   inherit version template;
   passAsFile = [ "template" ];
 
@@ -123,4 +128,4 @@ stdenv.mkDerivation {
 
       runHook postInstall
     '';
-}
+} // extra-attrs)
