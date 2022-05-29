@@ -144,7 +144,7 @@
 
   (testing "Latest SNAPSHOT version is used"
     (let [mvn-deps (c/maven-deps (h/basis {:deps {'clj-kondo/clj-kondo {:mvn/version "2022.04.26-SNAPSHOT"}}}))
-          snapshot-resolved-version "2022.04.26-20220526.102312-18"]
+          snapshot-resolved-version "2022.04.26-20220526.212013-27"]
       (is (match?
             {:mvn-path (str "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-" snapshot-resolved-version ".jar",)
              :mvn-repo "https://repo.clojars.org/",
