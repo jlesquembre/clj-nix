@@ -47,6 +47,8 @@ a lock file is a prerequisite to use the Nix helpers provided by `clj-nix`
 - Create an optimized JDK runtime to execute the clojure binary
 - Create GraalVM native images from a clojure application
 - Simplify container creation for a Clojure application
+- Run any arbitrary clojure command at Nix build time (like `clj -T:build` or
+  `clj -M:test`)
 
 ## Usage
 
@@ -85,7 +87,7 @@ Derivations:
 - [mkCljBin](#mkcljbin): Creates a clojure application
 - [customJdk](#customjdk): Creates a custom JDK with jlink. Optionally takes a
   derivation created with `mkCljBin`. The intended use case is to create a
-  minimal JDK you can deploy in a container (like Docker)
+  minimal JDK you can deploy in a container (e.g: a Docker image)
 - [mkGraalBin](#mkgraalbin): Creates a binary with GraalVM from a derivation
   created with `mkCljBin`
 
@@ -98,18 +100,11 @@ Helpers:
 #### mkCljBin
 
 Creates a Clojure application. Takes the following attributes (those without a
-default are mandatory):
-
-- **jdk**: JDK used during build time by clojure tools.build. (Default:
-  `nixpkgs.jdk`)
+default are mandatory, extra attributes are passed to **mkDerivation**):
 
 - **jdkRunner**: JDK used at runtime by the application. (Default: `jdk`)
 
 - **projectSrc**: Project source code.
-
-- **lock-file**: Lock file location. String or derivation. If a string, a file
-  with that name is expected to exist in `projectSrc`. (Default:
-  `deps-lock.json`)
 
 - **name**: Derivation and clojure project name. It's recommended to use a
   namespaced name. If not, a namespace is added automatically. E.g. `foo` will
@@ -117,33 +112,29 @@ default are mandatory):
 
 - **version**: Derivation and clojure project version. (Default: `DEV`)
 
-- **aliases**: Aliases to be used (Default: `[ ]`)
-
 - **main-ns**: Main clojure namespace. A `-main` function is expected here.
 
-- **ns-compile**: Namespace(s) to compile. The `filter-nses` argument for the
-  `compile-clj` function (Default: First `main-ns` segment. E.g.: If `main-ns`
-  is `demo.core`, `ns-compile` will be `demo`)
-
-- **ns-compile-extra**: Extra namespaces to compile. It will be appended to
-  `ns-compile` (Default: `[ ]`)
-
-- **java-opts**: Java options. Ignored if `compile` is false. (Default: `[ ]`)
+- **buildCommand**: Command to build the jar application. If not provided, a
+  default builder is used:
+  [build.clj](https://github.com/jlesquembre/clj-nix/blob/main/src/cljnix/build.clj).
+  If you provide your own build command, clj-nix expects that a jar will be
+  generated in a directory called `target`
 
 **Example**:
 
 ```nix
 mkCljBin {
-  jdk = pkgs.jdk;
   jdkRunner = pkgs.jdk17_headless;
   projectSrc = ./.;
-  name = "me.lafuente/cljdemo";
+  name = "me.lafuente/clj-tuto";
   version = "1.0";
   main-ns = "demo.core";
-  java-opts = [
-    "-Dclojure.compiler.direct-linking=true"
-    "-Dclojure.spec.skip-macros=true"
-  ];
+
+  buildCommand = "clj -T:build uber";
+
+  # mkDerivation attributes
+  doCheck = true;
+  checkPhase = "clj -M:test";
 }
 ```
 
@@ -151,7 +142,6 @@ mkCljBin {
 
 - **out**: The application binary
 - **lib**: The application jar
-- **dev**: The application runtime classpath
 
 #### customJdk
 
@@ -161,11 +151,11 @@ default are mandatory):
 - **jdkBase**: JDK used to build the custom JDK with jlink. (Default:
   `nixpkgs.jdk17_headless`)
 
-- **name**: Derivation name. (Default: `customJdk`)
-
-- **version**: Derivation version. (Default: `DEV`)
-
 - **cljDrv**: Derivation generated with `mkCljBin`.
+
+- **name**: Derivation name. (Default: `cljDrv.name`)
+
+- **version**: Derivation version. (Default: `cljDrv.version`)
 
 - **jdkModules**: Option passed to jlink `--add-modules`. If null, `jeps` will
   be used to analyze the `cljDrv` and pick the necessary modules automatically.

@@ -5,9 +5,10 @@
 - Added support for `:local/root` dependecies
 - Added support for deps.edn aliases
 - New deps-lock.json format
+- Reduce network requests to generate the lock file, making generation faster
 - Now the classpath is computed at build time
-- Added `mkCljBin` options: `ns-compile` and `ns-compile-extra`
-- Removed `mkCljBin` options: `compile`
+- Updated arguments for `mkCljBin`, `mkGraalBin` and `customJdk`, check
+  documentation for details
 
 ## 0.0.0 (2022-04-04)
 
