@@ -35,7 +35,7 @@ let
 in
 stdenv.mkDerivation ({
   inherit locales template;
-  name = if cljDrv == null then name else cljDrv.name;
+  name = if cljDrv == null then name else cljDrv.pname;
   version = if cljDrv == null then version else cljDrv.version;
 
   passAsFile = [ "template" ];
