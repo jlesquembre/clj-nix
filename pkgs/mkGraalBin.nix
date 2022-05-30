@@ -8,10 +8,10 @@
 , glibcLocales
 , writeShellScript
 , writeText
+}:
 
-  # User options
-, cljDrv
-, name ? cljDrv.artifactId
+{ cljDrv
+, name ? cljDrv.pname
 , version ? cljDrv.version
 , graalvm ? graalvmCEPackages.graalvm17-ce
 
@@ -35,14 +35,21 @@
 
   # XMX size of GraalVM during build
 , graalvmXmx ? "-J-Xmx6g"
-}:
+, ...
+}@attrs:
 
 let
-  classpath =
-    if cljDrv == null then null else
-    lib.removeSuffix
-      "\n"
-      (builtins.readFile "${cljDrv.dev}/classpath");
+  extra-attrs = builtins.removeAttrs attrs [
+    "cljDrv"
+    "name"
+    "version"
+    "graalvm"
+    "nativeBuildInputs"
+    "nativeImageBuildArgs"
+    "extraNativeImageBuildArgs"
+    "graalvmXmx"
+  ];
+
   graal-build-time = fetchurl {
     url = "https://repo.clojars.org/com/github/clj-easy/graal-build-time/0.1.4/graal-build-time-0.1.4.jar";
     hash = "sha256-LxsgDKwg1tfioJlny6yrxX76svCLrZsetPAgXP30+hU=";
@@ -59,8 +66,7 @@ assert
     ''
 );
 
-stdenv.mkDerivation
-{
+stdenv.mkDerivation ({
   inherit name version;
 
   dontUnpack = true;
@@ -70,13 +76,14 @@ stdenv.mkDerivation
   nativeImageBuildArgs =
     [
       "-classpath"
-      "${classpath}:${graal-build-time}"
+      "${graal-build-time}"
+      "-jar"
+      "${cljDrv.lib}/${cljDrv.name}.jar"
     ] ++
     nativeImageBuildArgs ++
     extraNativeImageBuildArgs ++
     [
       graalvmXmx
-      cljDrv.javaMain
     ];
 
   buildPhase =
@@ -123,8 +130,9 @@ stdenv.mkDerivation
         ''
           ${graalvm}/bin/java \
             -agentlib:native-image-agent=caller-filter-file=${filter-json},config-output-dir=${outDir} \
-            -cp "${classpath}:${graal-build-time}" \
+            -cp "${graal-build-time}" \
+            -jar "${cljDrv.lib}/${cljDrv.name}.jar" \
             ${cljDrv.javaMain} "$@"
         '';
     };
-}
+} // extra-attrs)

@@ -37,7 +37,7 @@
                 mk-deps-cache = self.packages."${system}".mk-deps-cache;
               };
 
-            mkGraalBin = attrs: pkgs.callPackage ./pkgs/mkGraalBin.nix attrs;
+            mkGraalBin = pkgs.callPackage ./pkgs/mkGraalBin.nix { };
 
             customJdk = pkgs.callPackage ./pkgs/customJdk.nix { };
 
