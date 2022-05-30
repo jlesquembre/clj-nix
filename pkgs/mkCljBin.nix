@@ -21,6 +21,10 @@
 , main-ns
 , java-opts ? [ ]
 , buildCommand ? null
+
+  # Needed for version ranges
+  # TODO maybe we can find a better solution?
+, maven-extra ? [ ]
 , ...
 }@attrs:
 
@@ -34,10 +38,12 @@ let
     "main-ns"
     "java-opts"
     "buildCommand"
+    "maven-extra"
   ];
 
   deps-cache = mk-deps-cache {
     lockfile = (projectSrc + "/deps-lock.json");
+    inherit maven-extra;
   };
 
   fullId = if (lib.strings.hasInfix "/" name) then name else "${name}/${name}";

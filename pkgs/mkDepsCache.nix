@@ -4,8 +4,10 @@
 , jdk
 , runtimeShell
 , runCommand
+, writeText
 , linkFarm
 , lockfile
+, maven-extra ? [ ]
 }:
 let
   consUrl = segments:
@@ -40,8 +42,17 @@ let
       };
     };
 
+  maven-extra-cache = { path, content }:
+    {
+      name = path;
+      path = writeText "maven-data" content;
+    };
 
-  maven-cache = linkFarm "maven-cache" (builtins.map maven-deps lock.mvn-deps);
+  maven-cache = linkFarm "maven-cache" (
+    (builtins.map maven-deps lock.mvn-deps)
+    ++
+    (builtins.map maven-extra-cache maven-extra)
+  );
 
   git-cache = linkFarm "git-cache" (builtins.map git-deps lock.git-deps);
 
