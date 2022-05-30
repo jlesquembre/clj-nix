@@ -429,23 +429,23 @@ docker run -it --rm clj-graal-nix
 In this case, the container image size is `45.3MB`, aproximately half the size
 of the custom JDK image.
 
-## GraalVM real examples
+<!-- ## GraalVM real examples -->
 
-Currently, in nixpkgs we need an uberjar to generate a native image with
-GraalVM. But such uberjar is generated outside of nix, usually in a
-non-deterministic way. It would be better if we relay only in the source code,
-not every project generates an uberjar (but some will generate one
-[if you ask politely](https://github.com/clj-kondo/clj-kondo/issues/414) :-) )
+<!-- Currently, in nixpkgs we need an uberjar to generate a native image with -->
+<!-- GraalVM. But such uberjar is generated outside of nix, usually in a -->
+<!-- non-deterministic way. It would be better if we relay only in the source code, -->
+<!-- not every project generates an uberjar (but some will generate one -->
+<!-- [if you ask politely](https://github.com/clj-kondo/clj-kondo/issues/414) :-) ) -->
 
-The main difference between this project and the current nixpkgs approach is
-that with `clj-nix` we should be able to generate a binary directly from the
-code.
+<!-- The main difference between this project and the current nixpkgs approach is -->
+<!-- that with `clj-nix` we should be able to generate a binary directly from the -->
+<!-- code. -->
 
-### clj-kondo
+<!-- ### clj-kondo -->
 
-```
-nix run github:/jlesquembre/clj-demo-project#clj-kondo
-```
+<!-- ``` -->
+<!-- nix run github:/jlesquembre/clj-demo-project#clj-kondo -->
+<!-- ``` -->
 
 ## Similar projects
 
@@ -453,24 +453,3 @@ nix run github:/jlesquembre/clj-demo-project#clj-kondo
 - [clj2nix](https://github.com/hlolli/clj2nix)
 - [mvn2nix](https://github.com/fzakaria/mvn2nix)
 - [clojure-nix-locker](https://github.com/bevuta/clojure-nix-locker)
-
-## Internals
-
-### JARs
-
-To run a clojure application, we don't generate an uberjar. Instead, we build
-the classpath with all the dependecies, and create a jar with our application
-(our application jar will be prepended to the classpath)
-
-[juxt/pack.alpha](https://github.com/juxt/pack.alpha#what-does-conflict-less-mean)
-takes a similiar approach to provide a conflict-less way to package clojure
-applications, see
-[juxt/pack.alpha: What does conflict-less mean?](https://github.com/juxt/pack.alpha#what-does-conflict-less-mean)
-
-### Classpath
-
-We use Clojure tools.deps to generate the classpath at build time. Information
-about the dependency tree is saved in the lock file. To avoid making http
-requests at build time, we are re-defining some multimethods (from the
-`clojure.tools.deps.alpha.extensions` namespace) to get the data about the
-dependecies from the lock file )
