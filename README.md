@@ -91,6 +91,10 @@ Derivations:
 - [mkGraalBin](#mkgraalbin): Creates a binary with GraalVM from a derivation
   created with `mkCljBin`
 
+**NOTE**: Extra unknown attributes are passed to the `mkDerivation` function,
+see [mkCljBin](#mkcljbin) section for an example about how to add a custom check
+phase.
+
 Helpers:
 
 - [mkCljCli](#mkcljcli): Takes a derivation created with `customJdk` and returns
