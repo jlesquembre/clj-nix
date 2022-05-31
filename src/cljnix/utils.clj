@@ -2,6 +2,7 @@
   (:require
     [clojure.java.shell :as sh]
     [clojure.string :as string]
+    [clojure.java.io :as io]
     [clojure.edn :as edn]
     [clojure.data.json :as json]
     [clojure.tools.deps.alpha.util.maven :as mvn]
@@ -13,7 +14,6 @@
     [clojure.zip :as zip]
     [borkdude.rewrite-edn :as r])
   (:import
-    [java.io FileReader]
     [org.apache.maven.model.io.xpp3 MavenXpp3Reader]
     [org.apache.maven.model Model]))
 
@@ -37,7 +37,7 @@
 (defn- pom
   ^Model [pom-path]
   (when (= "pom" (fs/extension pom-path))
-    (let [f (FileReader. (str pom-path))]
+    (let [f (io/input-stream (str pom-path))]
       (.read (MavenXpp3Reader.) f))))
 
 ;; Snapshot jar can be

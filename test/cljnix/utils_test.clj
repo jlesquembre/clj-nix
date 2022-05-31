@@ -1,6 +1,6 @@
 (ns cljnix.utils-test
   (:require
-    [clojure.test :refer [deftest is use-fixtures]]
+    [clojure.test :refer [deftest is use-fixtures testing]]
     [cljnix.utils :as utils]
     [cljnix.test-helpers :as h]
     [clojure.tools.deps.alpha.util.maven :as mvn]
@@ -8,7 +8,8 @@
     [clojure.tools.deps.alpha :as deps]))
 
 (def my-deps '{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
-                      babashka/fs {:mvn/version "0.1.5"}}})
+                      babashka/fs {:mvn/version "0.1.5"}
+                      javax.activation/javax.activation-api {:mvn/version "1.2.0"}}})
 
 (defn deps-cache-fixture [f]
   (h/prep-deps my-deps)
@@ -42,7 +43,10 @@
   (is (= (str (fs/path @mvn/cached-local-repo "org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"))
          (utils/get-parent (fs/path @mvn/cached-local-repo "org/clojure/core.specs.alpha/0.2.62/core.specs.alpha-0.2.62.pom"))))
   (is (= nil
-         (utils/get-parent (fs/path @mvn/cached-local-repo "org/clojure/core.specs.alpha/0.2.62/core.specs.alpha-0.2.62.jar")))))
+         (utils/get-parent (fs/path @mvn/cached-local-repo "org/clojure/core.specs.alpha/0.2.62/core.specs.alpha-0.2.62.jar"))))
+  (testing "pom has a different encoding"
+    (is (= (str (fs/path @mvn/cached-local-repo "com/sun/activation/all/1.2.0/all-1.2.0.pom"))
+           (utils/get-parent (fs/path @mvn/cached-local-repo "javax/activation/javax.activation-api/1.2.0/javax.activation-api-1.2.0.pom"))))))
 
 (def deps-data {:deps {'org.clojure/clojure {:mvn/version "1.11.1"}
                        'io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}}
