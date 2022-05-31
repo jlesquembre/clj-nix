@@ -22,7 +22,6 @@
 , nativeImageBuildArgs ? [
     "-H:CLibraryPath=${lib.getLib graalvm}/lib"
     (lib.optionalString stdenv.isDarwin "-H:-CheckToolchain")
-    "-H:Name=${name}"
     "-H:+ReportExceptionStackTraces"
     # "-H:+PrintClassInitialization"
     # "--initialize-at-build-time"
@@ -85,6 +84,10 @@ stdenv.mkDerivation ({
       graalvmXmx
     ];
 
+  # For the options, see:
+  # https://www.graalvm.org/22.1/reference-manual/native-image/BuildConfiguration/
+  # https://www.graalvm.org/22.1/reference-manual/native-image/Options/
+  # Option order is important
   buildPhase =
     ''
       export LC_ALL="en_US.UTF-8"
@@ -92,7 +95,7 @@ stdenv.mkDerivation ({
       runHook preBuild
 
       jar="$(find ${cljDrv.lib} -type f -name "*.jar" -print | head -n 1)"
-      native-image ''${nativeImageBuildArgs[@]} -jar "$jar"
+      native-image ''${nativeImageBuildArgs[@]} -jar "$jar" ${name}
 
       runHook postBuild
     '';
@@ -100,8 +103,6 @@ stdenv.mkDerivation ({
   installPhase =
     ''
       runHook preInstall
-
-      ls -la
 
       install -Dm755 ${name} -t $out/bin
 
