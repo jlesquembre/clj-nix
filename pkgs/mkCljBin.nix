@@ -119,7 +119,7 @@ stdenv.mkDerivation ({
       mkdir -p $lib
       mkdir -p $out/bin
 
-      jar="$(find target -type f   -name "*.jar" -print | head -n 1)"
+      jar="$(find target -type f -name "*.jar" -print | head -n 1)"
       binary="$out/bin/${artifactId}"
 
       cp $jar $lib
