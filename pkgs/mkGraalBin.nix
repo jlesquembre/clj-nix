@@ -67,7 +67,8 @@ assert
 );
 
 stdenv.mkDerivation ({
-  inherit name version;
+  inherit version;
+  pname = name;
 
   dontUnpack = true;
 
@@ -90,7 +91,7 @@ stdenv.mkDerivation ({
 
       runHook preBuild
 
-      jar="$(find ${cljDrv.lib} -type f   -name "*.jar" -print | head -n 1)"
+      jar="$(find ${cljDrv.lib} -type f -name "*.jar" -print | head -n 1)"
       native-image ''${nativeImageBuildArgs[@]} -jar "$jar"
 
       runHook postBuild
@@ -99,6 +100,8 @@ stdenv.mkDerivation ({
   installPhase =
     ''
       runHook preInstall
+
+      ls -la
 
       install -Dm755 ${name} -t $out/bin
 
@@ -127,7 +130,7 @@ stdenv.mkDerivation ({
       # See https://www.graalvm.org/22.0/reference-manual/native-image/BuildConfiguration/
       agentlib = writeShellScript "agentlib-helper.sh"
         ''
-          jar="$(find ${cljDrv.lib} -type f   -name "*.jar" -print | head -n 1)"
+          jar="$(find ${cljDrv.lib} -type f -name "*.jar" -print | head -n 1)"
           ${graalvm}/bin/java \
             -agentlib:native-image-agent=caller-filter-file=${filter-json},config-output-dir=${outDir} \
             -cp "${graal-build-time}" \
