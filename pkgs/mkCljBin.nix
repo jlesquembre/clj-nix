@@ -118,14 +118,16 @@ stdenv.mkDerivation ({
 
       mkdir -p $lib
       mkdir -p $out/bin
+      mkdir -p $out/nix-support
 
-      jar="$(find target -type f -name "*.jar" -print | head -n 1)"
+      jarPath="$(find target -type f -name "*.jar" -print | head -n 1)"
+      cp $jarPath $lib
+      jarPath=$(basename $jarPath)
+      echo "$lib/$jarPath" > $out/nix-support/jar-path
+
       binary="$out/bin/${artifactId}"
-
-      cp $jar $lib
-
       substitute $templatePath "$binary" \
-        --subst-var-by jar "$lib/$(basename $jar)"
+        --subst-var-by jar "$lib/$jarPath"
       chmod +x "$binary"
 
       runHook postInstall

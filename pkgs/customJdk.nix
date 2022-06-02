@@ -63,7 +63,8 @@ stdenv.mkDerivation ({
       ''
     else
       ''
-        export jdkModules=''$(jdeps --print-module-deps "${cljDrv.lib}/${cljDrv.name}.jar")
+        export jarPath=$(cat ${cljDrv}/nix-support/jar-path)
+        export jdkModules=$(jdeps --print-module-deps "$jarPath")
       '')
     +
 
@@ -89,10 +90,9 @@ stdenv.mkDerivation ({
       mkdir -p $out/bin
 
       binary="$out/bin/${cljDrv.pname}"
-      # touch $binary
 
       substitute "$templatePath" "$binary" \
-        --subst-var-by jar "${cljDrv.lib}/${cljDrv.name}.jar" \
+        --subst-var-by jar "$jarPath" \
         --subst-var-by jdk "$jdk"
       chmod +x "$binary"
     '')
