@@ -9,6 +9,7 @@
 - Now the classpath is computed at build time
 - Updated arguments for `mkCljBin`, `mkGraalBin` and `customJdk`, check
   documentation for details
+- Added `mkCljLib` nix function
 
 ## 0.0.0 (2022-04-04)
 

@@ -319,7 +319,7 @@
     (= flag "--jar")
     (build/jar
       (interleave
-        [:lib-name :version :main-ns]
+        [:lib-name :version]
         (apply vector value more)))
 
     (= flag "--uber")

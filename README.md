@@ -91,6 +91,7 @@ Derivations:
   minimal JDK you can deploy in a container (e.g: a Docker image)
 - [mkGraalBin](#mkgraalbin): Creates a binary with GraalVM from a derivation
   created with `mkCljBin`
+- [mkCljLib](#mkcljlib): Creates a clojure library jar
 
 **NOTE**: Extra unknown attributes are passed to the `mkDerivation` function,
 see [mkCljBin](#mkcljbin) section for an example about how to add a custom check
@@ -214,6 +215,36 @@ mkGraalBin {
 
 An extra attribute is present in the derivation, `agentlib`, which generates a
 script to help with the generation of a reflection config file
+
+#### mkCljLib
+
+Creates a jar file for a Clojure library. Takes the following attributes (those
+without a default are mandatory, extra attributes are passed to
+**mkDerivation**):
+
+- **projectSrc**: Project source code.
+
+- **name**: Derivation and clojure library name. It's recommended to use a
+  namespaced name. If not, a namespace is added automatically. E.g. `foo` will
+  be transformed to `foo/foo`
+
+- **version**: Derivation and clojure project version. (Default: `DEV`)
+
+- **buildCommand**: Command to build the jar application. If not provided, a
+  default builder is used:
+  [jar fn in build.clj](https://github.com/jlesquembre/clj-nix/blob/main/src/cljnix/build.clj).
+  If you provide your own build command, clj-nix expects that a jar will be
+  generated in a directory called `target`
+
+**Example**:
+
+```nix
+mkCljLib {
+  projectSrc = ./.;
+  name = "me.lafuente/my-lib";
+  buildCommand = "clj -T:build jar";
+};
+```
 
 #### mkCljCli
 

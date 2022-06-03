@@ -37,6 +37,12 @@
                 mk-deps-cache = self.packages."${system}".mk-deps-cache;
               };
 
+            mkCljLib = pkgs.callPackage ./pkgs/mkCljLib.nix
+              {
+                clj-builder = self.packages."${system}".clj-builder;
+                mk-deps-cache = self.packages."${system}".mk-deps-cache;
+              };
+
             mkGraalBin = pkgs.callPackage ./pkgs/mkGraalBin.nix { };
 
             customJdk = pkgs.callPackage ./pkgs/customJdk.nix { };
