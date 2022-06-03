@@ -102,6 +102,9 @@ Helpers:
 - [mkCljCli](#mkcljcli): Takes a derivation created with `customJdk` and returns
   a valid command to launch the application, as a string. Useful when creating a
   container.
+- [mk-deps-cache](#mk-deps-cache): Creates a Clojure deps cache (maven cache +
+  gitlibs cache). Used by `mkCljBin` and `mkCljLib`. You can use this function
+  to to have access to the cache in a nix derivation.
 
 #### mkCljBin
 
@@ -265,6 +268,22 @@ mkCljCli {
   jdkDrv = self.packages."${system}".jdk-tuto;
   java-opts = [ "-Dclojure.compiler.direct-linking=true" ];
   extra-args = [ "--foo bar" ];
+}
+```
+
+#### mk-deps-cache
+
+Generate maven + gitlib cache from a lock file. This is a lower level helper,
+usually you want to use `mkCljBin` or `mkCljLib` and define a custom build
+command with the `buildCommand` argument.
+
+**lockfile**: deps-lock.json file
+
+**Example**:
+
+```nix
+mk-deps-cache {
+  lockfile = ./deps-lock.json;
 }
 ```
 
