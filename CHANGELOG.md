@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 (2022-06-06)
 
 - Added support for `:local/root` dependecies
 - Added support for deps.edn aliases
