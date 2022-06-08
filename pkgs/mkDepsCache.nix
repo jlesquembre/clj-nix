@@ -22,15 +22,13 @@ let
   lock = builtins.fromJSON (builtins.readFile lockfile);
 
   maven-deps =
-    { mvn-path, mvn-repo, hash }:
+    { mvn-path, mvn-repo, hash, ... }:
     {
-
       name = mvn-path;
       path = fetchurl {
         inherit hash;
         url = consUrl [ mvn-repo mvn-path ];
       };
-
     };
 
   git-deps =
