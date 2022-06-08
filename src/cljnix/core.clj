@@ -279,13 +279,15 @@
 (defn lock-file
   ([project-dir]
    (lock-file project-dir {}))
-  ([project-dir {:keys [extra-mvn extra-git]
+  ([project-dir {:keys [extra-mvn extra-git deps-ignore]
                  :or {extra-mvn []
-                      extra-git []}}]
+                      extra-git []
+                      deps-ignore []}}]
    (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
      (transduce
        (comp
          (filter #(= "deps.edn" (fs/file-name %)))
+         (remove #(some (partial fs/ends-with? %) deps-ignore))
          (map (juxt identity #(-> % deps/slurp-deps :aliases keys)))
          (mapcat aliases-combinations)
          (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
@@ -324,7 +326,7 @@
        (file-seq (fs/file project-dir))))))
 
 (defn -main
-  [& [flag value & more]]
+  [& [flag value & more :as args]]
   (cond
     (= flag "--patch-git-sha")
     (utils/expand-shas! value)
@@ -346,7 +348,8 @@
                                (str (fs/canonicalize "."))
                                {:extra-mvn (-> (io/resource "clojure-deps.edn")
                                                slurp
-                                               edn/read-string)})
+                                               edn/read-string)
+                                :deps-ignore args})
                              :escape-slash false
                              :escape-unicode false
                              :escape-js-separators false)))

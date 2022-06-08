@@ -10,6 +10,8 @@
 , maven-extra ? [ ]
 }:
 let
+  deps-lock-version = 3;
+
   consUrl = segments:
     lib.pipe
       segments
@@ -82,11 +84,11 @@ in
 assert
 (
   lib.assertMsg
-    (version == 3)
+    (version == deps-lock-version)
     ''
       Lock file generated with a different clj-nix version.
       Current version: ${builtins.toString version}
-      Expected version: 2
+      Expected version: ${deps-lock-version}
 
       Re-generate the lock file with
       nix run github:jlesquembre/clj-nix#deps-lock
