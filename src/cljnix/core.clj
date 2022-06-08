@@ -17,7 +17,7 @@
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]))
 
 
-(def LOCK-VERSION 2)
+(def LOCK-VERSION 3)
 
 (defn- mvn?
   [[_ {:keys [mvn/version]}]]
@@ -69,10 +69,11 @@
   (into []
         (comp
           (filter git?)
-          (map (fn [[lib {:keys [git/sha git/url deps/root]}]]
+          (map (fn [[lib {:keys [git/sha git/url deps/root git/tag]}]]
                  {:lib lib
                   :rev sha
                   :url url
+                  :tag tag
                   :git-dir (utils/git-dir url)
                   :hash (nix-hash root)
                   :local-path root})))
@@ -258,7 +259,8 @@
            :lib 10
            :url 11
            :rev 12
-           :git-dir 13
+           :tag 13
+           :git-dir 14
 
            :hash 20
 
@@ -269,6 +271,10 @@
     (compare (get m a 1000)
              (get m b 1000))))
 
+(defn- same-git-dep?
+  [a b]
+  (let [id (juxt :lib :url :rev)]
+    (= (id a) (id b))))
 
 (defn lock-file
   ([project-dir]
@@ -301,10 +307,17 @@
              :git-deps (->> (concat git (missing-git-deps git cache-dir))
                             (map #(update % :lib str))
                             (sort-by :lib)
-                            (mapv #(into (sorted-map-by map-comparator)
-                                         (select-keys % [:lib :rev :url :git-dir :hash])))
+                            (map #(cond-> %
+                                    (nil? (:tag %))
+                                    (dissoc :tag)))
+                            (map #(into (sorted-map-by map-comparator)
+                                        (select-keys % [:tag :lib :rev :url :git-dir :hash])))
                             (distinct)
-                            (into [])))))
+                            (reduce (fn [acc v]
+                                      (if (same-git-dep? (peek acc) v)
+                                        (conj (pop acc) (merge v (peek acc)))
+                                        (conj acc v)))
+                                    [])))))
 
        {:mvn extra-mvn
         :git extra-git}

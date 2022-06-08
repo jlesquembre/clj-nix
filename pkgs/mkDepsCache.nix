@@ -82,7 +82,7 @@ in
 assert
 (
   lib.assertMsg
-    (version == 2)
+    (version == 3)
     ''
       Lock file generated with a different clj-nix version.
       Current version: ${builtins.toString version}
