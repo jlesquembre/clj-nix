@@ -47,6 +47,12 @@
 
             customJdk = pkgs.callPackage ./pkgs/customJdk.nix { };
 
+            cljTasks = pkgs.callPackage ./pkgs/cljTasks
+              {
+                mkCljBin = self.packages."${system}".mkCljBin;
+                mkGraalBin = self.packages."${system}".mkGraalBin;
+              };
+
           };
           devShell =
             let
