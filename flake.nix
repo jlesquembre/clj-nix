@@ -8,52 +8,27 @@
       url = "github:numtide/devshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
   };
-  outputs = { self, nixpkgs, flake-utils, ... }@inputs:
 
+  outputs = { self, nixpkgs, flake-utils, ... }@inputs:
 
     flake-utils.lib.eachDefaultSystem
       (system:
         let
-          pkgs = inputs.nixpkgs.legacyPackages.${system};
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ inputs.devshell.overlay self.overlay ];
+          };
         in
         {
           packages = {
 
-            clj-builder = pkgs.callPackage ./pkgs/cljBuilder.nix { };
-
-            deps-lock = pkgs.callPackage ./pkgs/depsLock.nix
-              {
-                clj-builder = self.packages."${system}".clj-builder;
-              };
-
-            mk-deps-cache = pkgs.callPackage ./pkgs/mkDepsCache.nix;
-
-            mkCljBin = pkgs.callPackage ./pkgs/mkCljBin.nix
-              {
-                clj-builder = self.packages."${system}".clj-builder;
-                mk-deps-cache = self.packages."${system}".mk-deps-cache;
-              };
-
-            mkCljLib = pkgs.callPackage ./pkgs/mkCljLib.nix
-              {
-                clj-builder = self.packages."${system}".clj-builder;
-                mk-deps-cache = self.packages."${system}".mk-deps-cache;
-              };
-
-            mkGraalBin = pkgs.callPackage ./pkgs/mkGraalBin.nix { };
-
-            customJdk = pkgs.callPackage ./pkgs/customJdk.nix { };
+            inherit (pkgs) clj-builder deps-lock mk-deps-cache
+              mkCljBin mkCljLib mkGraalBin customJdk;
 
           };
+
           devShell =
-            let
-              pkgs = import nixpkgs {
-                inherit system;
-                overlays = [ inputs.devshell.overlay ];
-              };
-            in
             pkgs.devshell.mkShell {
               packages = [
                 pkgs.nix-prefetch-git
@@ -84,13 +59,23 @@
 
         }) //
 
-    {
+   {
       lib = import ./helpers.nix;
+
       defaultTemplate = {
         path = ./templates/default;
         description = "A simple clj-nix project";
       };
 
+      overlay = final: prev: {
+        clj-builder = final.callPackage ./pkgs/cljBuilder.nix { };
+        deps-lock = final.callPackage ./pkgs/depsLock.nix { };
+        mk-deps-cache = final.callPackage ./pkgs/mkDepsCache.nix;
+        mkCljBin = final.callPackage ./pkgs/mkCljBin.nix { };
+        mkCljLib = final.callPackage ./pkgs/mkCljLib.nix { };
+        mkGraalBin = final.callPackage ./pkgs/mkGraalBin.nix { };
+        customJdk = final.callPackage ./pkgs/customJdk.nix { };
+      };
     };
 
 }
