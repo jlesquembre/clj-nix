@@ -17,7 +17,6 @@
       (system:
         let
           pkgs = inputs.nixpkgs.legacyPackages.${system};
-          utils = import ./pkgs/utils.nix;
         in
         {
           packages = {
