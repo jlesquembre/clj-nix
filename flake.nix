@@ -17,7 +17,7 @@
         let
           pkgs = import nixpkgs {
             inherit system;
-            overlays = [ inputs.devshell.overlay self.overlay ];
+            overlays = [ inputs.devshell.overlay self.overlays.default ];
           };
         in
         {
@@ -28,7 +28,7 @@
 
           };
 
-          devShell =
+          devShells.default =
             pkgs.devshell.mkShell {
               packages = [
                 pkgs.nix-prefetch-git
@@ -57,17 +57,23 @@
               ];
             };
 
+          # Deprecated
+          devShell = self.devShells.${system}.default;
+
         }) //
 
    {
       lib = import ./helpers.nix;
 
-      defaultTemplate = {
+      templates.default = {
         path = ./templates/default;
         description = "A simple clj-nix project";
       };
 
-      overlay = final: prev: {
+      # Deprecated
+      defaultTemplate = self.templates.default;
+
+      overlays.default = final: prev: {
         clj-builder = final.callPackage ./pkgs/cljBuilder.nix { };
         deps-lock = final.callPackage ./pkgs/depsLock.nix { };
         mk-deps-cache = final.callPackage ./pkgs/mkDepsCache.nix;
@@ -76,6 +82,8 @@
         mkGraalBin = final.callPackage ./pkgs/mkGraalBin.nix { };
         customJdk = final.callPackage ./pkgs/customJdk.nix { };
       };
-    };
 
+      # Deprecated
+      overlay = self.overlays.default;
+    };
 }
