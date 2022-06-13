@@ -94,7 +94,7 @@ assert
     ''
       Lock file generated with a different clj-nix version.
       Current version: ${builtins.toString version}
-      Expected version: ${deps-lock-version}
+      Expected version: ${builtins.toString deps-lock-version}
 
       Re-generate the lock file with
       nix run github:jlesquembre/clj-nix#deps-lock
