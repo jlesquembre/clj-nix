@@ -199,10 +199,32 @@
       (is (= [{:lib "io.github.babashka/fs",
                 :url "https://github.com/babashka/fs.git",
                 :rev "31f8b93638530f8ea7148c22b008ce1d0ccd4b87",
+                :tag "v0.1.6"
                 :git-dir "https/github.com/babashka/fs",
                 :hash "sha256-rlC+1cPnDYNP4UznIWH9MC2xSVQn/XbvKE10tbcsNNI="}]
+             (:git-deps (c/lock-file project-dir))))
+
+      (spit-helper "deps.edn" {:deps {'io.github.cognitect-labs/test-runner  {:git/tag "v0.5.0",
+                                                                              :git/sha "b3fd0d2"}}})
+      (is (= [{:git-dir "https/github.com/cognitect-labs/test-runner",
+                :hash "sha256-NZ9/S82Ae1aq0gnuTLOYg/cc7NcYIoK2JP6c/xI+xJE=",
+                :lib "io.github.cognitect-labs/test-runner",
+                :rev "48c3c67f98362ba1e20526db4eeb6996209c050a",
+                :tag "v0.5.0",
+                :url "https://github.com/cognitect-labs/test-runner.git"}]
+             (:git-deps (c/lock-file project-dir))))
+
+      (spit-helper "deps.edn" {:deps {'io.github.cognitect-labs/test-runner {:git/tag "v0.5.0",
+                                                                             :git/sha "b3fd0d2"}}
+                               :aliases
+                               {:foo
+                                {:extra-deps
+                                 {'io.github.cognitect-labs/test-runner {:git/sha "48c3c67f98362ba1e20526db4eeb6996209c050a"}}}}})
+
+      (is (= [{:git-dir "https/github.com/cognitect-labs/test-runner",
+                :hash "sha256-NZ9/S82Ae1aq0gnuTLOYg/cc7NcYIoK2JP6c/xI+xJE=",
+                :lib "io.github.cognitect-labs/test-runner",
+                :rev "48c3c67f98362ba1e20526db4eeb6996209c050a",
+                :tag "v0.5.0",
+                :url "https://github.com/cognitect-labs/test-runner.git"}]
              (:git-deps (c/lock-file project-dir)))))))
-
-; TODO test missing-mvn-deps with snapshots!
-
-; TODO add test to create mvn cache with snapshots?

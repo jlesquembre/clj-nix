@@ -10,6 +10,8 @@
 , maven-extra ? [ ]
 }:
 let
+  deps-lock-version = 3;
+
   consUrl = segments:
     lib.pipe
       segments
@@ -22,13 +24,19 @@ let
   lock = builtins.fromJSON (builtins.readFile lockfile);
 
   maven-deps =
-    { mvn-path, mvn-repo, hash, ... }:
-    {
-      name = mvn-path;
+    { mvn-path, mvn-repo, hash, snapshot ? null, ... }:
+    let
       path = fetchurl {
         inherit hash;
         url = consUrl [ mvn-repo mvn-path ];
       };
+    in
+    [
+      { inherit path; name = mvn-path; }
+    ]
+    ++ lib.lists.optional (snapshot != null) {
+      inherit path;
+      name = (builtins.concatStringsSep "/" [ (builtins.dirOf mvn-path) snapshot ]);
     };
 
   git-deps =
@@ -47,7 +55,7 @@ let
     };
 
   maven-cache = linkFarm "maven-cache" (
-    (builtins.map maven-deps lock.mvn-deps)
+    (builtins.concatMap maven-deps lock.mvn-deps)
     ++
     (builtins.map maven-extra-cache maven-extra)
   );
@@ -82,11 +90,11 @@ in
 assert
 (
   lib.assertMsg
-    (version == 2)
+    (version == deps-lock-version)
     ''
       Lock file generated with a different clj-nix version.
       Current version: ${builtins.toString version}
-      Expected version: 2
+      Expected version: ${deps-lock-version}
 
       Re-generate the lock file with
       nix run github:jlesquembre/clj-nix#deps-lock

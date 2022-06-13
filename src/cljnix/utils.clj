@@ -176,11 +176,11 @@
 (defn- expand-hash
   [git-deps lib node]
   (let [node-data (r/sexpr node)
-        sha (or (:sha node-data)
-                (:git/sha node-data))
+        tag (or (:tag node-data)
+                (:git/tag node-data))
         full-sha (:rev (first (filter #(and
                                          (= (str lib) (:lib %))
-                                         (string/starts-with? (:rev %) sha))
+                                         (= tag (:tag %)))
                                       git-deps)))]
     (when-not full-sha
       (throw+ "Can't expand full sha"
