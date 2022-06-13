@@ -1,9 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2022-06-13)
 
+- Add overlays(#19). Thanks to @kenranunderscore and @Sohalt
 - Accept sha for annotated tags in deps.edn. For details see
   https://clojurians.slack.com/archives/C6QH853H8/p1636404490163500
+- Better support for maven snapshots.
 
 ## 0.1.0 (2022-06-06)
 
