@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fix mkCljCli helper function
+
 ## 0.2.0 (2022-06-13)
 
 - Add overlays(#19). Thanks to @kenranunderscore and @Sohalt

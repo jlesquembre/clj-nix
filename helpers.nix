@@ -23,11 +23,8 @@ in
         ]
         ++ (formatArg java-opts) ++
         [
-          "-classpath"
-          "${jdkDrv.classpath}"
-          "clojure.main"
-          "-m"
-          "${jdkDrv.main-ns}"
+          "-jar"
+          "${jdkDrv.jarPath}"
         ]
         ++ (formatArg extra-args)
       );
