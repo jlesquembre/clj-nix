@@ -11,6 +11,7 @@ STATUS: alpha. Please leave feedback.
   - [Generate lock file](#generate-lock-file)
   - [API](#api)
   - [GitHub action](#github-action)
+- [FAQ](#faq)
 - [Tutorial](#tutorial)
 - [Similar projects](#similar-projects)
 
@@ -317,6 +318,40 @@ jobs:
           commit-message: Update deps-lock.json
           title: Update deps-lock.json
           branch: update-deps-lock
+```
+
+## FAQ
+
+- **How can I define extra runtime dependencies?**
+
+If you try to call a external program from your Clojure application, you will
+get an error (something like
+`Cannot run program "some-program": error=2, No such file or directory`). One
+possible solution is to wrap the binary:
+
+```nix
+cljpkgs.mkCljBin {
+# ...
+nativeBuildInputs = [ pkgs.makeWrapper ];
+postInstall = ''
+  wrapProgram $cljBinary \
+    --set PATH ${pkgs.lib.makeBinPath [ pkgs.cowsay ]}
+'';
+}
+```
+
+Notice that the `$cljBinary` is a real variable. It is created by `mkCljBin`
+during the install phase.
+
+or if you want to define the dependencies in a docker image:
+
+```nix
+pkgs.dockerTools.buildLayeredImage {
+  # ...
+  config = {
+    Env = [ "PATH=${pkgs.lib.makeBinPath [ pkgs.cowsay ]}" ];
+  };
+};
 ```
 
 ## Tutorial

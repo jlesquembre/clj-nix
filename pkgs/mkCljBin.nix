@@ -39,6 +39,7 @@ let
     "java-opts"
     "buildCommand"
     "maven-extra"
+    "nativeBuildInputs"
   ];
 
   deps-cache = mk-deps-cache {
@@ -71,10 +72,12 @@ stdenv.mkDerivation ({
 
   # Build time deps
   nativeBuildInputs =
-    [
-      jdk
-      clojure
-    ];
+    attrs.nativeBuildInputs or [ ]
+      ++
+      [
+        jdk
+        clojure
+      ];
 
   outputs = [ "out" "lib" ];
 
@@ -125,10 +128,10 @@ stdenv.mkDerivation ({
       jarPath=$(basename $jarPath)
       echo "$lib/$jarPath" > $out/nix-support/jar-path
 
-      binary="$out/bin/${artifactId}"
-      substitute $templatePath "$binary" \
+      cljBinary="$out/bin/${artifactId}"
+      substitute $templatePath "$cljBinary" \
         --subst-var-by jar "$lib/$jarPath"
-      chmod +x "$binary"
+      chmod +x "$cljBinary"
 
       runHook postInstall
     '';
