@@ -340,7 +340,7 @@ postInstall = ''
 }
 ```
 
-Notice that the `$cljBinary` is a real variable. It is created by `mkCljBin`
+Notice that the `$cljBinary` is a proper Bash variable. It is created by `mkCljBin`
 during the install phase.
 
 or if you want to define the dependencies in a docker image:
