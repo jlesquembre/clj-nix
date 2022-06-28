@@ -4,6 +4,7 @@
 
 - Fix mkCljCli helper function
 - Add support for Leiningen projects
+- Add lockfile option to mkCljBin
 
 ## 0.2.0 (2022-06-13)
 

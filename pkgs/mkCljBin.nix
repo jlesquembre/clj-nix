@@ -44,7 +44,7 @@ let
   ];
 
   deps-cache = mk-deps-cache {
-    lockfile = (projectSrc + "/deps-lock.json");
+    lockfile = attrs.lockfile or (projectSrc + "/deps-lock.json");
     inherit maven-extra;
   };
 
@@ -90,6 +90,9 @@ stdenv.mkDerivation ({
   patchPhase =
     ''
       runHook prePatch
+      if [[ ! -f "deps-lock.json" ]]; then
+        cp "${attrs.lockfile}" deps-lock.json
+      fi
       ${clj-builder} --patch-git-sha "$(pwd)"
       runHook postPatch
     '';

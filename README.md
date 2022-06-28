@@ -159,6 +159,8 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
   If you provide your own build command, clj-nix expects that a jar will be
   generated in a directory called `target`
 
+- **lockfile**: The lock file. (Default: `${projectSrc}/deps-lock.json`)
+
 **Example**:
 
 ```nix
