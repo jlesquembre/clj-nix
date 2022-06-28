@@ -2,6 +2,7 @@
 , lib
 , runtimeShell
 , clojure
+, leiningen
 
   # Used by clj tools.build to compile the code
 , jdk
@@ -77,6 +78,7 @@ stdenv.mkDerivation ({
       [
         jdk
         clojure
+        leiningen
       ];
 
   outputs = [ "out" "lib" ];
@@ -97,7 +99,10 @@ stdenv.mkDerivation ({
       runHook preBuild
 
       export HOME="${deps-cache}"
-      export JAVA_TOOL_OPTIONS="-Duser.home=${deps-cache}"
+
+      export LEIN_OFFLINE=true
+      export LEIN_JVM_OPTS="-Dmaven.repo.local=${deps-cache}/.m2 -Duser.home=${deps-cache}"
+      export LEIN_HOME=.lein
     ''
     +
     (
@@ -123,7 +128,11 @@ stdenv.mkDerivation ({
       mkdir -p $out/bin
       mkdir -p $out/nix-support
 
-      jarPath="$(find target -type f -name "*.jar" -print | head -n 1)"
+      # jarPath variable could be defined in the preInsall hook, don't override it
+      if [ -z ''${jarPath+x} ]; then
+        jarPath="$(find target -type f -name "*.jar" -print | head -n 1)"
+      fi
+
       cp $jarPath $lib
       jarPath=$(basename $jarPath)
       echo "$lib/$jarPath" > $out/nix-support/jar-path

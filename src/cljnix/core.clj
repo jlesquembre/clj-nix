@@ -2,6 +2,7 @@
   (:require
     [clojure.string :as string]
     [clojure.java.io :as io]
+    [clojure.java.shell :as sh]
     [clojure.edn :as edn]
     [clojure.pprint :as pp]
     [clojure.tools.deps.alpha.util.maven :as mvn]
@@ -279,7 +280,7 @@
 (defn lock-file
   ([project-dir]
    (lock-file project-dir {}))
-  ([project-dir {:keys [extra-mvn extra-git deps-ignore]
+  ([project-dir {:keys [extra-mvn extra-git deps-ignore lein?]
                  :or {extra-mvn []
                       extra-git []
                       deps-ignore []}}]
@@ -297,6 +298,13 @@
              (update :mvn into mvn)
              (update :git into git)))
          (fn [{:keys [mvn git]}]
+           (when lein?
+             (let [lein-home (str (fs/path cache-dir "lein"))]
+               (fs/create-dir lein-home)
+               (spit (str (fs/path lein-home "profiles.clj"))
+                     {:user {:local-repo (str (fs/path cache-dir mvn-cache-subdir))}})
+               (sh/sh "lein" "deps" :env {"LEIN_HOME"
+                                          lein-home})))
            (sorted-map-by
              map-comparator
              :lock-version LOCK-VERSION
@@ -344,15 +352,17 @@
         (apply vector value more)))
 
     :else
-    (println (json/write-str (lock-file
-                               (str (fs/canonicalize "."))
-                               {:extra-mvn (-> (io/resource "clojure-deps.edn")
-                                               slurp
-                                               edn/read-string)
-                                :deps-ignore args})
-                             :escape-slash false
-                             :escape-unicode false
-                             :escape-js-separators false)))
+    (let [deps-ignore (remove #(= "--lein" %) args)]
+      (println (json/write-str (lock-file
+                                 (str (fs/canonicalize "."))
+                                 {:extra-mvn (-> (io/resource "clojure-deps.edn")
+                                                 slurp
+                                                 edn/read-string)
+                                  :deps-ignore deps-ignore
+                                  :lein? (not= (count deps-ignore) (count args))})
+                               :escape-slash false
+                               :escape-unicode false
+                               :escape-js-separators false))))
   (shutdown-agents))
 
 ; We need all clojure versions in nixpkgs, in case the flake consumer wants to

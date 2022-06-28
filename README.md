@@ -79,8 +79,37 @@ As mentioned, a lock file must be generated in advance:
 nix run github:jlesquembre/clj-nix#deps-lock
 ```
 
-That command generates a `deps-lock.json` file in the current directory.
-Remember to re-run it if you update your dependencies.
+That command looks for `deps.edn` files in your project and generates a
+`deps-lock.json` file in the current directory. Remember to re-run it if you
+update your dependencies.
+
+#### Ignore deps.edn files
+
+Sometimes it could be useful to ignore some `deps.edn` files, to do that, just
+pass the list of files to ignore the the `deps-lock` command:
+
+```bash
+nix run github:jlesquembre/clj-nix#deps-lock -- ignore/deps.edn
+```
+
+#### Leiningen
+
+Leiningen projects are supported. Use the `--lein` option to add the
+`project.clj` dependencies to the lock file. This option can be combined with
+ignored files:
+
+```bash
+nix run github:jlesquembre/clj-nix#deps-lock -- --lein ignore/deps.edn
+```
+
+Keep in mind that `deps-lock` command is not optimized for Leiningen projects,
+it will download all the maven dependencies every time we generate the lock
+file. For that reason, it is recommended to add a `deps.edn` file with the same
+dependencies to Leiningen projects. That way, we reduce the number of network
+requests when the `deps-lock` command is invoked.
+
+There are projects to automatically generate a `deps.edn` file from a Leiningen
+project (e.g.: [depify](https://github.com/hagmonk/depify))
 
 ### API
 
@@ -340,8 +369,8 @@ postInstall = ''
 }
 ```
 
-Notice that the `$cljBinary` is a proper Bash variable. It is created by `mkCljBin`
-during the install phase.
+Notice that the `$cljBinary` is a proper Bash variable. It is created by
+`mkCljBin` during the install phase.
 
 or if you want to define the dependencies in a docker image:
 
