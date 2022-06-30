@@ -277,6 +277,30 @@
   (let [id (juxt :lib :url :rev)]
     (= (id a) (id b))))
 
+(defn- lein-project-profiles
+  []
+  (->> (:out (sh/sh "lein" "show-profiles"))
+       (string/split-lines)
+       (remove #{"leiningen/default"
+                 "leiningen/test"
+                 "uberjar"
+                 "update"
+                 "offline"
+                 "debug"})
+       (string/join ",")))
+
+(defn- download-lein-deps
+  [cache-dir]
+  (let [lein-home (str (fs/path cache-dir "lein"))]
+    (fs/create-dir lein-home)
+    (spit (str (fs/path lein-home "profiles.clj"))
+          {:user {:local-repo (str (fs/path cache-dir mvn-cache-subdir))}})
+    (let [profiles (lein-project-profiles)]
+      (if (empty? profiles)
+        (sh/sh "lein" "deps" :env {"LEIN_HOME" lein-home})
+        (sh/sh "lein" "with-profiles" profiles "deps" :env {"LEIN_HOME" lein-home})))))
+
+
 (defn lock-file
   ([project-dir]
    (lock-file project-dir {}))
@@ -299,12 +323,7 @@
              (update :git into git)))
          (fn [{:keys [mvn git]}]
            (when lein?
-             (let [lein-home (str (fs/path cache-dir "lein"))]
-               (fs/create-dir lein-home)
-               (spit (str (fs/path lein-home "profiles.clj"))
-                     {:user {:local-repo (str (fs/path cache-dir mvn-cache-subdir))}})
-               (sh/sh "lein" "deps" :env {"LEIN_HOME"
-                                          lein-home})))
+             (download-lein-deps cache-dir))
            (sorted-map-by
              map-comparator
              :lock-version LOCK-VERSION
