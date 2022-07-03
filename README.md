@@ -122,6 +122,8 @@ Derivations:
 - [mkGraalBin](#mkgraalbin): Creates a binary with GraalVM from a derivation
   created with `mkCljBin`
 - [mkCljLib](#mkcljlib): Creates a clojure library jar
+- [mkBabashka](#mkBabashka): Builds custom
+  [babashka](https://github.com/babashka/babashka)
 
 **NOTE**: Extra unknown attributes are passed to the `mkDerivation` function,
 see [mkCljBin](#mkcljbin) section for an example about how to add a custom check
@@ -278,7 +280,32 @@ mkCljLib {
   projectSrc = ./.;
   name = "me.lafuente/my-lib";
   buildCommand = "clj -T:build jar";
-};
+}
+```
+
+#### mkBabashka
+
+Builds [Babashka](https://github.com/babashka/babashka/) with the specified
+features. See
+[babashka feature flags](https://github.com/babashka/babashka/blob/7b10adc69ac9f64811296038bf01b577dc79fe58/doc/build.md#feature-flags)
+for the full list. Notice that the feature names in the Nix wrapper are case
+insensitive and we can omit the `BABASHKA_FEATURE_` prefix.
+
+Takes the following attributes:
+
+- **withFeatures**: List of extra Babashka features. (Default: `[]`)
+
+- **bbLean**: Disable default Babashka features. (Default: `false`)
+
+- **graalvm**: GraalVM used at build time. (Default:
+  `nixpkgs.graalvmCEPackages.graalvm11-ce`)
+
+**Example**:
+
+```nix
+mkBabashka {
+  withFeatures = [ "jdbc" "sqlite" ];
+}
 ```
 
 #### mkCljCli

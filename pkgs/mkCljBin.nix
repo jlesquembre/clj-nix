@@ -131,7 +131,7 @@ stdenv.mkDerivation ({
       mkdir -p $out/bin
       mkdir -p $out/nix-support
 
-      # jarPath variable could be defined in the preInsall hook, don't override it
+      # jarPath variable could be defined in the preInstall hook, don't override it
       if [ -z ''${jarPath+x} ]; then
         jarPath="$(find target -type f -name "*.jar" -print | head -n 1)"
       fi

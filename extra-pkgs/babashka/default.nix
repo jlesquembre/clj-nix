@@ -1,70 +1,105 @@
-# clj-kondo =
-#   let
-#     version = "v2022.03.09";
-#     cljDrv = cljpkgs.mkCljBin {
-#       projectSrc = pkgs.fetchFromGitHub {
-#         owner = "clj-kondo";
-#         repo = "clj-kondo";
-#         rev = version;
-#         hash = "sha256-Yjyd48lg1VcF8pZOrEqn5g/jEmSioFRt0ETSJjp0wWU=";
-#       };
-#       lock-file = ./extra-pkgs/clj-kondo/deps-lock.json;
+{ lib
+, mkCljBin
+, mkGraalBin
+, fetchFromGitHub
+, rlwrap
+, makeWrapper
+, writeShellApplication
+, graalvmCEPackages
+}:
 
-#       # https://github.com/clj-kondo/clj-kondo/blob/61d1447a56de0610c0c500fc6f6e9d6647f2262c/project.clj#L32
-#       java-opts = [
-#         "-Dclojure.compiler.direct-linking=true"
-#         "-Dclojure.spec.skip-macros=true"
-#       ];
-#       name = "clj-kondo";
-#       inherit version;
-#       main-ns = "clj-kondo.main";
-#       jdkRunner = pkgs.jdk17_headless;
-#     };
-#   in
-#   cljpkgs.mkGraalBin {
-#     inherit cljDrv;
-#   };
-
-
-
-{ mkCljBin, mkGraalBin, fetchFromGitHub }:
+{ graalvm ? graalvmCEPackages.graalvm11-ce
+, withFeatures ? [ ]
+, bbLean ? false
+}:
 let
-  version = "0.8.156";
-  bb-jvm =
+  # See
+  # https://github.com/babashka/babashka/blob/master/doc/build.md#feature-flags
+  bb-feature-list = [
+    "CSV"
+    "JAVA_NET_HTTP"
+    "JAVA_NIO"
+    "JAVA_TIME"
+    "TRANSIT"
+    "XML"
+    "YAML"
+    "HTTPKIT_CLIENT"
+    "HTTPKIT_SERVER"
+    "CORE_MATCH"
+    "HICCUP"
+    "TEST_CHECK"
+    "SPEC_ALPHA"
+    "JDBC"
+    "SQLITE"
+    "POSTGRESQL"
+    "HSQLDB"
+    "ORACLEDB"
+    "DATASCRIPT"
+    "LANTERNA"
+    "LOGGING"
+    "PRIORITY_MAP"
+  ];
+
+  features = map lib.strings.toUpper withFeatures;
+  invalid-features = lib.lists.subtractLists bb-feature-list features;
+
+in
+
+assert
+(
+  lib.assertMsg
+    ((builtins.length invalid-features) == 0)
+    ''
+      Invalid babashka features: ${lib.strings.concatStringsSep ", " invalid-features}
+    ''
+);
+
+let
+  feature-exports =
+    lib.strings.concatStringsSep
+      "\n"
+      (map (f: ''export BABASHKA_FEATURE_${f}="true"'') features);
+
+  version = "0.8.157";
+
+  babashka =
     mkCljBin {
-      # projectSrc = ./.;
       inherit version;
       projectSrc = fetchFromGitHub {
         owner = "babashka";
         repo = "babashka";
         rev = "v${version}";
-        hash = "sha256-83EpxPONxoGssT13cDM14Zq4J/bMGQJPXVh2uzIl1Dc=";
+        hash = "sha256-xpCToWjuQqwQbqUaLNWSRXWM8MX5ll5e7bsvTMW9vnE=";
         fetchSubmodules = true;
       };
       lockfile = ./deps-lock.json;
 
       name = "babashka/babashka";
       main-ns = "babashka.main";
-      # jdkRunner = pkgs.jdk17_headless;
-
-      # buildCommand example
-      # buildCommand = "clj -T:build uber";
       buildCommand =
         ''
+          ${if bbLean then "export BABASHKA_LEAN=true" else ""}
+          ${feature-exports}
           bash script/uberjar
-        '';
-      preInstall =
-        ''
-          jarPath="$(find target -type f -name "*babashka*.jar" -print | head -n 1)"
+
+          export GRAALVM_HOME="${graalvm}"
+          bash script/compile
         '';
 
-      # mkDerivation attributes
-      # doCheck = true;
-      # checkPhase = "clj -M:test";
+      outputs = [ "out" ];
+      installPhase =
+        ''
+          mkdir -p $out/bin
+          cp bb $out/bin
+        '';
     };
 in
-
-mkGraalBin {
-  cljDrv = bb-jvm;
+writeShellApplication {
   name = "bb";
+
+  runtimeInputs = [ babashka rlwrap ];
+
+  text = ''
+    rlwrap bb "$@"
+  '';
 }

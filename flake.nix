@@ -24,8 +24,8 @@
           packages = {
 
             inherit (pkgs) clj-builder deps-lock mk-deps-cache
-              mkCljBin mkCljLib mkGraalBin customJdk;
-
+              mkCljBin mkCljLib mkGraalBin customJdk
+              mkBabashka;
           };
 
           devShells.default =
@@ -62,7 +62,7 @@
 
         }) //
 
-   {
+    {
       lib = import ./helpers.nix;
 
       templates.default = {
@@ -81,6 +81,7 @@
         mkCljLib = final.callPackage ./pkgs/mkCljLib.nix { };
         mkGraalBin = final.callPackage ./pkgs/mkGraalBin.nix { };
         customJdk = final.callPackage ./pkgs/customJdk.nix { };
+        mkBabashka = final.callPackage ./extra-pkgs/babashka { };
       };
 
       # Deprecated
