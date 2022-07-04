@@ -90,9 +90,15 @@ stdenv.mkDerivation ({
   patchPhase =
     ''
       runHook prePatch
-      if [[ ! -f "deps-lock.json" ]]; then
+    ''
+    +
+    (lib.strings.optionalString (builtins.hasAttr "lockfile" attrs)
+      ''
         cp "${attrs.lockfile}" deps-lock.json
-      fi
+      ''
+    )
+    +
+    ''
       ${clj-builder} --patch-git-sha "$(pwd)"
       runHook postPatch
     '';
@@ -102,6 +108,7 @@ stdenv.mkDerivation ({
       runHook preBuild
 
       export HOME="${deps-cache}"
+      export JAVA_TOOL_OPTIONS="-Duser.home=${deps-cache}"
 
       export LEIN_OFFLINE=true
       export LEIN_JVM_OPTS="-Dmaven.repo.local=${deps-cache}/.m2 -Duser.home=${deps-cache}"
