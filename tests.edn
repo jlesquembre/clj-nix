@@ -1,2 +1,6 @@
 #kaocha/v1
-{}
+{:tests [{:id         :unit
+          :test-paths ["test/cljnix"]}
+         {:id         :integration
+          :test-paths ["test/integration"]}]
+ :reporter [kaocha.report.progress/report]}

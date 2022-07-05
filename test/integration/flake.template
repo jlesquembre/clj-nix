@@ -1,0 +1,71 @@
+# vi: ft=nix
+{
+  description = "A clj-nix flake";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    clj-nix = {
+      url = "@cljnixUrl@";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+  outputs = { self, nixpkgs, flake-utils, clj-nix }:
+
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        cljpkgs = clj-nix.packages."${system}";
+      in
+
+      {
+        packages = {
+
+          mkCljBin-test = cljpkgs.mkCljBin {
+            projectSrc = ./.;
+            name = "me.lafuente/cljdemo";
+            main-ns = "hello.core";
+            jdkRunner = pkgs.jdk17_headless;
+          };
+
+          customJdk-test = cljpkgs.customJdk {
+            cljDrv = self.packages."${system}".mkCljBin-test;
+            locales = "en,es";
+          };
+
+          mkGraalBin-test = cljpkgs.mkGraalBin {
+            cljDrv = self.packages."${system}".mkCljBin-test;
+          };
+
+          jvm-container-test =
+            pkgs.dockerTools.buildLayeredImage {
+              name = "jvm-container-test";
+              tag = "latest";
+              config = {
+                Cmd = clj-nix.lib.mkCljCli { jdkDrv = self.packages."${system}".customJdk-test; };
+              };
+            };
+
+          graal-container-test =
+            let
+              graalDrv = self.packages."${system}".mkGraalBin-test;
+            in
+            pkgs.dockerTools.buildLayeredImage {
+              name = "graal-container-test";
+              tag = "latest";
+              config = {
+                Cmd = "${graalDrv}/bin/${graalDrv.pname}";
+              };
+            };
+
+          babashka-test = cljpkgs.mkBabashka { };
+
+          babashka-with-features-test = cljpkgs.mkBabashka {
+            withFeatures = [ "jdbc" "sqlite" ];
+          };
+
+
+        };
+      });
+
+}

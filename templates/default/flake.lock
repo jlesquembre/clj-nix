@@ -1,9 +1,30 @@
 {
   "nodes": {
+    "clj-nix": {
+      "inputs": {
+        "devshell": "devshell",
+        "flake-utils": "flake-utils_2",
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1656945088,
+        "narHash": "sha256-NlJaYK2dz1MKguNOlpKgs4SVT6EwSsUvvGp+o+PPwMo=",
+        "owner": "jlesquembre",
+        "repo": "clj-nix",
+        "rev": "923a9d0129ce7cfa88200b3bdc26726155e7cb61",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jlesquembre",
+        "repo": "clj-nix",
+        "type": "github"
+      }
+    },
     "devshell": {
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": [
+          "clj-nix",
           "nixpkgs"
         ]
       },
@@ -51,7 +72,38 @@
         "type": "github"
       }
     },
+    "flake-utils_3": {
+      "locked": {
+        "lastModified": 1656928814,
+        "narHash": "sha256-RIFfgBuKz6Hp89yRr7+NR5tzIAbn52h8vT6vXkYjZoM=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "7e2a3b3dfd9af950a856d66b0a7d01e3c18aa249",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
+      "locked": {
+        "lastModified": 1645334861,
+        "narHash": "sha256-We9ECiMglthzbZ5S6Myqqf+RHzBFZPoM2qL5/jDkUjs=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d5f237872975e6fb6f76eef1368b5634ffcd266f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1656753965,
         "narHash": "sha256-BCrB3l0qpJokOnIVc3g2lHiGhnjUi0MoXiw6t1o8H1E=",
@@ -69,9 +121,9 @@
     },
     "root": {
       "inputs": {
-        "devshell": "devshell",
-        "flake-utils": "flake-utils_2",
-        "nixpkgs": "nixpkgs"
+        "clj-nix": "clj-nix",
+        "flake-utils": "flake-utils_3",
+        "nixpkgs": "nixpkgs_2"
       }
     }
   },
