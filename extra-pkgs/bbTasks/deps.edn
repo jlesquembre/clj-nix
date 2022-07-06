@@ -1,0 +1,4 @@
+{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
+        borkdude/edamame {:mvn/version "1.0.0"}
+        com.cnuernber/charred {:mvn/version "1.011"}}
+ :paths ["src"]}
