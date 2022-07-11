@@ -1,4 +1,5 @@
 .clj-kondo/
 .cpcache/
 .lsp/
+.direnv/
 result*

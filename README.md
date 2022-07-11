@@ -134,6 +134,9 @@ Helpers:
 - [mkCljCli](#mkcljcli): Takes a derivation created with `customJdk` and returns
   a valid command to launch the application, as a string. Useful when creating a
   container.
+- [bbTasksFromFile](#bbTasksFromFile): Helper to wrap all the clojure functions
+  in a file as bash scripts. Useful to create a nix develpment shell with
+  [devshell](https://github.com/numtide/devshell)
 - [mk-deps-cache](#mk-deps-cache): Creates a Clojure deps cache (maven cache +
   gitlibs cache). Used by `mkCljBin` and `mkCljLib`. You can use this function
   to to have access to the cache in a nix derivation.
@@ -328,6 +331,30 @@ mkCljCli {
   java-opts = [ "-Dclojure.compiler.direct-linking=true" ];
   extra-args = [ "--foo bar" ];
 }
+```
+
+#### bbTasksFromFile
+
+Reads a Clojure file, for each function generates a
+[devshell](https://github.com/numtide/devshell) command. Takes a path (to a
+Clojure file) or the following attributes:
+
+**file**: Path to the Clojure file
+
+**bb**: Babashka derivation (Default: `nixpkgs.babashka`)
+
+**Example**:
+
+```nix
+devShells.default =
+  pkgs.devshell.mkShell {
+    commands = pkgs.bbTasksFromFile ./tasks.clj;
+    # or
+    commands = pkgs.bbTasksFromFile {
+      file = ./tasks.clj;
+      bb = pkgs.mkBabashka { withFeatures = [ "jdbc" "sqlite" ]; };
+    };
+  }
 ```
 
 #### mk-deps-cache
