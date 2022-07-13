@@ -11,6 +11,7 @@
   # Manually set the modules
 , jdkModules ? null
 , locales ? null
+, multiRelease ? false
 , ...
 }@attrs:
 
@@ -34,6 +35,11 @@ let
     '';
 
   jarPath = lib.fileContents "${cljDrv}/nix-support/jar-path";
+  multiRelease-args =
+    if multiRelease == false then ""
+    else if multiRelease == true then "--multi-release base --ignore-missing-deps"
+    else "--multi-release ${multiRelease} --ignore-missing-deps";
+
 in
 stdenv.mkDerivation ({
   inherit locales template jdkModules;
@@ -65,7 +71,7 @@ stdenv.mkDerivation ({
       ''
     else
       ''
-        export jdkModules=$(jdeps --print-module-deps "${jarPath}")
+        export jdkModules=$(jdeps ${multiRelease-args} --print-module-deps "${jarPath}")
       '')
     +
 
