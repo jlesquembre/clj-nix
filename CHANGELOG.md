@@ -2,11 +2,12 @@
 
 ## Unreleased
 
-- Fix mkCljCli helper function
+- Fix `mkCljCli` helper function
 - Add support for Leiningen projects
-- Add lockfile option to mkCljBin
-- Add mkBabashka
+- Add `lockfile` option to `mkCljBin`
+- Add `mkBabashka`
 - Add `bbTasksFromFile`
+- Add `multiRelease` option to `customJdk`
 
 ## 0.2.0 (2022-06-13)
 

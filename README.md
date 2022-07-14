@@ -207,6 +207,13 @@ default are mandatory):
   be used to analyze the `cljDrv` and pick the necessary modules automatically.
   (Default: `null`)
 
+- **multiRelease**: Option passed to jdeps `--multi-release`. Should be an
+  integer >=9 or a boolean. If true, the value is set to `base`. If false or not
+  specified, clj-nix will try to detect if the jar is a multi-release jar and
+  set the value automatically. See
+  [The jdeps Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jdeps.html)
+  for more info. (Default: `false`)
+
 - **locales**: Option passed to jlink `--include-locales`. (Default: `null`)
 
 **Example**:

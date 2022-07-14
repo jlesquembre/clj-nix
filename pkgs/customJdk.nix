@@ -1,5 +1,7 @@
 { stdenv
 , lib
+, unzip
+, gnugrep
 , runtimeShell
 , jdk17_headless
 }:
@@ -35,20 +37,20 @@ let
     '';
 
   jarPath = lib.fileContents "${cljDrv}/nix-support/jar-path";
-  multiRelease-args =
+  multiReleaseArgs =
     if multiRelease == false then ""
     else if multiRelease == true then "--multi-release base --ignore-missing-deps"
     else "--multi-release ${builtins.toString multiRelease} --ignore-missing-deps";
 
 in
 stdenv.mkDerivation ({
-  inherit locales template jdkModules;
+  inherit locales template jdkModules multiReleaseArgs;
   name = if cljDrv == null then name else cljDrv.pname;
   version = if cljDrv == null then version else cljDrv.version;
 
   passAsFile = [ "template" ];
   stripDebugFlags = [ "--strip-unneeded" ];
-  nativeBuildInputs = [ jdkBase ];
+  nativeBuildInputs = [ jdkBase unzip gnugrep ];
 
   outputs =
     if cljDrv == null then
@@ -71,7 +73,11 @@ stdenv.mkDerivation ({
       ''
     else
       ''
-        export jdkModules=$(jdeps ${multiRelease-args} --print-module-deps "${jarPath}")
+        if [[ -z "$multiReleaseArgs" ]] && unzip -p "${jarPath}" META-INF/MANIFEST.MF | grep "Multi-Release: true"; then
+          multiReleaseArgs="--multi-release base --ignore-missing-deps"
+        fi
+
+        export jdkModules=$(jdeps ''$multiReleaseArgs --print-module-deps "${jarPath}")
       '')
     +
 
