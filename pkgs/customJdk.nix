@@ -38,7 +38,7 @@ let
   multiRelease-args =
     if multiRelease == false then ""
     else if multiRelease == true then "--multi-release base --ignore-missing-deps"
-    else "--multi-release ${multiRelease} --ignore-missing-deps";
+    else "--multi-release ${builtins.toString multiRelease} --ignore-missing-deps";
 
 in
 stdenv.mkDerivation ({
