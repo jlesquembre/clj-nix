@@ -20,6 +20,11 @@
 
 (def LOCK-VERSION 3)
 
+(def add-to-nix-store?
+  (and
+    (fs/exists? "/nix/store")
+    (System/getenv "CLJNIX_ADD_NIX_STORE")))
+
 (defn- mvn?
   [[_ {:keys [mvn/version]}]]
   (boolean version))
@@ -300,6 +305,22 @@
         (sh/sh "lein" "deps" :env {"LEIN_HOME" lein-home})
         (sh/sh "lein" "with-profiles" profiles "deps" :env {"LEIN_HOME" lein-home})))))
 
+(defn- add-to-nix-store!
+  [{:keys [local-path lib rev] :as dep}]
+  (when (and add-to-nix-store? (seq local-path))
+    (try
+      (if (fs/regular-file? local-path)
+        (sh/sh "nix" "store" "add-file" (str local-path))
+        (fs/with-temp-dir [tmp-dir {}]
+          (let [dir-name (str (fs/path
+                                tmp-dir
+                                (format "%s-%s" (fs/file-name lib) (subs rev 0 7))))]
+            (fs/copy-tree local-path dir-name)
+            (fs/delete (fs/path dir-name ".git"))
+            (sh/sh "nix" "store" "add-path" dir-name))))
+      (catch Exception _)))
+  dep)
+
 
 (defn lock-file
   ([project-dir]
@@ -329,6 +350,7 @@
              :lock-version LOCK-VERSION
              :mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir))
                             (sort-by :mvn-path)
+                            (map add-to-nix-store!)
                             (map #(into (sorted-map-by map-comparator)
                                         (select-keys % [:mvn-repo :mvn-path :hash :snapshot])))
                             (distinct)
@@ -339,6 +361,7 @@
                             (map #(cond-> %
                                     (nil? (:tag %))
                                     (dissoc :tag)))
+                            (map add-to-nix-store!)
                             (map #(into (sorted-map-by map-comparator)
                                         (select-keys % [:tag :lib :rev :url :git-dir :hash])))
                             (distinct)
@@ -420,4 +443,15 @@
     (tools-deps.dir/with-dir (fs/file (fs/parent deps-path))
       (maven-deps
         (deps/create-basis {:user nil
-                            :project (str deps-path)})))))
+                            :project (str deps-path)}))))
+
+  (add-to-nix-store!
+    {:local-path
+     (fs/expand-home "~/.m2/repository/org/clojure/clojure/1.11.1/clojure-1.11.1.jar")})
+  (add-to-nix-store!
+    {:local-path
+     (fs/expand-home "~/.gitlibs/libs/io.github.clojure/tools.build/7d40500863818c6f9a6e077b18db305d02149384/")
+     :hash "sha256-nuPBuNQ4su6IAh7rB9kX/Iwv5LsV+FOl/uHro6VcL7c="
+     :url "https://github.com/clojure/tools.build"
+     :rev "7d40500863818c6f9a6e077b18db305d02149384"
+     :lib "io.github.clojure/tools.build"}))

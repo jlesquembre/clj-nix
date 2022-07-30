@@ -83,6 +83,16 @@ That command looks for `deps.edn` files in your project and generates a
 `deps-lock.json` file in the current directory. Remember to re-run it if you
 update your dependencies.
 
+It is possible to add the dependencies to the nix store during the lock file
+generation. Internally we are invoking the `nix store add-path` command. By
+default, it's disabled because that command is relatively slow. To add the
+dependencies to the nix store, set the environment variable
+`CLJNIX_ADD_NIX_STORE` to true, e.g.:
+
+```bash
+CLJNIX_ADD_NIX_STORE=true nix run github:jlesquembre/clj-nix#deps-lock
+```
+
 #### Ignore deps.edn files
 
 Sometimes it could be useful to ignore some `deps.edn` files, to do that, just

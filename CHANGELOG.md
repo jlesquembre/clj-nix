@@ -8,6 +8,7 @@
 - Add `mkBabashka`
 - Add `bbTasksFromFile`
 - Add `multiRelease` option to `customJdk`
+- Add option to preload deps to the nix store
 
 ## 0.2.0 (2022-06-13)
 
