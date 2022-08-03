@@ -60,7 +60,7 @@ let
       "\n"
       (map (f: ''export BABASHKA_FEATURE_${f}="true"'') features);
 
-  version = "0.8.157";
+  version = "0.9.161";
 
   babashka =
     mkCljBin {
@@ -69,7 +69,7 @@ let
         owner = "babashka";
         repo = "babashka";
         rev = "v${version}";
-        hash = "sha256-xpCToWjuQqwQbqUaLNWSRXWM8MX5ll5e7bsvTMW9vnE=";
+        hash = "sha256-+clpsux1ypJzdFFn5Pu8Enr+BINFhrgjF0hdN/iV+hM=";
         fetchSubmodules = true;
       };
       lockfile = ./deps-lock.json;

@@ -88,6 +88,21 @@
       "hash": "sha256-NZ9/S82Ae1aq0gnuTLOYg/cc7NcYIoK2JP6c/xI+xJE="
     },
     {
+      "lib": "meander/epsilon",
+      "url": "https://github.com/noprompt/meander",
+      "rev": "55f5ce70e6ef717e95c58260f6bc725d70c0cb6d",
+      "git-dir": "https/github.com/noprompt/meander",
+      "hash": "sha256-pR8X+j0rkThN5aVFm7z/nZiS71x8ETkGl7lVBzGOgfM="
+    },
+    {
+      "lib": "metosin/malli",
+      "url": "https://github.com/metosin/malli",
+      "rev": "588147ef49b2e41c7d12a8aa994b39c1c6fedd99",
+      "tag": "0.8.9",
+      "git-dir": "https/github.com/metosin/malli",
+      "hash": "sha256-mzUmsWZqb4nKBD+A9c/Q7pk08YDa1BURoV40ffDgkB0="
+    },
+    {
       "lib": "org.babashka/spec.alpha",
       "url": "https://github.com/babashka/spec.alpha",
       "rev": "0dec1f88cbde74a0470b454396f09a03adb4ae39",
@@ -249,6 +264,16 @@
       "mvn-path": "better-cond/better-cond/2.1.1/better-cond-2.1.1.pom",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-g8y6xhXkBE7EeMbks2EwLIOmQTrHsh9T5pYEelmg6p0="
+    },
+    {
+      "mvn-path": "borkdude/dynaload/0.3.4/dynaload-0.3.4.jar",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-up2Q4hsy8oaj/S3YJIDcp9A4yMPEQX6kkzeQ0yo9zeE="
+    },
+    {
+      "mvn-path": "borkdude/dynaload/0.3.4/dynaload-0.3.4.pom",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-OhUHwN9lxwApFaWOQpZ6E/ihdncd48if01/rajdmjXo="
     },
     {
       "mvn-path": "borkdude/edamame/0.0.11-alpha.28/edamame-0.0.11-alpha.28.jar",
@@ -4519,6 +4544,16 @@
       "mvn-path": "org/babashka/babashka.impl.reify/0.1.1/babashka.impl.reify-0.1.1.pom",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-A74sKpLZWOwTnvsj6m8/FkXCXo5fyqCJ54s7nADrpwM="
+    },
+    {
+      "mvn-path": "org/babashka/cli/0.3.34/cli-0.3.34.jar",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-HtfYOYGCju6TstTtYZblIppM65qc+GtsEOqiPggTX1M="
+    },
+    {
+      "mvn-path": "org/babashka/cli/0.3.34/cli-0.3.34.pom",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-xT8cF8Pjx2YEZhRdZkH/zlWG5PVe/TlRxL5u2gOB3z8="
     },
     {
       "mvn-path": "org/babashka/sci.impl.types/0.0.2/sci.impl.types-0.0.2.jar",
