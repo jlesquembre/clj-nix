@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 (2022-08-03)
 
 - Fix `mkCljCli` helper function
 - Add support for Leiningen projects
