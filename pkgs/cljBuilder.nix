@@ -1,4 +1,4 @@
-{ lib, fetchurl, fetchgit, jdk, runtimeShell, runCommand, clojure }:
+{ lib, fetchurl, fetchgit, jdk, runtimeShell, runCommand, clojure, leiningen }:
 let
 
   lock = builtins.fromJSON (builtins.readFile ./builder-lock.json);
@@ -22,6 +22,7 @@ let
   template =
     ''
       #!${runtimeShell}
+      PATH=${leiningen}/bin:$PATH
       exec "${jdk}/bin/java" \
           "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory" \
           "-classpath" "@cp@" clojure.main -m cljnix.core "$@"
