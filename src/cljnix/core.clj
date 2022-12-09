@@ -164,7 +164,6 @@
     (into []
           (comp
             (filter fs/regular-file?)
-            (filter (comp #{"pom" "jar"} fs/extension))
             (map (partial fs/relativize cache-dir))
             (map str)
             (remove deps-set)
@@ -173,7 +172,7 @@
                      (assoc (utils/mvn-repo-info full-path {:cache-dir cache-dir})
                             :hash (nix-hash full-path))))))
 
-          (file-seq (fs/file cache-dir)))))
+          (fs/glob cache-dir "**.{pom,jar}"))))
 
 (defn- git-dep-id
   [git-dep]
@@ -332,9 +331,10 @@
    (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
      (transduce
        (comp
-         ;; NOTE: the globbing below return $PREFIXdeps.edn files, we need to filter still
+         ;; NOTE: the globbing below return $PREFIXdeps.edn paths, we need to filter still
          (filter #(= "deps.edn" (fs/file-name %)))
          (remove #(some (partial fs/ends-with? %) deps-ignore))
+         (map fs/file)
          (map (juxt identity #(-> % deps/slurp-deps :aliases keys)))
          (mapcat aliases-combinations)
          (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
