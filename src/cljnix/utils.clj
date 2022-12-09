@@ -193,12 +193,13 @@
 
 (defn expand-shas!
   [project-dir]
-  (let [dep-files (filter #(= "deps.edn" (str (fs/file-name %)))
-                          (file-seq (fs/file project-dir)))
+  (let [dep-paths (filter
+                   #(= "deps.edn" (fs/file-name %))
+                   (fs/glob project-dir "**deps.edn"))
         {:keys [git-deps]} (json/read-str
                             (slurp (str (fs/path project-dir "deps-lock.json")))
                             :key-fn keyword)]
-    (doseq [my-deps dep-files
+    (doseq [my-deps dep-paths
             :let [deps (deps/slurp-deps (fs/file my-deps))
                   git-deps-paths (paths-to-gitdeps deps)
                   partial-sha-paths (->> git-deps-paths
