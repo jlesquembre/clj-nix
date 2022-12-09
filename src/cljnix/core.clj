@@ -332,6 +332,7 @@
    (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
      (transduce
        (comp
+         ;; NOTE: the globbing below return $PREFIXdeps.edn files, we need to filter still
          (filter #(= "deps.edn" (fs/file-name %)))
          (remove #(some (partial fs/ends-with? %) deps-ignore))
          (map (juxt identity #(-> % deps/slurp-deps :aliases keys)))
@@ -373,7 +374,7 @@
 
        {:mvn extra-mvn
         :git extra-git}
-       (file-seq (fs/file project-dir))))))
+       (fs/glob project-dir "**deps.edn")))))
 
 (defn -main
   [& [flag value & more :as args]]
