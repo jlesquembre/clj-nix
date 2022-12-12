@@ -199,8 +199,8 @@
         {:keys [git-deps]} (json/read-str
                             (slurp (str (fs/path project-dir "deps-lock.json")))
                             :key-fn keyword)]
-    (doseq [my-deps dep-paths
-            :let [deps (deps/slurp-deps (fs/file my-deps))
+    (doseq [my-deps (mapv fs/file dep-paths)
+            :let [deps (deps/slurp-deps my-deps)
                   git-deps-paths (paths-to-gitdeps deps)
                   partial-sha-paths (->> git-deps-paths
                                          (filter #(partial-sha? (get-in deps %)))
