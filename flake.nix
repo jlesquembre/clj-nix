@@ -91,7 +91,7 @@
         mkGraalBin = final.callPackage ./pkgs/mkGraalBin.nix { };
         customJdk = final.callPackage ./pkgs/customJdk.nix { };
 
-        mkBabashka = final.callPackage ./extra-pkgs/babashka { };
+        mkBabashka = final.callPackage ./extra-pkgs/babashka { inherit (final.darwin.apple_sdk.frameworks) Foundation; };
         bbTasksFromFile = final.callPackage ./extra-pkgs/bbTasks { };
       };
 

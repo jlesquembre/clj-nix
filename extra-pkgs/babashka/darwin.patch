@@ -1,0 +1,12 @@
+diff --git a/script/compile b/script/compile
+index 74b37be6..579146f7 100755
+--- a/script/compile
++++ b/script/compile
+@@ -34,6 +34,7 @@ BABASHKA_BINARY=${BABASHKA_BINARY:-"bb"}
+ args=("-jar" "$BABASHKA_JAR"
+       "-H:Name=$BABASHKA_BINARY"
+       "-H:+ReportExceptionStackTraces"
++      "-H:-CheckToolchain"
+       # "-H:+PrintAnalysisCallTree"
+       # "-H:+DashboardAll"
+       # "-H:DashboardDump=reports/dump"

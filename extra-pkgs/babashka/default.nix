@@ -6,6 +6,11 @@
 , makeWrapper
 , writeShellApplication
 , graalvmCEPackages
+
+  # Darwin
+, stdenv
+, Foundation
+, zlib
 }:
 
 { graalvm ? graalvmCEPackages.graalvm11-ce
@@ -68,14 +73,22 @@ let
       projectSrc = fetchFromGitHub {
         owner = "babashka";
         repo = "babashka";
-        rev = "3701dc03d79df3d580b9c42b39c0d24668df154b"; ## jdk19-loom
-        hash = "sha256-Wdzg5xo1DTngBlUG74cwf9GxRO7T74Lbx0sHkvLB9jg=";
+        rev = "3ad043769c16162abf33c58ad7068fb8ebc6679f";
+        hash = "sha256-MOPuzWW2LdfzuHq3GxB9MYyxhv+SukDnRQZxFZDLmQI=";
         fetchSubmodules = true;
       };
       lockfile = ./deps-lock.json;
 
       name = "babashka/babashka";
       main-ns = "babashka.main";
+
+      nativeBuildInputs = lib.optionals stdenv.isDarwin [
+        Foundation
+        zlib
+      ];
+
+      prePatch = lib.strings.optionalString stdenv.isDarwin "patch script/compile ${./darwin.patch}";
+
       buildCommand =
         ''
           ${if bbLean then "export BABASHKA_LEAN=true" else ""}
