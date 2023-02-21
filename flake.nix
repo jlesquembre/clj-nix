@@ -1,8 +1,14 @@
 {
   description = "clj-nix flake";
 
+  nixConfig = {
+    extra-substituters = [ "https://clj-nix.cachix.org" ];
+    extra-trusted-public-keys = [ "clj-nix.cachix.org-1:ftfCDUxeGYYoD9MSQARsBj5WyViAh2K/5Dq8nIDH150=" ];
+  };
+
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:jlesquembre/nixpkgs/graalvm19-ce";
     flake-utils.url = "github:numtide/flake-utils";
     devshell = {
       url = "github:numtide/devshell";
@@ -23,6 +29,8 @@
         in
         {
           packages = {
+
+            bb-loom = pkgs.mkBabashka { graalvm = pkgs.graalvm19-ce; };
 
             inherit (pkgs) clj-builder deps-lock mk-deps-cache
               mkCljBin mkCljLib mkGraalBin customJdk

@@ -60,7 +60,7 @@ let
       "\n"
       (map (f: ''export BABASHKA_FEATURE_${f}="true"'') features);
 
-  version = "0.9.161";
+  version = "1.1-jdk19-loom";
 
   babashka =
     mkCljBin {
@@ -68,8 +68,8 @@ let
       projectSrc = fetchFromGitHub {
         owner = "babashka";
         repo = "babashka";
-        rev = "v${version}";
-        hash = "sha256-+clpsux1ypJzdFFn5Pu8Enr+BINFhrgjF0hdN/iV+hM=";
+        rev = "3701dc03d79df3d580b9c42b39c0d24668df154b"; ## jdk19-loom
+        hash = "sha256-Wdzg5xo1DTngBlUG74cwf9GxRO7T74Lbx0sHkvLB9jg=";
         fetchSubmodules = true;
       };
       lockfile = ./deps-lock.json;
