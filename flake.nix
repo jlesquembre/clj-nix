@@ -3,6 +3,7 @@
 
   nixConfig = {
     extra-substituters = [ "https://clj-nix.cachix.org" ];
+    extra-trusted-substituters = [ "https://clj-nix.cachix.org" ];
     extra-trusted-public-keys = [ "clj-nix.cachix.org-1:ftfCDUxeGYYoD9MSQARsBj5WyViAh2K/5Dq8nIDH150=" ];
   };
 
