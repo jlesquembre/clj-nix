@@ -14,7 +14,7 @@ on:
       - "docs/**"
 
 jobs:
-  update-nix:
+  ci-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -25,6 +25,10 @@ jobs:
           extra_nix_config: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
+      - uses: actions/setup-java@v3
+        with:
+          cache: "maven"
+
       - name: Install Cachix
         uses: cachix/cachix-action@v12
         with:
@@ -34,3 +38,7 @@ jobs:
       - name: Clojure tests
         run: |
           nix shell .#devShells.x86_64-linux.default --command kaocha
+
+      - name: Integration tests
+        run: |
+          nix shell .#devShells.x86_64-linux.default --command 'bats --timing test'
