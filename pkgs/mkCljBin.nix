@@ -55,12 +55,13 @@ let
   asCljVector = list: lib.concatMapStringsSep " " lib.strings.escapeNixString list;
 
   javaMain = builtins.replaceStrings [ "-" ] [ "_" ] main-ns;
-
+  javaOpts = lib.concatStringsSep " " java-opts;
+  
   template =
     ''
       #!${runtimeShell}
 
-      exec "${jdkRunner}/bin/java" \
+      exec "${jdkRunner}/bin/java" ${javaOpts}\
           -jar "@jar@" "$@"
     '';
 in
