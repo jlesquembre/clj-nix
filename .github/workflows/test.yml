@@ -1,18 +1,17 @@
 name: tests
 
 on:
+  workflow_dispatch: # allows manual triggering
   push:
     paths-ignore:
       - "**.md"
       - "docs/**"
     branches:
-      - master
+      - main
   pull_request:
     paths-ignore:
       - "**.md"
       - "docs/**"
-    branches:
-      - master
 
 jobs:
   update-nix:
