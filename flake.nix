@@ -32,10 +32,13 @@
           devShells.default =
             pkgs.devshell.mkShell {
               packages = [
-                pkgs.nix-prefetch-git
+                # pkgs.nix-prefetch-git
                 pkgs.jq
                 pkgs.clojure
                 pkgs.graalvmCEPackages.graalvm17-ce
+                pkgs.bats
+                pkgs.envsubst
+                pkgs.mustache-go
               ];
               commands = [
                 {
@@ -53,6 +56,14 @@
                   command =
                     ''
                       clojure -M:test -m kaocha.runner "$@"
+                    '';
+                }
+                {
+                  name = "tests";
+                  help = "Run tests with bats";
+                  command =
+                    ''
+                      bats --timing test
                     '';
                 }
               ];
