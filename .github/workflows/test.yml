@@ -33,9 +33,7 @@ jobs:
           nix develop --command kaocha
 
       - name: Integration tests
-        env:
-          TMPDIR: "${{ runner.temp }}" # Bats defaults to TMPDIR
         run: |
           nix develop --command bats --timing test
           echo "Derivations:"
-          cat "$TMPDIR/.cljnix-derivations"
+          cat "/tmp/.cljnix-derivations"
