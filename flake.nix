@@ -66,6 +66,18 @@
                       bats --timing test
                     '';
                 }
+                {
+                  name = "dummy-project";
+                  help = "Creates a dummy clj-nix project";
+                  command =
+                    ''
+                      project_dir="$(mktemp -d clj-nix.XXXXX --tmpdir)/clj-nix_project"
+                      mkdir -p "$project_dir"
+                      nix flake new --template ${self} "$project_dir"
+                      echo 'cljnixUrl: ${self}' | mustache "${self}/test/integration/flake.template" > "$project_dir/flake.nix"
+                      echo "New dummy project: $project_dir"
+                    '';
+                }
               ];
             };
 
