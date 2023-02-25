@@ -12,16 +12,23 @@ setup_file() {
   cljnix_dir=$(dirname "$BATS_TEST_DIRNAME")
   export cljnix_dir
 
+  cljnix_dir_copy="/tmp/_clj-nix_copy"
+  export cljnix_dir_copy
+  cp -r "$cljnix_dir" "$cljnix_dir_copy"
+
   nix flake new --template . "$project_dir"
-  echo "cljnixUrl: $cljnix_dir" | mustache "$cljnix_dir/test/integration/flake.template" > "$project_dir/flake.nix"
+  echo "cljnixUrl: $cljnix_dir_copy" | mustache "$cljnix_dir/test/integration/flake.template" > "$project_dir/flake.nix"
 
   cd "$project_dir" || exit
   nix flake lock
+  git init
+  git add .
 }
 
 teardown_file() {
     docker rmi jvm-container-test
     docker rmi graal-container-test
+    rm -rf "$cljnix_dir_copy"
 }
 
 @test "Generate deps-lock.json" {
