@@ -396,10 +396,13 @@
         (apply vector value more)))
 
     (= flag "--check-main")
-    (check/main-gen-class
-      (interleave
-        [:lib-name :version :main-ns]
-        (apply vector value more)))
+    (or
+      (check/main-gen-class
+        (interleave
+          [:lib-name :version :main-ns]
+          (apply vector value more)))
+      (println "WARNING - main-ns class does not speify :gen-class")
+      #_(throw (ex-info "main-ns class does not specify :gen-class" {:args args})))
 
     :else
     (let [deps-ignore (remove #(= "--lein" %) args)]
