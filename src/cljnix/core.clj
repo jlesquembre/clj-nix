@@ -398,7 +398,7 @@
     (= flag "--check-main")
     (check/main-gen-class
       (interleave
-        [:main-ns]
+        [:lib-name :version :main-ns]
         (apply vector value more)))
 
     :else
