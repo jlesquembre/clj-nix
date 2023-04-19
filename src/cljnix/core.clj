@@ -14,6 +14,7 @@
     [cljnix.utils :refer [throw+] :as utils]
     [cljnix.nix :refer [nix-hash]]
     [cljnix.build :as build]
+    [cljnix.check :as check]
     [clojure.tools.deps.alpha.util.dir :as tools-deps.dir]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]))
 
@@ -392,6 +393,12 @@
     (build/uber
       (interleave
         [:lib-name :version :main-ns :java-opts]
+        (apply vector value more)))
+
+    (= flag "--check-main")
+    (check/main-gen-class
+      (interleave
+        [:main-ns]
         (apply vector value more)))
 
     :else
