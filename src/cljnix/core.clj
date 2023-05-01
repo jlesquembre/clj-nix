@@ -382,6 +382,15 @@
         :git extra-git}
        (fs/glob project-dir "**deps.edn")))))
 
+(defn- check-main-class
+  [& [_ value & more :as args]]
+  (or
+   (check/main-gen-class
+    (interleave
+     [:lib-name :version :main-ns]
+     (apply vector value more)))
+   (throw (ex-info "main-ns class does not specify :gen-class" {:args args}))))
+
 (defn -main
   [& [flag value & more :as args]]
   (cond
@@ -390,34 +399,30 @@
 
     (= flag "--jar")
     (build/jar
-      (interleave
-        [:lib-name :version]
-        (apply vector value more)))
+     (interleave
+      [:lib-name :version]
+      (apply vector value more)))
 
     (= flag "--uber")
-    (build/uber
-      (interleave
+    (do
+      (apply check-main-class args)
+      (build/uber
+       (interleave
         [:lib-name :version :main-ns :java-opts]
-        (apply vector value more)))
+        (apply vector value more))))
 
     (= flag "--check-main")
-    (or
-      (check/main-gen-class
-        (interleave
-          [:lib-name :version :main-ns]
-          (apply vector value more)))
-      (println "WARNING - main-ns class does not speify :gen-class")
-      #_(throw (ex-info "main-ns class does not specify :gen-class" {:args args})))
+    (apply check-main-class args)
 
     :else
     (let [deps-ignore (remove #(= "--lein" %) args)]
       (println (json/write-str (lock-file
-                                 (str (fs/canonicalize "."))
-                                 {:extra-mvn (-> (io/resource "clojure-deps.edn")
-                                                 slurp
-                                                 edn/read-string)
-                                  :deps-ignore deps-ignore
-                                  :lein? (not= (count deps-ignore) (count args))})
+                                (str (fs/canonicalize "."))
+                                {:extra-mvn (-> (io/resource "clojure-deps.edn")
+                                                slurp
+                                                edn/read-string)
+                                 :deps-ignore deps-ignore
+                                 :lein? (not= (count deps-ignore) (count args))})
                                :escape-slash false
                                :escape-unicode false
                                :escape-js-separators false))))

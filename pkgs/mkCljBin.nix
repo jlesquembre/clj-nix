@@ -113,8 +113,6 @@ stdenv.mkDerivation ({
       export LEIN_OFFLINE=true
       export LEIN_JVM_OPTS="-Dmaven.repo.local=${deps-cache}/.m2 -Duser.home=${deps-cache}"
       export LEIN_HOME=.lein
-
-      ${clj-builder} --check-main "${fullId}" "${version}" "${main-ns}"
     ''
     +
     (
@@ -124,6 +122,7 @@ stdenv.mkDerivation ({
         ''
       else
         ''
+          ${clj-builder} --check-main "${fullId}" "${version}" "${main-ns}"
           ${buildCommand}
         ''
     )
