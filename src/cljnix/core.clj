@@ -36,8 +36,13 @@
 
 (defn- artifact->pom
   [path]
-  (str (first (fs/glob (fs/parent path) "*.pom"))))
-
+  (str (->> (fs/glob (fs/parent path) "*.pom")
+            (sort (fn [x y]
+                    (cond 
+                      (string/includes? (fs/file-name x) "SNAPSHOT") -1
+                      (string/includes? (fs/file-name y) "SNAPSHOT") 1
+                      :else (compare (fs/file-name x) (fs/file-name y)))))
+            first)))
 
 (defn maven-deps
   [basis]
