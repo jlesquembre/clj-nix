@@ -3,9 +3,9 @@
     [clojure.test :refer [deftest is use-fixtures testing]]
     [cljnix.utils :as utils]
     [cljnix.test-helpers :as h]
-    [clojure.tools.deps.alpha.util.maven :as mvn]
+    [clojure.tools.deps.util.maven :as mvn]
     [babashka.fs :as fs]
-    [clojure.tools.deps.alpha :as deps]))
+    [clojure.tools.deps :as deps]))
 
 (def my-deps '{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
                       babashka/fs {:mvn/version "0.1.5"}

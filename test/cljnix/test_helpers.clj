@@ -2,8 +2,8 @@
   (:require
     [clojure.pprint :as pp]
     [clojure.data.json :as json]
-    [clojure.tools.cli.api :as tools]
-    [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.cli.api :as tools]
+    [clojure.tools.deps :as deps]
     [babashka.fs :as fs]))
 
 (defn- deps-file

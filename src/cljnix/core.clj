@@ -5,9 +5,9 @@
     [clojure.java.shell :as sh]
     [clojure.edn :as edn]
     [clojure.pprint :as pp]
-    [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.cli.api :as tools]
-    [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.util.maven :as mvn]
+    [clojure.tools.deps.cli.api :as tools]
+    [clojure.tools.deps :as deps]
     [clojure.tools.gitlibs.config :as gitlibs-config]
     [clojure.data.json :as json]
     [babashka.fs :as fs]
@@ -15,8 +15,8 @@
     [cljnix.nix :refer [nix-hash]]
     [cljnix.build :as build]
     [cljnix.check :as check]
-    [clojure.tools.deps.alpha.util.dir :as tools-deps.dir]
-    [clojure.tools.deps.alpha.util.io :refer [printerrln]]))
+    [clojure.tools.deps.util.dir :as tools-deps.dir]
+    [clojure.tools.deps.util.io :refer [printerrln]]))
 
 
 (def LOCK-VERSION 3)
@@ -38,7 +38,7 @@
   [path]
   (str (->> (fs/glob (fs/parent path) "*.pom")
             (sort (fn [x y]
-                    (cond 
+                    (cond
                       (string/includes? (fs/file-name x) "SNAPSHOT") -1
                       (string/includes? (fs/file-name y) "SNAPSHOT") 1
                       :else (compare (fs/file-name x) (fs/file-name y)))))

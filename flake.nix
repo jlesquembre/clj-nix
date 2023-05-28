@@ -6,7 +6,10 @@
     flake-utils.url = "github:numtide/flake-utils";
     devshell = {
       url = "github:numtide/devshell";
-      inputs.flake-utils.follows = "flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-fetcher-data = {
+      url = "github:jlesquembre/nix-fetcher-data";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -18,7 +21,11 @@
         let
           pkgs = import nixpkgs {
             inherit system;
-            overlays = [ inputs.devshell.overlay self.overlays.default ];
+            overlays = [
+              inputs.devshell.overlays.default
+              inputs.nix-fetcher-data.overlays.default
+              self.overlays.default
+            ];
           };
         in
         {
@@ -27,6 +34,8 @@
             inherit (pkgs) clj-builder deps-lock mk-deps-cache
               mkCljBin mkCljLib mkGraalBin customJdk
               mkBabashka bbTasksFromFile;
+
+            inherit (pkgs.mkBabashka { }) babashka babashka-unwrapped;
           };
 
           devShells.default =
@@ -35,7 +44,7 @@
                 # pkgs.nix-prefetch-git
                 pkgs.jq
                 pkgs.clojure
-                pkgs.graalvmCEPackages.graalvm17-ce
+                pkgs.graalvmCEPackages.graalvm19-ce
                 pkgs.bats
                 pkgs.envsubst
                 pkgs.mustache-go
