@@ -1,0 +1,38 @@
+name: "Update deps"
+on:
+  workflow_dispatch: # allows manual triggering
+  schedule:
+    - cron: "33 3 * * 1"
+
+jobs:
+  clojure-deps:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Update clj dependencies
+        run:
+          clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version
+          "RELEASE"}}}' -M -m antq.core -d . --upgrade --force
+          --skip=github-action
+
+      - name: Update clojure lock files
+        run: "nix develop --command update-deps"
+
+      - name: Update babashka
+        run: "nix run .#babashka-unwrapped.updateScript"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5.0.1
+        with:
+          commit-message: Update clojure dependencies
+          title: Update clojure dependencies
+          assignees: jlesquembre
+          branch: update-clj-deps
+          pr-labels: |
+            dependencies
+            automated

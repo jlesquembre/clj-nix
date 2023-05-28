@@ -5,7 +5,7 @@
     [clojure.string :as string]
     [cljnix.test-helpers :as h]
     [cljnix.core :as c]
-    [clojure.tools.deps.alpha.specs :as deps.spec]
+    [clojure.tools.deps.specs :as deps.spec]
     [clojure.spec.alpha :as s]
     [matcher-combinators.test]
     [matcher-combinators.matchers :as m]))

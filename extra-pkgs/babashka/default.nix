@@ -6,9 +6,12 @@
 , makeWrapper
 , writeShellApplication
 , graalvmCEPackages
+, nix-package-updater
+, srcFromJson
+, writeScriptBin
 }:
 
-{ graalvm ? graalvmCEPackages.graalvm11-ce
+{ graalvm ? graalvmCEPackages.graalvm19-ce
 , withFeatures ? [ ]
 , bbLean ? false
 }:
@@ -60,18 +63,12 @@ let
       "\n"
       (map (f: ''export BABASHKA_FEATURE_${f}="true"'') features);
 
-  version = "0.9.161";
+  projectInfo = srcFromJson ./src.json;
 
-  babashka =
+  babashka-unwrapped =
     mkCljBin {
-      inherit version;
-      projectSrc = fetchFromGitHub {
-        owner = "babashka";
-        repo = "babashka";
-        rev = "v${version}";
-        hash = "sha256-+clpsux1ypJzdFFn5Pu8Enr+BINFhrgjF0hdN/iV+hM=";
-        fetchSubmodules = true;
-      };
+      inherit (projectInfo) version;
+      projectSrc = projectInfo.src;
       lockfile = ./deps-lock.json;
 
       name = "babashka/babashka";
@@ -92,14 +89,20 @@ let
           mkdir -p $out/bin
           cp bb $out/bin
         '';
+
+      passthru.updateScript = writeScriptBin "update-babashka"
+        ''
+          ${nix-package-updater} extra-pkgs/babashka/src.json
+        '';
     };
 in
-writeShellApplication {
-  name = "bb";
-
-  runtimeInputs = [ babashka rlwrap ];
-
-  text = ''
-    rlwrap bb "$@"
-  '';
+{
+  inherit babashka-unwrapped;
+  babashka = writeShellApplication {
+    name = "bb";
+    runtimeInputs = [ babashka-unwrapped rlwrap ];
+    text = ''
+      rlwrap bb "$@"
+    '';
+  };
 }

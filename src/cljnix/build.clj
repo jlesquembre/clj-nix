@@ -2,7 +2,7 @@
   (:require
     [clojure.java.io :as io]
     [clojure.string :as string]
-    [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps :as deps]
     [clojure.tools.build.api :as b]))
 
 (defn remove-timestamp!

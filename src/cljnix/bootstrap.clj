@@ -1,8 +1,8 @@
 (ns cljnix.bootstrap
   (:require
-    [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.cli.api :as tools]
-    [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.util.maven :as mvn]
+    [clojure.tools.deps.cli.api :as tools]
+    [clojure.tools.deps :as deps]
     [clojure.tools.gitlibs.config :as gitlibs-config]
     [clojure.data.json :as json]
     [babashka.fs :as fs]
