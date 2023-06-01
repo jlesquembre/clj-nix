@@ -106,7 +106,7 @@ stdenv.mkDerivation ({
   buildPhase =
     ''
       runHook preBuild
-      
+
       export HOME="${deps-cache}"
       export JAVA_TOOL_OPTIONS="-Duser.home=${deps-cache}"
 
