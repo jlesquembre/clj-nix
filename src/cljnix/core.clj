@@ -399,9 +399,9 @@
 
     (= flag "--jar")
     (build/jar
-     (interleave
-      [:lib-name :version]
-      (apply vector value more)))
+      (interleave
+        [:lib-name :version]
+        (apply vector value more)))
 
     (= flag "--uber")
     (do
@@ -417,12 +417,12 @@
     :else
     (let [deps-ignore (remove #(= "--lein" %) args)]
       (println (json/write-str (lock-file
-                                (str (fs/canonicalize "."))
-                                {:extra-mvn (-> (io/resource "clojure-deps.edn")
-                                                slurp
-                                                edn/read-string)
-                                 :deps-ignore deps-ignore
-                                 :lein? (not= (count deps-ignore) (count args))})
+                                 (str (fs/canonicalize "."))
+                                 {:extra-mvn (-> (io/resource "clojure-deps.edn")
+                                                 slurp
+                                                 edn/read-string)
+                                  :deps-ignore deps-ignore
+                                  :lein? (not= (count deps-ignore) (count args))})
                                :escape-slash false
                                :escape-unicode false
                                :escape-js-separators false))))
