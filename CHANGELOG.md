@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- TODO
+- Add `wrap` option to `mkBabashka`
 
 ## 0.3.0 (2022-08-03)
 

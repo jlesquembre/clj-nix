@@ -14,6 +14,7 @@
 { graalvm ? graalvmCEPackages.graalvm19-ce
 , withFeatures ? [ ]
 , bbLean ? false
+, wrap ? true
 }:
 let
   # See
@@ -96,13 +97,14 @@ let
         '';
     };
 in
-{
-  inherit babashka-unwrapped;
-  babashka = writeShellApplication {
+if wrap then
+  writeShellApplication
+  {
     name = "bb";
     runtimeInputs = [ babashka-unwrapped rlwrap ];
     text = ''
       rlwrap bb "$@"
     '';
-  };
-}
+  }
+else
+  babashka-unwrapped

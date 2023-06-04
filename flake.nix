@@ -35,7 +35,8 @@
               mkCljBin mkCljLib mkGraalBin customJdk
               mkBabashka bbTasksFromFile;
 
-            inherit (pkgs.mkBabashka { }) babashka babashka-unwrapped;
+            babashka = pkgs.mkBabashka { };
+            babashka-unwrapped = pkgs.mkBabashka { wrap = false; };
           };
 
           devShells.default =
