@@ -320,6 +320,8 @@ Takes the following attributes:
 - **graalvm**: GraalVM used at build time. (Default:
   `nixpkgs.graalvmCEPackages.graalvm19-ce`)
 
+- **wrap**: Create a wrapper with `rlwrap` (Default: `true`)
+
 **Example**:
 
 ```nix
