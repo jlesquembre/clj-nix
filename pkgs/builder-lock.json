@@ -13,8 +13,8 @@
     "hash": "sha256-10dINOFvu1Kk2bexqmBSyk0BucZx0f9BWYIxwaF1Vr4="
   },
   {
-    "url": "https://repo.clojars.org/borkdude/rewrite-edn/0.2.0/rewrite-edn-0.2.0.jar",
-    "hash": "sha256-xEsgLvDRpJdCTfWh5jRpLAw0KWcpsl9IMNChK29uR7g="
+    "url": "https://repo.clojars.org/borkdude/rewrite-edn/0.4.6/rewrite-edn-0.4.6.jar",
+    "hash": "sha256-R2wBPIrfn5G83zPbcejQw3EKF8WKKQR5rLsp7YyPyqM="
   },
   {
     "url": "https://repo.clojars.org/manifold/manifold/0.2.3/manifold-0.2.3.jar",
@@ -29,8 +29,8 @@
     "hash": "sha256-jf43Wpf+4h86ri7BjxNoQVQNzyOUAIzUv6hTA39pXK4="
   },
   {
-    "url": "https://repo.clojars.org/rewrite-clj/rewrite-clj/1.0.572-alpha/rewrite-clj-1.0.572-alpha.jar",
-    "hash": "sha256-/ktU4zGJG8IsU37VINOM6PJgLwRq/m8CkJPX91EI9pY="
+    "url": "https://repo.clojars.org/rewrite-clj/rewrite-clj/1.1.45/rewrite-clj-1.1.45.jar",
+    "hash": "sha256-RdiztNjxqnlGyHx2VjCu6GWLNjwAjZ+ZzB5YVp68yOA="
   },
   {
     "url": "https://repo.clojars.org/riddley/riddley/0.1.15/riddley-0.1.15.jar",

@@ -39,6 +39,7 @@
                 pkgs.bats
                 pkgs.envsubst
                 pkgs.mustache-go
+                pkgs.diffutils
               ];
               commands = [
                 {

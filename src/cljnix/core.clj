@@ -14,6 +14,7 @@
     [cljnix.utils :refer [throw+] :as utils]
     [cljnix.nix :refer [nix-hash]]
     [cljnix.build :as build]
+    [cljnix.check :as check]
     [clojure.tools.deps.alpha.util.dir :as tools-deps.dir]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]))
 
@@ -35,8 +36,13 @@
 
 (defn- artifact->pom
   [path]
-  (str (first (fs/glob (fs/parent path) "*.pom"))))
-
+  (str (->> (fs/glob (fs/parent path) "*.pom")
+            (sort (fn [x y]
+                    (cond 
+                      (string/includes? (fs/file-name x) "SNAPSHOT") -1
+                      (string/includes? (fs/file-name y) "SNAPSHOT") 1
+                      :else (compare (fs/file-name x) (fs/file-name y)))))
+            first)))
 
 (defn maven-deps
   [basis]
@@ -376,6 +382,15 @@
         :git extra-git}
        (fs/glob project-dir "**deps.edn")))))
 
+(defn- check-main-class
+  [& [_ value & more :as args]]
+  (or
+   (check/main-gen-class
+    (interleave
+     [:lib-name :version :main-ns]
+     (apply vector value more)))
+   (throw (ex-info "main-ns class does not specify :gen-class" {:args args}))))
+
 (defn -main
   [& [flag value & more :as args]]
   (cond
@@ -389,10 +404,15 @@
         (apply vector value more)))
 
     (= flag "--uber")
-    (build/uber
-      (interleave
+    (do
+      (apply check-main-class args)
+      (build/uber
+       (interleave
         [:lib-name :version :main-ns :java-opts]
-        (apply vector value more)))
+        (apply vector value more))))
+
+    (= flag "--check-main")
+    (apply check-main-class args)
 
     :else
     (let [deps-ignore (remove #(= "--lein" %) args)]

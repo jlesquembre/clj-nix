@@ -122,6 +122,7 @@ stdenv.mkDerivation ({
         ''
       else
         ''
+          ${clj-builder} --check-main "${fullId}" "${version}" "${main-ns}"
           ${buildCommand}
         ''
     )
