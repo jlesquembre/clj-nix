@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Add `wrap` option to `mkBabashka`
+- Check that the `main-ns` has a `:gen-class` in `mkCljBin` (see #39, thanks
+  @slimslenderslacks)
 
 ## 0.3.0 (2022-08-03)
 
