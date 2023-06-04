@@ -1,4 +1,4 @@
-{ jq, writeShellScriptBin, nix-prefetch-git, clj-builder }:
+{ jq, writeShellScriptBin, clj-builder }:
 writeShellScriptBin "deps-lock"
   ''
     set -euo pipefail
