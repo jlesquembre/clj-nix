@@ -16,8 +16,8 @@ jobs:
 
       - name: Update clj dependencies
         run:
-          clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version
-          "RELEASE"}}}' -M -m antq.core -d . --upgrade --force
+          nix develop --command clojure -Sdeps '{:deps {com.github.liquidz/antq
+          {:mvn/version "RELEASE"}}}' -M -m antq.core -d . --upgrade --force
           --skip=github-action
 
       - name: Update clojure lock files
