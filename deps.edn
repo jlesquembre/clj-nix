@@ -1,6 +1,6 @@
 {:deps {org.clojure/clojure {:mvn/version "1.11.1"}
-        org.clojure/tools.deps {:mvn/version "0.18.1335"}
-        org.clojure/tools.deps.cli {:mvn/version "0.9.35"}
+        org.clojure/tools.deps {:mvn/version "0.18.1354"}
+        org.clojure/tools.deps.cli {:mvn/version "0.9.43"}
         org.clojure/data.json {:mvn/version "2.4.0"}
         babashka/fs {:mvn/version "0.4.19"}
         org.clj-commons/byte-streams {:mvn/version "0.3.2"}
