@@ -391,6 +391,18 @@
      (apply vector value more)))
    (throw (ex-info "main-ns class does not specify :gen-class" {:args args}))))
 
+(defn parse-options [args]
+  (loop [[arg & next-args] args
+         options {:lein? false
+                  :aliases-ignore []
+                  :deps-ignore []}]
+    (case arg
+      nil              options
+      "--lein"         (recur next-args
+                              (assoc options :lein? true))
+      (recur next-args
+             (update options :deps-ignore conj arg)))))
+
 (defn -main
   [& [flag value & more :as args]]
   (cond
@@ -415,17 +427,16 @@
     (apply check-main-class args)
 
     :else
-    (let [deps-ignore (remove #(= "--lein" %) args)]
-      (println (json/write-str (lock-file
-                                 (str (fs/canonicalize "."))
-                                 {:extra-mvn (-> (io/resource "clojure-deps.edn")
-                                                 slurp
-                                                 edn/read-string)
-                                  :deps-ignore deps-ignore
-                                  :lein? (not= (count deps-ignore) (count args))})
-                               :escape-slash false
-                               :escape-unicode false
-                               :escape-js-separators false))))
+    (println (json/write-str (lock-file
+                              (str (fs/canonicalize "."))
+                              (merge
+                               {:extra-mvn (-> (io/resource "clojure-deps.edn")
+                                               slurp
+                                               edn/read-string)}
+                               (parse-options args)))
+                             :escape-slash false
+                             :escape-unicode false
+                             :escape-js-separators false)))
   (shutdown-agents))
 
 ; We need all clojure versions in nixpkgs, in case the flake consumer wants to
