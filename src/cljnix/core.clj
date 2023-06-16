@@ -330,57 +330,60 @@
 (defn lock-file
   ([project-dir]
    (lock-file project-dir {}))
-  ([project-dir {:keys [extra-mvn extra-git deps-ignore lein?]
+  ([project-dir {:keys [extra-mvn extra-git deps-ignore aliases-ignore lein?]
                  :or {extra-mvn []
                       extra-git []
-                      deps-ignore []}}]
+                      deps-ignore []
+                      aliases-ignore []}
+                 :as opts}]
    (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
      (transduce
-       (comp
-         ;; NOTE: the globbing below return $PREFIXdeps.edn paths, we need to filter still
-         (filter #(= "deps.edn" (fs/file-name %)))
-         (remove #(some (partial fs/ends-with? %) deps-ignore))
-         (map fs/file)
-         (map (juxt identity #(-> % deps/slurp-deps :aliases keys)))
-         (mapcat aliases-combinations)
-         (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
-       (completing
-         (fn [acc {:keys [mvn git]}]
-           (-> acc
+      (comp
+       ;; NOTE: the globbing below return $PREFIXdeps.edn paths, we need to filter still
+       (filter #(= "deps.edn" (fs/file-name %)))
+       (remove #(some (partial fs/ends-with? %) deps-ignore))
+       (map fs/file)
+       (map (juxt identity #(-> % deps/slurp-deps :aliases keys
+                                (->> (remove (set aliases-ignore))))))
+       (mapcat aliases-combinations)
+       (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
+      (completing
+       (fn [acc {:keys [mvn git]}]
+         (-> acc
              (update :mvn into mvn)
              (update :git into git)))
-         (fn [{:keys [mvn git]}]
-           (when lein?
-             (download-lein-deps cache-dir))
-           (sorted-map-by
-             map-comparator
-             :lock-version LOCK-VERSION
-             :mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir))
-                            (sort-by :mvn-path)
-                            (map add-to-nix-store!)
-                            (map #(into (sorted-map-by map-comparator)
-                                        (select-keys % [:mvn-repo :mvn-path :hash :snapshot])))
-                            (distinct)
-                            (into []))
-             :git-deps (->> (concat git (missing-git-deps git cache-dir))
-                            (map #(update % :lib str))
-                            (sort-by :lib)
-                            (map #(cond-> %
-                                    (nil? (:tag %))
-                                    (dissoc :tag)))
-                            (map add-to-nix-store!)
-                            (map #(into (sorted-map-by map-comparator)
-                                        (select-keys % [:tag :lib :rev :url :git-dir :hash])))
-                            (distinct)
-                            (reduce (fn [acc v]
-                                      (if (same-git-dep? (peek acc) v)
-                                        (conj (pop acc) (merge v (peek acc)))
-                                        (conj acc v)))
-                                    [])))))
+       (fn [{:keys [mvn git]}]
+         (when lein?
+           (download-lein-deps cache-dir))
+         (sorted-map-by
+          map-comparator
+          :lock-version LOCK-VERSION
+          :mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir))
+                         (sort-by :mvn-path)
+                         (map add-to-nix-store!)
+                         (map #(into (sorted-map-by map-comparator)
+                                     (select-keys % [:mvn-repo :mvn-path :hash :snapshot])))
+                         (distinct)
+                         (into []))
+          :git-deps (->> (concat git (missing-git-deps git cache-dir))
+                         (map #(update % :lib str))
+                         (sort-by :lib)
+                         (map #(cond-> %
+                                 (nil? (:tag %))
+                                 (dissoc :tag)))
+                         (map add-to-nix-store!)
+                         (map #(into (sorted-map-by map-comparator)
+                                     (select-keys % [:tag :lib :rev :url :git-dir :hash])))
+                         (distinct)
+                         (reduce (fn [acc v]
+                                   (if (same-git-dep? (peek acc) v)
+                                     (conj (pop acc) (merge v (peek acc)))
+                                     (conj acc v)))
+                                 [])))))
 
-       {:mvn extra-mvn
-        :git extra-git}
-       (fs/glob project-dir "**deps.edn")))))
+      {:mvn extra-mvn
+       :git extra-git}
+      (fs/glob project-dir "**deps.edn")))))
 
 (defn- check-main-class
   [& [_ value & more :as args]]
@@ -400,6 +403,9 @@
       nil              options
       "--lein"         (recur next-args
                               (assoc options :lein? true))
+      "--ignore-alias" (recur (next next-args)
+                              (update options :aliases-ignore conj
+                                      (keyword (first next-args))))
       (recur next-args
              (update options :deps-ignore conj arg)))))
 
