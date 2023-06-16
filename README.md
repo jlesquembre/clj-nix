@@ -167,6 +167,9 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
 - **version**: Derivation and clojure project version. (Default: `DEV`)
 
 - **main-ns**: Main clojure namespace. A `-main` function is expected here.
+  `main-ns` file must include the `:gen-class` directive, e.g.:
+  `(ns foo (:gen-class))`. That's required to generate a valid uberjar,
+  `clj-nix` does a check for it.
 
 - **buildCommand**: Command to build the jar application. If not provided, a
   default builder is used:
