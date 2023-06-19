@@ -13,5 +13,5 @@
  :aliases
  {:main {:main-opts ["-m" "core"]}
   :test {:extra-paths ["test"]
-         :extra-deps {lambdaisland/kaocha {:mvn/version "1.84.1335"}
+         :extra-deps {lambdaisland/kaocha {:mvn/version "1.85.1342"}
                       nubank/matcher-combinators {:mvn/version "3.8.5"}}}}}
