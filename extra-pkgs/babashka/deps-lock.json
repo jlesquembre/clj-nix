@@ -3171,14 +3171,14 @@
       "hash": "sha256-t1TU7vIJFXtZOYB5F1k9WN2VnKe8KZAP/LrPp3trddc="
     },
     {
-      "mvn-path": "http-kit/http-kit/2.6.0-RC1/http-kit-2.6.0-RC1.jar",
+      "mvn-path": "http-kit/http-kit/2.7.0-RC1/http-kit-2.7.0-RC1.jar",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-za2Fv1K2iYudMEJHDVIc3Zg8zxLVNZWomX6sDKSkvA0="
+      "hash": "sha256-zcuAoLk1GN11tIRJJTZYrYk4fw7WPb6+CrTIHud/vrc="
     },
     {
-      "mvn-path": "http-kit/http-kit/2.6.0-RC1/http-kit-2.6.0-RC1.pom",
+      "mvn-path": "http-kit/http-kit/2.7.0-RC1/http-kit-2.7.0-RC1.pom",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-bepjhTPnzoqECB8aeC0X5/nnfF1iKD+KHWwtG9YSKqg="
+      "hash": "sha256-lGIPW6RcFI8jUwKy8G/ZyZLqdxIx5NwVDcs4LumOrD8="
     },
     {
       "mvn-path": "ingesolvoll/doo/0.2.0/doo-0.2.0.jar",
