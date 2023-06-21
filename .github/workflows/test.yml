@@ -6,12 +6,14 @@ on:
     paths-ignore:
       - "**.md"
       - "docs/**"
+      - ".github/**"
     branches:
       - main
   pull_request:
     paths-ignore:
       - "**.md"
       - "docs/**"
+      - ".github/**"
 
 jobs:
   ci-test:
