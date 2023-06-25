@@ -2,6 +2,7 @@
         org.clojure/tools.deps {:mvn/version "0.18.1354"}
         org.clojure/tools.deps.cli {:mvn/version "0.9.43"}
         org.clojure/data.json {:mvn/version "2.4.0"}
+        org.babashka/cli {:mvn/version "0.7.52"}
         babashka/fs {:mvn/version "0.4.19"}
         org.clj-commons/byte-streams {:mvn/version "0.3.2"}
         version-clj/version-clj {:mvn/version "2.0.2"}

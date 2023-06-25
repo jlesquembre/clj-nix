@@ -25,6 +25,10 @@
     "hash": "sha256-r0NE4pykCo5jCXt7fzs3lnHvNzge2dlVEl1GgwtB3LM="
   },
   {
+    "url": "https://repo.clojars.org/org/babashka/cli/0.7.52/cli-0.7.52.jar",
+    "hash": "sha256-FvcgmncjYCsGZgcExUY7rr5l3RMerZKFdyg/Nm3iYdY="
+  },
+  {
     "url": "https://repo.clojars.org/org/clj-commons/byte-streams/0.3.2/byte-streams-0.3.2.jar",
     "hash": "sha256-4KGgi1S6RufVIagURMKifDdINQgLMBBkBuhMZruftWk="
   },
