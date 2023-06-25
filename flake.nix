@@ -133,7 +133,8 @@
 
         mkBabashka = final.callPackage ./extra-pkgs/babashka { };
         bbTasksFromFile = final.callPackage ./extra-pkgs/bbTasks { };
-      };
+      }
+      // inputs.nix-fetcher-data.overlays.default final prev;
 
     };
 }
