@@ -220,6 +220,9 @@ default are mandatory):
   be used to analyze the `cljDrv` and pick the necessary modules automatically.
   (Default: `null`)
 
+- **extraJdkModules**: Extra JDK modules appended to `jdkModules`. (Default:
+  `[ ]`)
+
 - **multiRelease**: Option passed to jdeps `--multi-release`. Should be an
   integer >=9 or a boolean. If true, the value is set to `base`. If false or not
   specified, clj-nix will try to detect if the jar is a multi-release jar and

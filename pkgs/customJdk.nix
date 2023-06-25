@@ -12,6 +12,7 @@
 , cljDrv ? null
   # Manually set the modules
 , jdkModules ? null
+, extraJdkModules ? [ ]
 , locales ? null
 , multiRelease ? false
 , ...
@@ -41,6 +42,12 @@ let
     if multiRelease == false then ""
     else if multiRelease == true then "--multi-release base --ignore-missing-deps"
     else "--multi-release ${builtins.toString multiRelease} --ignore-missing-deps";
+
+  extraJdkModules' =
+    if (builtins.length extraJdkModules == 0) then
+      ""
+    else
+      "," + (builtins.concatStringsSep "," extraJdkModules);
 
 in
 stdenv.mkDerivation ({
@@ -91,7 +98,7 @@ stdenv.mkDerivation ({
       jlink \
         --no-header-files \
         --no-man-pages \
-        --add-modules ''${jdkModules} \
+        --add-modules ''${jdkModules}${extraJdkModules'} \
         ${if locales==null then "" else ''--include-locales ${locales}''} \
         --compress 2 \
         --output ${if cljDrv == null then "$out" else "$jdk"}
