@@ -123,7 +123,7 @@
       };
 
       overlays.default = final: prev: {
-        inherit (final.callPackage ./pkgs/cljBuilder.nix { }) clj-builder deps-lock;
+        inherit (final.callPackage ./pkgs/cljApps.nix { }) clj-builder deps-lock;
         mk-deps-cache = final.callPackage ./pkgs/mkDepsCache.nix;
         mkCljBin = final.callPackage ./pkgs/mkCljBin.nix { };
         mkCljLib = final.callPackage ./pkgs/mkCljLib.nix { };
