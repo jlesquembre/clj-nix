@@ -1,9 +1,17 @@
-{ lib, fetchurl, fetchgit, jdk, runtimeShell, runCommand, clojure, leiningen }:
+{ fetchurl
+, fetchgit
+, jdk
+, jq
+, runtimeShell
+, runCommand
+, leiningen
+, writeShellApplication
+}:
 let
 
   lock = builtins.fromJSON (builtins.readFile ./builder-lock.json);
 
-  classpath =
+  deps-classpath =
     let
       deps = builtins.concatMap
         (dep:
@@ -18,25 +26,31 @@ let
     in
     builtins.concatStringsSep ":" deps;
 
+  writeCljApplication =
+    { name, runtimeInputs, clj-main, classpath }:
 
-  template =
-    ''
-      #!${runtimeShell}
-      PATH=${leiningen}/bin:$PATH
-      exec "${jdk}/bin/java" \
-          "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory" \
-          "-classpath" "@cp@" clojure.main -m cljnix.core "$@"
-    '';
+    writeShellApplication {
+      inherit name runtimeInputs;
+      text = ''
+        exec "${jdk}/bin/java" \
+            "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory" \
+            "-classpath" "${classpath}" clojure.main -m ${clj-main} "$@"
+      '';
+    };
 
 in
-runCommand "cljBuilder"
 {
-  inherit template;
-  passAsFile = [ "template" ];
-  cp = "${../src}:${classpath}";
+  clj-builder = writeCljApplication {
+    name = "clj-builder";
+    runtimeInputs = [ leiningen ];
+    clj-main = "cljnix.builder-cli";
+    classpath = "${../src}:${deps-classpath}";
+  };
+
+  deps-lock = writeCljApplication {
+    name = "deps-lock";
+    runtimeInputs = [ jq leiningen ];
+    clj-main = "cljnix.core";
+    classpath = "${../src}:${deps-classpath}";
+  };
 }
-  ''
-    substitute $templatePath $out \
-      --subst-var cp
-    chmod +x $out
-  ''

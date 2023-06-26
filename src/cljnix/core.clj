@@ -10,11 +10,10 @@
     [clojure.tools.deps :as deps]
     [clojure.tools.gitlibs.config :as gitlibs-config]
     [clojure.data.json :as json]
+    [babashka.cli :as cli]
     [babashka.fs :as fs]
     [cljnix.utils :refer [throw+] :as utils]
     [cljnix.nix :refer [nix-hash]]
-    [cljnix.build :as build]
-    [cljnix.check :as check]
     [clojure.tools.deps.util.dir :as tools-deps.dir]
     [clojure.tools.deps.util.io :refer [printerrln]]))
 
@@ -330,21 +329,25 @@
 (defn lock-file
   ([project-dir]
    (lock-file project-dir {}))
-  ([project-dir {:keys [extra-mvn extra-git deps-ignore aliases-ignore lein?]
+  ([project-dir {:keys [extra-mvn extra-git
+                        deps-include deps-exclude
+                        alias-include alias-exclude
+                        lein?
+                        bb?]
                  :or {extra-mvn []
                       extra-git []
-                      deps-ignore []
-                      aliases-ignore []}
+                      deps-exclude []
+                      alias-exclude []}
                  :as opts}]
    (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
      (transduce
        (comp
          ;; NOTE: the globbing below return $PREFIXdeps.edn paths, we need to filter still
          (filter #(= "deps.edn" (fs/file-name %)))
-         (remove #(some (partial fs/ends-with? %) deps-ignore))
+         (remove #(some (partial fs/ends-with? %) deps-exclude))
          (map fs/file)
          (map (juxt identity #(-> % deps/slurp-deps :aliases keys
-                                  (->> (remove (set aliases-ignore))))))
+                                  (->> (remove (set alias-exclude))))))
          (mapcat aliases-combinations)
          (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
        (completing
@@ -385,14 +388,6 @@
         :git extra-git}
        (fs/glob project-dir "**deps.edn")))))
 
-(defn- check-main-class
-  [& [_ value & more :as args]]
-  (or
-   (check/main-gen-class
-    (interleave
-     [:lib-name :version :main-ns]
-     (apply vector value more)))
-   (throw (ex-info "main-ns class does not specify :gen-class" {:args args}))))
 
 (defn parse-options [args]
   (loop [[arg & next-args] args
@@ -409,40 +404,81 @@
       (recur next-args
              (update options :deps-ignore conj arg)))))
 
+(def cli-spec
+  (let [deps-validate
+        {:pred (partial every? fs/exists?)
+         :ex-msg (fn [{:keys [value]}]
+                   (str "Non-existent files: "
+                      (filterv (complement fs/exists?) value)))}]
+    {:help
+     {:desc "Print help and exit"
+      :validate {:pred boolean?}}
+
+     :bb
+     {:desc "Include dependencies in bb.edn files"
+      :validate {:pred boolean?}}
+
+     :lein
+     {:desc "Include Leiningen dependecies"
+      :validate {:pred boolean?}}
+
+     :deps-include
+     {:desc "List of 'deps.edn' files to parse. All files are included by default."
+      :coerce []
+      :validate deps-validate}
+
+     :deps-exclude
+     {:desc "List of 'deps.edn' files to exclude"
+      :coerce []
+      :validate deps-validate}
+
+     :alias-include
+     {:desc "List of aliases to include. All aliases are included by default."
+      :coerce []}
+
+     :alias-exclude
+     {:desc "List of aliases to exclude."
+      :coerce []}}))
+
+
+(defn- cli-parse-options
+  [args]
+  (let [opts (cli/parse-opts
+               args
+               {:spec cli-spec
+                :restrict true
+                :error-fn
+                  (fn [{:keys [msg]}]
+                    (println msg)
+                    (System/exit 1))})]
+   (cond
+     (:help opts)
+     (do
+       (println "deps-lock usage:\n")
+       (println (cli/format-opts {:spec cli-spec
+                                  :order [:deps-include :deps-exclude :alias-include :alias-exclude :bb :lein :help]}))
+       (System/exit 0))
+     :else opts)))
+
+
 (defn -main
-  [& [flag value & more :as args]]
-  (cond
-    (= flag "--patch-git-sha")
-    (utils/expand-shas! value)
-
-    (= flag "--jar")
-    (build/jar
-      (interleave
-        [:lib-name :version]
-        (apply vector value more)))
-
-    (= flag "--uber")
-    (do
-      (apply check-main-class args)
-      (build/uber
-       (interleave
-        [:lib-name :version :main-ns :java-opts]
-        (apply vector value more))))
-
-    (= flag "--check-main")
-    (apply check-main-class args)
-
-    :else
-    (println (json/write-str (lock-file
-                              (str (fs/canonicalize "."))
-                              (merge
-                               {:extra-mvn (-> (io/resource "clojure-deps.edn")
-                                               slurp
-                                               edn/read-string)}
-                               (parse-options args)))
-                             :escape-slash false
-                             :escape-unicode false
-                             :escape-js-separators false)))
+  [& args]
+  (let [opts (cli-parse-options args)
+        lock-data (lock-file
+                    (str (fs/canonicalize "."))
+                    (merge
+                     {:extra-mvn (-> (io/resource "clojure-deps.edn")
+                                     slurp
+                                     edn/read-string)}
+                     opts))
+        lock-str (json/write-str
+                   lock-data
+                   :escape-slash false
+                   :escape-unicode false
+                   :escape-js-separators false)]
+    (->> (sh/sh "jq" "-n" "--argjson" "data" lock-str "$data")
+         :out
+         (spit "deps-lock.json")))
   (shutdown-agents))
 
 ; We need all clojure versions in nixpkgs, in case the flake consumer wants to
