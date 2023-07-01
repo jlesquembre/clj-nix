@@ -5,36 +5,36 @@
     [cljnix.check :as check]))
 
 (defn- check-main-class
-  [& [_ value & more :as args]]
+  [args]
   (or
    (check/main-gen-class
     (interleave
      [:lib-name :version :main-ns]
-     (apply vector value more)))
+     args))
    (throw (ex-info "main-ns class does not specify :gen-class" {:args args}))))
 
 ; Internal CLI helpers
 (defn -main
-  [& [flag value & more :as args]]
+  [& [flag & args]]
   (cond
     (= flag "--patch-git-sha")
-    (utils/expand-shas! value)
+    (apply utils/expand-shas! args)
 
     (= flag "--jar")
     (build/jar
       (interleave
         [:lib-name :version]
-        (apply vector value more)))
+        args))
 
     (= flag "--uber")
     (do
-      (apply check-main-class args)
+      (check-main-class args)
       (build/uber
        (interleave
         [:lib-name :version :main-ns :java-opts]
-        (apply vector value more))))
+        args)))
 
     (= flag "--check-main")
-    (apply check-main-class args))
+    (check-main-class args))
 
   (shutdown-agents))
