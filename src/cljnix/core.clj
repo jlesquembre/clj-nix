@@ -454,7 +454,7 @@
   (let [opts (-> (cli-parse-options args)
                  (rename-keys {:bb :bb? :lein :lein?}))
         lock-data (lock-file
-                    "."
+                    (str (fs/canonicalize "."))
                     (merge
                      {:extra-mvn (-> (io/resource "clojure-deps.edn")
                                      slurp
