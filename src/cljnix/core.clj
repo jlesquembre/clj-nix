@@ -1,6 +1,7 @@
 (ns cljnix.core
   (:require
     [clojure.string :as string]
+    [clojure.set :refer [rename-keys]]
     [clojure.java.io :as io]
     [clojure.java.shell :as sh]
     [clojure.edn :as edn]
@@ -325,29 +326,32 @@
       (catch Exception _)))
   dep)
 
+(defn- deps-file->deps+alias
+  "Given a file, returns pair of (file, [aliases,...])"
+  [f {:keys [alias-exclude alias-include]}]
+  (vector
+    (fs/file f)
+    (-> f
+        fs/file
+        deps/slurp-deps
+        :aliases
+        keys
+        (->> (remove (set alias-exclude)))
+        (cond->> (seq alias-include) (filter (set alias-include))))))
+
 
 (defn lock-file
   ([project-dir]
    (lock-file project-dir {}))
   ([project-dir {:keys [extra-mvn extra-git
-                        deps-include deps-exclude
-                        alias-include alias-exclude
-                        lein?
-                        bb?]
+                        lein?]
                  :or {extra-mvn []
-                      extra-git []
-                      deps-exclude []
-                      alias-exclude []}
+                      extra-git []}
                  :as opts}]
    (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
      (transduce
        (comp
-         ;; NOTE: the globbing below return $PREFIXdeps.edn paths, we need to filter still
-         (filter #(= "deps.edn" (fs/file-name %)))
-         (remove #(some (partial fs/ends-with? %) deps-exclude))
-         (map fs/file)
-         (map (juxt identity #(-> % deps/slurp-deps :aliases keys
-                                  (->> (remove (set alias-exclude))))))
+         (map #(deps-file->deps+alias % opts))
          (mapcat aliases-combinations)
          (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
        (completing
@@ -386,23 +390,7 @@
 
        {:mvn extra-mvn
         :git extra-git}
-       (fs/glob project-dir "**deps.edn")))))
-
-
-(defn parse-options [args]
-  (loop [[arg & next-args] args
-         options {:lein? false
-                  :aliases-ignore []
-                  :deps-ignore []}]
-    (case arg
-      nil              options
-      "--lein"         (recur next-args
-                              (assoc options :lein? true))
-      "--ignore-alias" (recur (next next-args)
-                              (update options :aliases-ignore conj
-                                      (keyword (first next-args))))
-      (recur next-args
-             (update options :deps-ignore conj arg)))))
+       (utils/get-deps-files project-dir opts)))))
 
 (def cli-spec
   (let [deps-validate
@@ -411,15 +399,15 @@
                    (str "Non-existent files: "
                       (filterv (complement fs/exists?) value)))}]
     {:help
-     {:desc "Print help and exit"
+     {:desc "Print help and exit."
       :validate {:pred boolean?}}
 
      :bb
-     {:desc "Include dependencies in bb.edn files"
+     {:desc "Include dependencies in bb.edn files."
       :validate {:pred boolean?}}
 
      :lein
-     {:desc "Include Leiningen dependecies"
+     {:desc "Include Leiningen dependecies."
       :validate {:pred boolean?}}
 
      :deps-include
@@ -428,17 +416,17 @@
       :validate deps-validate}
 
      :deps-exclude
-     {:desc "List of 'deps.edn' files to exclude"
+     {:desc "List of 'deps.edn' files to exclude."
       :coerce []
       :validate deps-validate}
 
      :alias-include
      {:desc "List of aliases to include. All aliases are included by default."
-      :coerce []}
+      :coerce [utils/str->keyword]}
 
      :alias-exclude
      {:desc "List of aliases to exclude."
-      :coerce []}}))
+      :coerce [utils/str->keyword]}}))
 
 
 (defn- cli-parse-options
@@ -463,9 +451,10 @@
 
 (defn -main
   [& args]
-  (let [opts (cli-parse-options args)
+  (let [opts (-> (cli-parse-options args)
+                 (rename-keys {:bb :bb? :lein :lein?}))
         lock-data (lock-file
-                    (str (fs/canonicalize "."))
+                    "."
                     (merge
                      {:extra-mvn (-> (io/resource "clojure-deps.edn")
                                      slurp
@@ -528,4 +517,10 @@
      :hash "sha256-nuPBuNQ4su6IAh7rB9kX/Iwv5LsV+FOl/uHro6VcL7c="
      :url "https://github.com/clojure/tools.build"
      :rev "7d40500863818c6f9a6e077b18db305d02149384"
-     :lib "io.github.clojure/tools.build"}))
+     :lib "io.github.clojure/tools.build"})
+
+  (get-deps! (fs/file "deps.edn") "/tmp/my-deps")
+
+  (-> (fs/canonicalize "deps.edn")
+    (deps-file->deps+alias {:alias-include [:main]})
+    (aliases-combinations)))

@@ -190,12 +190,27 @@
       (r/assoc node :sha full-sha)
       (r/assoc node :git/sha full-sha))))
 
+(defn- deps-file?
+  "Returns true if filename is deps.edn or bb.edn "
+  [file]
+  (contains? #{"bb.edn" "deps.edn"}
+             (fs/file-name file)))
+
+(defn get-deps-files
+  "Returns all deps.edn files in a directory.
+   Optionally, includes bb.edn files and filter some files"
+  [dir {:keys [deps-include deps-exclude bb?]}]
+  (if-not (empty? deps-include)
+    (map fs/canonicalize deps-include)
+    (let [exclude? (fn [f] (some #(fs/same-file? f %) deps-exclude))]
+      (filter (every-pred deps-file? (complement exclude?))
+        (concat
+          (fs/glob dir "**deps.edn")
+          (when bb? (fs/glob dir "**bb.edn")))))))
 
 (defn expand-shas!
   [project-dir]
-  (let [dep-paths (filter
-                   #(= "deps.edn" (fs/file-name %))
-                   (fs/glob project-dir "**deps.edn"))
+  (let [dep-paths (get-deps-files project-dir {:bb? true})
         {:keys [git-deps]} (json/read-str
                             (slurp (str (fs/path project-dir "deps-lock.json")))
                             :key-fn keyword)]
@@ -217,6 +232,12 @@
             git-deps-paths)
           (spit my-deps (str nodes))))))
 
+(defn str->keyword
+  [s]
+  (-> s
+    (string/replace  ":" "")
+    (string/split #"/")
+    (->> (apply keyword))))
 
 (comment
   (expand-shas! "/home/jlle/projects/clojure-lsp")
@@ -235,4 +256,10 @@
       {:exact-version "2022.04.26-SNAPSHOT"})
     (mvn-repo-info
       "/home/jlle/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar"
-      {:exact-version "2022.04.26-20220502.201054-5"})))
+      {:exact-version "2022.04.26-20220502.201054-5"}))
+
+
+  (get-deps-files (fs/canonicalize ".") {:bb? true :deps-exclude ["templates/default/deps.edn"]})
+  (get-deps-files "." {:bb? true :deps-include [""]})
+  (get-deps-files "." {:bb? true :deps-exclude []})
+  (get-deps-files "." {:bb? true :deps-include ["templates/default/deps.edn"]}))
