@@ -2,7 +2,7 @@
 
 Nix helpers for Clojure projects
 
-STATUS: alpha. Please leave feedback.
+STATUS: alpha.
 
 ## Table of contents
 
@@ -83,6 +83,14 @@ That command looks for `deps.edn` files in your project and generates a
 `deps-lock.json` file in the current directory. Remember to re-run it if you
 update your dependencies.
 
+By default all dependencies in all `deps.edn` files are included. It is possible
+to exclude certain `deps.edn` files and/or aliases. To see the full list of
+options of `deps-lock` run:
+
+```bash
+nix run github:jlesquembre/clj-nix#deps-lock -- --help
+```
+
 It is possible to add the dependencies to the nix store during the lock file
 generation. Internally we are invoking the `nix store add-path` command. By
 default, it's disabled because that command is relatively slow. To add the
@@ -99,7 +107,28 @@ Sometimes it could be useful to ignore some `deps.edn` files, to do that, just
 pass the list of files to ignore the the `deps-lock` command:
 
 ```bash
-nix run github:jlesquembre/clj-nix#deps-lock -- ignore/deps.edn
+nix run github:jlesquembre/clj-nix#deps-lock -- --exclude-deps ignore/deps.edn
+```
+
+There is also a `--include-deps` option, to include only certain files.
+
+#### Ignore aliases
+
+To exclude the dependencies defined in some aliases use the `--exclude-alias`
+option:
+
+```bash
+nix run github:jlesquembre/clj-nix#deps-lock -- --exclude-alias test
+```
+
+There is also a `--include-alias` option, to include only certain aliases.
+
+#### Babashka dependencies
+
+Dependencies on `bb.edn` files can be added to the `deps-lock.json` file:
+
+```bash
+nix run github:jlesquembre/clj-nix#deps-lock -- --bb
 ```
 
 #### Leiningen
@@ -109,7 +138,7 @@ Leiningen projects are supported. Use the `--lein` option to add the
 ignored files:
 
 ```bash
-nix run github:jlesquembre/clj-nix#deps-lock -- --lein ignore/deps.edn
+nix run github:jlesquembre/clj-nix#deps-lock -- --lein
 ```
 
 Keep in mind that `deps-lock` command is not optimized for Leiningen projects,

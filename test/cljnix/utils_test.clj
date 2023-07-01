@@ -104,6 +104,12 @@
       (is (= deps-data-full
              (deps/slurp-deps (fs/file project-dir "deps.edn")))))))
 
+(deftest str->keyword-test
+  (is (= :foo (utils/str->keyword "foo")))
+  (is (= :foo (utils/str->keyword ":foo")))
+  (is (= :foo/bar (utils/str->keyword "foo/bar")))
+  (is (= :foo/bar (utils/str->keyword ":foo/bar"))))
+
 (comment
   (def spit-helper (h/make-spit-helper "/tmp/foo"))
   (spit-helper "deps.edn" deps-data)
