@@ -39,4 +39,3 @@
   (let [{:keys [src-dirs]}
         (build/common-compile-options opts)]
     (check-src-dirs src-dirs main-ns)))
-

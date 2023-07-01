@@ -121,9 +121,13 @@ stdenv.mkDerivation ({
         ''
           clj-builder --uber "${fullId}" "${version}" "${main-ns}"
         ''
+
+      # Don't check for :gen-class with custom build commands
+      # Our assumption about the :paths could we wrong, some projects can use
+      # :extra-paths in an alias
       else
         ''
-          clj-builder --check-main "${fullId}" "${version}" "${main-ns}"
+          # clj-builder --check-main "${fullId}" "${version}" "${main-ns}"
           ${buildCommand}
         ''
     )

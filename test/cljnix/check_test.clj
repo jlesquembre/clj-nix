@@ -6,5 +6,4 @@
   (t/is (not (check-src-dirs ["test/resources"] "example.no-gen-class")))
   (t/is (check-src-dirs ["test/resources"] "example.has-gen-class"))
   (t/is (check-src-dirs ["test/resources"] "example.has-gen-class-with-comment"))
-  (t/is (check-src-dirs ["test/resources"] "example.has-gen-class-with-odd-spacing"))
-  )
+  (t/is (check-src-dirs ["test/resources"] "example.has-gen-class-with-odd-spacing")))
