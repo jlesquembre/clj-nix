@@ -428,6 +428,11 @@
      {:desc "List of aliases to exclude."
       :coerce [utils/str->keyword]}}))
 
+(defn- cli-print-help
+  []
+  (println "deps-lock usage:\n")
+  (println (cli/format-opts {:spec cli-spec
+                             :order [:deps-include :deps-exclude :alias-include :alias-exclude :bb :lein :help]})))
 
 (defn- cli-parse-options
   [args]
@@ -437,14 +442,13 @@
                 :restrict true
                 :error-fn
                   (fn [{:keys [msg]}]
-                    (println msg)
+                    (println msg "\n")
+                    (cli-print-help)
                     (System/exit 1))})]
    (cond
      (:help opts)
      (do
-       (println "deps-lock usage:\n")
-       (println (cli/format-opts {:spec cli-spec
-                                  :order [:deps-include :deps-exclude :alias-include :alias-exclude :bb :lein :help]}))
+       (cli-print-help)
        (System/exit 0))
      :else opts)))
 
