@@ -123,7 +123,7 @@ stdenv.mkDerivation ({
         ''
 
       # Don't check for :gen-class with custom build commands
-      # Our assumption about the :paths could we wrong, some projects can use
+      # Our assumption about the :paths could be wrong, some projects can use
       # :extra-paths in an alias
       else
         ''
