@@ -452,10 +452,21 @@
        (System/exit 0))
      :else opts)))
 
+(defn- git-tracked-file?
+  "Check if a file is tracked by git"
+  [f]
+  (zero? (:exit (sh/sh "git" "ls-files" "--error-unmatch" (str f)))))
+
+(defn- git-add
+  "Add file to git index"
+  [f]
+  (sh/sh "git" "add" "--intent-to-add" (str f)))
+
 
 (defn -main
   [& args]
-  (let [opts (-> (cli-parse-options args)
+  (let [lock-file-name "deps-lock.json"
+        opts (-> (cli-parse-options args)
                  (rename-keys {:bb :bb? :lein :lein?}))
         lock-data (lock-file
                     (str (fs/canonicalize "."))
@@ -471,7 +482,9 @@
                    :escape-js-separators false)]
     (->> (sh/sh "jq" "-n" "--argjson" "data" lock-str "$data")
          :out
-         (spit "deps-lock.json")))
+         (spit lock-file-name))
+    (when-not (git-tracked-file? lock-file-name)
+      (git-add lock-file-name)))
   (shutdown-agents))
 
 ; We need all clojure versions in nixpkgs, in case the flake consumer wants to

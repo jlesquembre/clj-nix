@@ -38,6 +38,13 @@ teardown_file() {
     cmp deps-lock.json deps-lock.json.bkp
 }
 
+@test "New lock files are added to git" {
+    git rm --cached deps-lock.json
+    nix run "$cljnix_dir#deps-lock"
+    git ls-files --error-unmatch deps-lock.json
+}
+
+
 @test "nix build .#mkCljBin-test" {
     nix build .#mkCljBin-test --print-out-paths >> "$DERIVATIONS"
     run -0 ./result/bin/cljdemo
