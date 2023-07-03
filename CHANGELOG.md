@@ -2,8 +2,25 @@
 
 ## Unreleased
 
+- Refactor CLI, now we use [babashka.cli](https://github.com/babashka/cli) to
+  parse the command line arguments (see #54 and #63, thanks to @bendlas to help
+  with this one)
+
+- Added new flags to `deps-lock` command: `--deps-include`, `--deps-exclude`,
+  `--alias-include` and `--alias-exclude`
+
+- `deps-lock` command now supports babashka `bb.edn` files, with the `--bb` flag
+
+  - To be able to run babashka in a Nix build, I upstreamed some changes to the
+    [babashka derivation on nixpkgs](https://github.com/NixOS/nixpkgs/pull/241119)
+
+- `deps-lock` command checks if `deps-lock.json` is tracked by git. If not, runs
+  `git add --intent-to-add`
+
 - Add `extraJdkModules` option to `customJdk`
+
 - Add `wrap` option to `mkBabashka`
+
 - Check that the `main-ns` has a `:gen-class` in `mkCljBin` (see #39, thanks
   @slimslenderslacks)
 
