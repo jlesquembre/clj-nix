@@ -107,21 +107,21 @@ Sometimes it could be useful to ignore some `deps.edn` files, to do that, just
 pass the list of files to ignore the the `deps-lock` command:
 
 ```bash
-nix run github:jlesquembre/clj-nix#deps-lock -- --exclude-deps ignore/deps.edn
+nix run github:jlesquembre/clj-nix#deps-lock -- --deps-exclude ignore/deps.edn
 ```
 
-There is also a `--include-deps` option, to include only certain files.
+There is also a `--deps-include` option, to include only certain files.
 
 #### Ignore aliases
 
-To exclude the dependencies defined in some aliases use the `--exclude-alias`
+To exclude the dependencies defined in some aliases use the `--alias-exclude`
 option:
 
 ```bash
-nix run github:jlesquembre/clj-nix#deps-lock -- --exclude-alias test
+nix run github:jlesquembre/clj-nix#deps-lock -- --alias-exclude test
 ```
 
-There is also a `--include-alias` option, to include only certain aliases.
+There is also a `--alias-include` option, to include only certain aliases.
 
 #### Babashka dependencies
 
