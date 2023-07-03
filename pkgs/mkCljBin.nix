@@ -100,7 +100,7 @@ stdenv.mkDerivation ({
     )
     +
     ''
-      clj-builder --patch-git-sha "$(pwd)"
+      clj-builder patch-git-sha "$(pwd)"
       runHook postPatch
     '';
 
@@ -119,7 +119,7 @@ stdenv.mkDerivation ({
     (
       if builtins.isNull buildCommand then
         ''
-          clj-builder --uber "${fullId}" "${version}" "${main-ns}"
+          clj-builder uber "${fullId}" "${version}" "${main-ns}"
         ''
 
       # Don't check for :gen-class with custom build commands
@@ -127,7 +127,7 @@ stdenv.mkDerivation ({
       # :extra-paths in an alias
       else
         ''
-          # clj-builder --check-main "${fullId}" "${version}" "${main-ns}"
+          # clj-builder check-main "${fullId}" "${version}" "${main-ns}"
           ${buildCommand}
         ''
     )

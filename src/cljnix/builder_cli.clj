@@ -15,18 +15,18 @@
 
 ; Internal CLI helpers
 (defn -main
-  [& [flag & args]]
+  [& [cmd & args]]
   (cond
-    (= flag "--patch-git-sha")
+    (= cmd "patch-git-sha")
     (apply utils/expand-shas! args)
 
-    (= flag "--jar")
+    (= cmd "jar")
     (build/jar
       (interleave
         [:lib-name :version]
         args))
 
-    (= flag "--uber")
+    (= cmd "uber")
     (do
       (check-main-class args)
       (build/uber
@@ -34,7 +34,7 @@
         [:lib-name :version :main-ns :java-opts]
         args)))
 
-    (= flag "--check-main")
+    (= cmd "check-main")
     (check-main-class args))
 
   (shutdown-agents))
