@@ -1,6 +1,7 @@
 { lib
 , fetchurl
 , fetchgit
+, openssh
 , jdk
 , runtimeShell
 , runCommand
@@ -43,9 +44,14 @@ let
     { lib, url, rev, hash, ... }:
     {
       name = "${lib}/${rev}";
-      path = fetchgit {
-        inherit url rev hash;
+      path = builtins.fetchGit {
+        inherit url rev; # hash;
       };
+      # path = (fetchgit {
+      #   inherit url rev hash;
+      # }).overrideAttrs (_: {
+      #   GIT_SSH_COMMAND = "${openssh}/bin/ssh -o StrictHostKeyChecking=no";
+      # });
     };
 
   maven-extra-cache = { path, content }:
