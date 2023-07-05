@@ -12,5 +12,6 @@ common.writeCljApplication {
   runtimeInputs = [ leiningen jdk ] ++ extra-runtime-inputs;
   clj-main = "cljnix.builder-cli";
   classpath = "${../src}:${common.internal-deps-classpath}";
-  inherit java-opts preBuild postBuild;
+  inherit preBuild postBuild;
+  java-opts = [ "-Dclojure.main.report=stderr" ] ++ java-opts;
 }
