@@ -150,6 +150,9 @@ requests when the `deps-lock` command is invoked.
 There are projects to automatically generate a `deps.edn` file from a Leiningen
 project (e.g.: [depify](https://github.com/hagmonk/depify))
 
+**IMPORTANT**: Leiningen projects **must** define a `buildCommand` in the
+`mkCljBin` function. The default build command assumes a `deps.edn` project.
+
 ### API
 
 Derivations:
@@ -203,10 +206,15 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
 - **buildCommand**: Command to build the jar application. If not provided, a
   default builder is used:
   [build.clj](https://github.com/jlesquembre/clj-nix/blob/main/src/cljnix/build.clj).
-  If you provide your own build command, clj-nix expects that a jar will be
-  generated in a directory called `target`
+  If you provide your own build command, you can define the path to the final
+  uberjar with the `jarPath` environment variable (e.g.:
+  `export jarPaht=$BUILD_DIR/my_uber.jar`). If `jarPath` is undefined, `clj-nix`
+  will try to find a jar file in a directory called `target`.
 
 - **lockfile**: The lock file. (Default: `${projectSrc}/deps-lock.json`)
+
+- **java-opts**: List of Java options to include the application wrapper, e.g.:
+  `[ "-Djava.awt.headless=true" ]`. (Default: `[ ]`)
 
 **Example**:
 
