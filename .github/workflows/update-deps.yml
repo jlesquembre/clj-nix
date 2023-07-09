@@ -11,8 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Update clj dependencies
         run:
@@ -33,6 +33,6 @@ jobs:
           title: Update clojure dependencies
           assignees: jlesquembre
           branch: update-clj-deps
-          pr-labels: |
+          labels: |
             dependencies
             automated
