@@ -106,7 +106,7 @@ stdenv.mkDerivation ({
   javaOpts = lib.escapeShellArgs java-opts;
 
   passthru = {
-    inherit main-ns fullId groupId artifactId javaMain;
+    inherit deps-cache main-ns fullId groupId artifactId javaMain;
   };
 
   preBuildPhases = [ "preBuildPhase" ];
