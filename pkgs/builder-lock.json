@@ -29,8 +29,8 @@
     "hash": "sha256-FvcgmncjYCsGZgcExUY7rr5l3RMerZKFdyg/Nm3iYdY="
   },
   {
-    "url": "https://repo.clojars.org/org/clj-commons/byte-streams/0.3.2/byte-streams-0.3.2.jar",
-    "hash": "sha256-4KGgi1S6RufVIagURMKifDdINQgLMBBkBuhMZruftWk="
+    "url": "https://repo.clojars.org/org/clj-commons/byte-streams/0.3.3/byte-streams-0.3.3.jar",
+    "hash": "sha256-rjnX3pAFawPbK/pzgnaNA0fXStm80N+bIO1HZTITmQw="
   },
   {
     "url": "https://repo.clojars.org/org/clj-commons/dirigiste/1.0.1/dirigiste-1.0.1.jar",
