@@ -105,12 +105,27 @@ stdenv.mkDerivation ({
       runHook postPatch
     '';
 
+  # Clojure environment variables:
+  # https://clojure.org/reference/deps_and_cli#_clojure_cli_usage
+
+  # CLJ_CONFIG:
+  # https://github.com/clojure/tools.deps/blob/be30a1ae275eabfd1eba571080e039451c122c69/src/main/clojure/clojure/tools/deps.clj#L107-L117
+
+  # GITLIBS:
+  # https://github.com/clojure/tools.gitlibs/blob/f6544f4dab32c5d5f1610d6c2a5a256d23226821/src/main/clojure/clojure/tools/gitlibs/config.clj#L30-L35
+
+  # CLJ_CACHE
+  # https://github.com/clojure/brew-install/blob/271c2c5dd45ed87eccf7e7844b079355297d0974/src/main/resources/clojure/install/clojure#L295-L301
   buildPhase =
     ''
       runHook preBuild
 
       export HOME="${deps-cache}"
       export JAVA_TOOL_OPTIONS="-Duser.home=${deps-cache}"
+
+      export CLJ_CONFIG="$HOME/.clojure"
+      export CLJ_CACHE="$TMP/cp_cache"
+      export GITLIBS="$HOME/.gitlibs"
 
       export LEIN_OFFLINE=true
       export LEIN_JVM_OPTS="-Dmaven.repo.local=${deps-cache}/.m2 -Duser.home=${deps-cache}"
