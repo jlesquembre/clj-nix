@@ -46,6 +46,7 @@ let
       name = "${lib}/${rev}";
       path = builtins.fetchGit {
         inherit url rev; # hash;
+        allRefs = true;
       };
       # path = (fetchgit {
       #   inherit url rev hash;
