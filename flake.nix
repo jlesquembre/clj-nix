@@ -55,6 +55,7 @@
           {
             inherit (pkgs) clj-builder deps-lock mk-deps-cache
               mkCljBin mkCljLib mkGraalBin customJdk
+              cljHooks
               mkBabashka bbTasksFromFile;
 
             babashka = pkgs.mkBabashka { };
@@ -129,6 +130,8 @@
         mkCljLib = final.callPackage ./pkgs/mkCljLib.nix { };
         mkGraalBin = final.callPackage ./pkgs/mkGraalBin.nix { };
         customJdk = final.callPackage ./pkgs/customJdk.nix { };
+
+        cljHooks = final.callPackage ./pkgs/cljHooks.nix { };
 
         mkBabashka = final.callPackage ./extra-pkgs/babashka { };
         bbTasksFromFile = final.callPackage ./extra-pkgs/bbTasks { };
