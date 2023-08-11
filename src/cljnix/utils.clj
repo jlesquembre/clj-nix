@@ -12,7 +12,8 @@
     [babashka.fs :as fs]
     [version-clj.core :as version]
     [clojure.zip :as zip]
-    [borkdude.rewrite-edn :as r])
+    [borkdude.rewrite-edn :as r]
+    [clojure.tools.deps.util.io :refer [printerrln]])
   (:import
     [org.apache.maven.model.io.xpp3 MavenXpp3Reader]
     [org.apache.maven.model Model]))
@@ -182,13 +183,17 @@
                                          (= (str lib) (:lib %))
                                          (= tag (:tag %)))
                                       git-deps)))]
-    (when-not full-sha
-      (throw+ "Can't expand full sha"
-              {:lib lib
-               :node (edn/read-string (str node))}))
-    (if (:sha node-data)
-      (r/assoc node :sha full-sha)
-      (r/assoc node :git/sha full-sha))))
+    (if full-sha
+      (cond-> node
+        (:sha node-data)     (r/assoc :sha full-sha)
+        (:git/sha node-data) (r/assoc :git/sha full-sha)
+        ; Remove :git/tag to avoid network call
+        :always              (-> (r/dissoc :tag) (r/dissoc :git/tag)))
+      (do
+        (printerrln "Can't expand full sha, ignoring"
+                    {:lib lib
+                     :node (edn/read-string (str node))})
+        node))))
 
 (defn- deps-file?
   "Returns true if filename is deps.edn or bb.edn "
@@ -208,28 +213,34 @@
           (fs/glob dir "**deps.edn")
           (when bb? (fs/glob dir "**bb.edn")))))))
 
+
+(defn- valid-deps-file?
+  [f]
+  (try
+    (deps/slurp-deps (fs/file f))
+    true
+    (catch clojure.lang.ExceptionInfo _
+      (printerrln "Ignoring invalid deps.edn file:" (fs/file f))
+      false)))
+
 (defn expand-shas!
   [project-dir]
   (let [dep-paths (get-deps-files project-dir {:bb? true})
         {:keys [git-deps]} (json/read-str
                             (slurp (str (fs/path project-dir "deps-lock.json")))
                             :key-fn keyword)]
-    (doseq [my-deps (mapv fs/file dep-paths)
+    (doseq [my-deps (->> dep-paths
+                         (filter valid-deps-file?)
+                         (mapv fs/file))
             :let [deps (deps/slurp-deps my-deps)
                   git-deps-paths (paths-to-gitdeps deps)
-                  partial-sha-paths (->> git-deps-paths
-                                         (filter #(partial-sha? (get-in deps %)))
-                                         #_(map #(add-sha-key % deps)))]]
+                  partial-sha-paths (filter #(partial-sha? (get-in deps %))
+                                            git-deps-paths)]]
         (as-> (r/parse-string (slurp my-deps)) nodes
           (reduce
             (fn [acc path] (r/update-in acc path (partial expand-hash git-deps (last path))))
             nodes
             partial-sha-paths)
-          (reduce
-            (fn [acc path] (r/update-in acc path #(-> % (r/dissoc :tag)
-                                                        (r/dissoc :git/tag))))
-            nodes
-            git-deps-paths)
           (spit my-deps (str nodes))))))
 
 (defn str->keyword

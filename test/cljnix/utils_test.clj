@@ -104,6 +104,15 @@
       (is (= deps-data-full
              (deps/slurp-deps (fs/file project-dir "deps.edn")))))))
 
+(deftest expand-sha-ignore-not-found-tests
+  (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
+    (let [spit-helper (h/make-spit-helper project-dir)]
+      (spit-helper "deps.edn" deps-data)
+      (spit-helper "deps-lock.json" (update lock-data "git-deps" pop) {:json? true})
+      (utils/expand-shas! project-dir)
+      (is (= deps-data
+             (deps/slurp-deps (fs/file project-dir "deps.edn")))))))
+
 (deftest str->keyword-test
   (is (= :foo (utils/str->keyword "foo")))
   (is (= :foo (utils/str->keyword ":foo")))
