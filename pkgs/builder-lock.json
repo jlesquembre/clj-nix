@@ -1,12 +1,12 @@
 [
   {
     "url": "https://github.com/clojure/tools.build.git",
-    "rev": "76b78fe20355c3570ce5477bc80c39c79e097af2",
+    "rev": "24f2894d69d14e58ce48eec59d531035303367d7",
     "paths": [
       "src/main/clojure",
       "src/main/resources"
     ],
-    "hash": "sha256-mUiA+SHOaIvw4nJ+qH7cD154S2UtkYqeZdhIvk8UNSU="
+    "hash": "sha256-slIuDAcVxPAadxxUfnq0fQ2bBGrDHpdgVmc+TU4wb7M="
   },
   {
     "url": "https://repo.clojars.org/babashka/fs/0.4.19/fs-0.4.19.jar",
@@ -29,8 +29,8 @@
     "hash": "sha256-FvcgmncjYCsGZgcExUY7rr5l3RMerZKFdyg/Nm3iYdY="
   },
   {
-    "url": "https://repo.clojars.org/org/clj-commons/byte-streams/0.3.3/byte-streams-0.3.3.jar",
-    "hash": "sha256-rjnX3pAFawPbK/pzgnaNA0fXStm80N+bIO1HZTITmQw="
+    "url": "https://repo.clojars.org/org/clj-commons/byte-streams/0.3.4/byte-streams-0.3.4.jar",
+    "hash": "sha256-jRznhd4mGeaS5C640wJjnZpAdxccabNnX8i7yKJR95k="
   },
   {
     "url": "https://repo.clojars.org/org/clj-commons/dirigiste/1.0.1/dirigiste-1.0.1.jar",
@@ -281,8 +281,8 @@
     "hash": "sha256-Rv4KPNAjSYC+f+2OQ3sd4Qe+rqSVMZS+j3G6OwSPGSk="
   },
   {
-    "url": "https://repo1.maven.org/maven2/org/clojure/tools.namespace/1.3.0/tools.namespace-1.3.0.jar",
-    "hash": "sha256-EnUzqx4eenAMgjitfVjUtCxBjW2PNMMEcRUDvIguOnA="
+    "url": "https://repo1.maven.org/maven2/org/clojure/tools.namespace/1.4.4/tools.namespace-1.4.4.jar",
+    "hash": "sha256-BHho/WTVTLCXa4KlRSuANz3t0wowC7tVzjOUGKvYYwU="
   },
   {
     "url": "https://repo1.maven.org/maven2/org/clojure/tools.reader/1.3.6/tools.reader-1.3.6.jar",
