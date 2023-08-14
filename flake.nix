@@ -84,6 +84,14 @@
                   '';
               }
               {
+                name = "update-deps2";
+                help = "Update builder-lock.json";
+                command =
+                  ''
+                    clj -X cljnix.core/lock-file-builder :path '"."' | jq . > pkgs/builder-lock.json
+                  '';
+              }
+              {
                 name = "kaocha";
                 help = "Run tests with kaocha";
                 command =

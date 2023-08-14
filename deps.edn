@@ -7,7 +7,7 @@
         org.clj-commons/byte-streams {:mvn/version "0.3.3"}
         version-clj/version-clj {:mvn/version "2.0.2"}
         borkdude/rewrite-edn {:mvn/version "0.4.6"}
-        io.github.clojure/tools.build {:git/tag "v0.9.4"
+        io.github.clojure/tools.build {;:git/tag "v0.9.4"
                                        :git/sha "76b78fe20355c3570ce5477bc80c39c79e097af2"}}
 
  :paths ["src"]

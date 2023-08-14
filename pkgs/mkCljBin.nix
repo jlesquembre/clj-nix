@@ -52,8 +52,6 @@ let
   groupId = builtins.head (lib.strings.splitString "/" fullId);
   artifactId = builtins.elemAt (lib.strings.splitString "/" fullId) 1;
 
-  asCljVector = list: lib.concatMapStringsSep " " lib.strings.escapeNixString list;
-
   javaMain = builtins.replaceStrings [ "-" ] [ "_" ] main-ns;
   javaOpts = lib.concatStringsSep " " java-opts;
 
@@ -120,16 +118,15 @@ stdenv.mkDerivation ({
     ''
       runHook preBuild
 
-      export HOME="${deps-cache}"
-      export JAVA_TOOL_OPTIONS="-Duser.home=${deps-cache}"
-
-      export CLJ_CONFIG="$HOME/.clojure"
-      export CLJ_CACHE="$TMP/cp_cache"
-      export GITLIBS="$HOME/.gitlibs"
+      # export CLJ_CONFIG="${deps-cache}/.clojure"
+      # export CLJ_CACHE="$TMP/cp_cache"
+      # export GITLIBS="${deps-cache}/.gitlibs"
 
       export LEIN_OFFLINE=true
       export LEIN_JVM_OPTS="-Dmaven.repo.local=${deps-cache}/.m2 -Duser.home=${deps-cache}"
       export LEIN_HOME=.lein
+
+      echo "CLJ_CONFIG-> $CLJ_CONFIG"
     ''
     +
     (

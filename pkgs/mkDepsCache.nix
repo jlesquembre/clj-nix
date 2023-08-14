@@ -1,16 +1,23 @@
 { lib
 , fetchurl
 , fetchgit
-, jdk
+, clojure
+  # , jdk
 , runtimeShell
 , runCommand
 , writeText
 , linkFarm
 , lockfile
 , maven-extra ? [ ]
+, clojure-extra-paths ? [ ]
+  # , git
+  # , clojure-project ? null
+  # , clojure-project
 }:
 let
   deps-lock-version = 3;
+
+  asCljVector = list: lib.concatMapStringsSep " " lib.strings.escapeNixString list;
 
   consUrl = segments:
     lib.pipe
@@ -80,12 +87,32 @@ let
     );
   dotclojure = runCommand "dotclojure"
     { }
+    # echo '{:mvn/local-repo "${maven-cache}" :paths [ ${asCljVector clojure-paths} ]}' > $out/deps.edn
     ''
       mkdir -p $out/tools
-      echo "{}" > $out/deps.edn
+      echo '{:mvn/local-repo "${maven-cache}"}' > $out/deps.edn
       echo "{}" > $out/tools/tools.edn
+      # echo '{:lib io.github.clojure/tools.tools :coord {:git/sha "859a6156802eaa49f2488ae087421091018586f7"}}' > $out/tools/tools.edn
     '';
   version = lock.lock-version or 0;
+
+  cp-cache = runCommand "cp-cache"
+    { nativeBuildInputs = [ clojure ]; }
+    ''
+
+      export CLJ_CONFIG=${dotclojure}
+
+      mkdir -p $TMP/gitlibs
+      export GITLIBS="$TMP/.gitlibs"
+      mkdir -p $GITLIBS
+      ln -s ${git-cache} $GITLIBS/libs
+      ln -s ${git-repo-config} $GITLIBS/_repos
+
+      mkdir -p $out
+      export CLJ_CACHE=$out
+
+      clojure -P
+    '';
 in
 assert
 (
@@ -100,7 +127,7 @@ assert
       nix run github:jlesquembre/clj-nix#deps-lock
     ''
 );
-linkFarm "clj-cache" [
+linkFarm "clj-cache" ([
   {
     name = ".m2/repository";
     path = maven-cache;
@@ -117,4 +144,14 @@ linkFarm "clj-cache" [
     name = ".clojure";
     path = dotclojure;
   }
+  # {
+  #   name = "cp-cache";
+  #   path = cp-cache;
+  # }
 ]
+++ (lib.lists.optional (!builtins.isNull clojure-project)
+  {
+    name = "code";
+    path = clojure-project;
+  })
+)

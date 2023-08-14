@@ -392,6 +392,21 @@
         :git extra-git}
        (utils/get-deps-files project-dir opts)))))
 
+(defn lock-file-builder
+  "Generates lock file for the builder utilities"
+  [{:keys [path]}]
+  (-> (lock-file path {:deps-include ["deps.edn"] :alias-include [:none]})
+      (json/write-str :escape-slash false
+                      :escape-unicode false
+                      :escape-js-separators false)
+      println))
+
+; (comment
+;   (lock-file-builder {:path "."})
+;   (utils/get-deps-files "." {})
+;   (lock-file "/home/jlle/projects/clj-nix" {:deps-include ["deps.edn"]})
+;   (lock-file "." {:deps-include ["deps.edn"]}))
+
 (def cli-spec
   (let [deps-validate
         {:pred (partial every? fs/exists?)
