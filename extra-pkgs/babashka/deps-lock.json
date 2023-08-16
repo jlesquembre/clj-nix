@@ -371,6 +371,16 @@
       "hash": "sha256-v2BrAgwKJeQbV3qj9vjGtBTkxu+82Oi7aivakHFlgdA="
     },
     {
+      "mvn-path": "borkdude/edamame/1.3.23/edamame-1.3.23.jar",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-nm6BmZ66C/z3D61MlxA1TaNV37nSQAwepLpGK9Tv9VA="
+    },
+    {
+      "mvn-path": "borkdude/edamame/1.3.23/edamame-1.3.23.pom",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-FSyVB9jpXsj9TeHIQLvurP9BeXwFoi6z5LAPGeUfwp4="
+    },
+    {
       "mvn-path": "borkdude/graal.locking/0.0.2/graal.locking-0.0.2.jar",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-eFlpdVXBVNcgMM6zRTTPuqcKxLWJhAQdN4ULU733FF4="
@@ -389,6 +399,16 @@
       "mvn-path": "borkdude/rewrite-edn/0.1.0/rewrite-edn-0.1.0.pom",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-jrbpBFhAgmrlkYSEKc0FJbCeOF/xBhYJ8sffP3fIq5A="
+    },
+    {
+      "mvn-path": "borkdude/rewrite-edn/0.4.6/rewrite-edn-0.4.6.jar",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-R2wBPIrfn5G83zPbcejQw3EKF8WKKQR5rLsp7YyPyqM="
+    },
+    {
+      "mvn-path": "borkdude/rewrite-edn/0.4.6/rewrite-edn-0.4.6.pom",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-4qSXDBGG6OJ/wVrkwgD+S3yFJThGVBMdhT+iALMxgUM="
     },
     {
       "mvn-path": "borkdude/sci.impl.reflector/0.0.1/sci.impl.reflector-0.0.1.jar",
@@ -3151,14 +3171,14 @@
       "hash": "sha256-OGBZ1P4rXyKX6peRwllnGDM6eQAIgsOfyZqXSEPA5VI="
     },
     {
-      "mvn-path": "hiccup/hiccup/2.0.0-alpha2/hiccup-2.0.0-alpha2.jar",
+      "mvn-path": "hiccup/hiccup/2.0.0-RC1/hiccup-2.0.0-RC1.jar",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-T1gIfkl/VJOIU0tilwFZWHKCnfrAllcOyJnU/GCg80Q="
+      "hash": "sha256-xrLjQ3GZCnSqZhtQR6ENxTEFFxlN00dO1I99NUz/hqE="
     },
     {
-      "mvn-path": "hiccup/hiccup/2.0.0-alpha2/hiccup-2.0.0-alpha2.pom",
+      "mvn-path": "hiccup/hiccup/2.0.0-RC1/hiccup-2.0.0-RC1.pom",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-zxHoVOAM1wlrFaXqjJgHoWw9ojnzSkPz+MJINvCNrsQ="
+      "hash": "sha256-WVuo2L2iSvhDLysxrFYxnovd637ogHcVLrOTw0HY58I="
     },
     {
       "mvn-path": "honeysql/honeysql/1.0.461/honeysql-1.0.461.jar",
@@ -4986,14 +5006,14 @@
       "hash": "sha256-fwwYdzehpVkJ/5gPsmn2yOtJWqFSLGSr7HGCVDnJENA="
     },
     {
-      "mvn-path": "org/babashka/http-client/0.3.11/http-client-0.3.11.jar",
+      "mvn-path": "org/babashka/http-client/0.4.12/http-client-0.4.12.jar",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-uPZ624TS/wMheH8d1cjO1+uZoIBbTxS5PFME32Qxksg="
+      "hash": "sha256-1fvqPrVPShTAoXaNoBXQso8J/Y3hmRVfNgFr9Ie0ifQ="
     },
     {
-      "mvn-path": "org/babashka/http-client/0.3.11/http-client-0.3.11.pom",
+      "mvn-path": "org/babashka/http-client/0.4.12/http-client-0.4.12.pom",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-gKUiA12CpV+frnmL2XLUmS3D013Pz6cUmA8U/73Omyc="
+      "hash": "sha256-VS3qfcFARd+ZKamh/6geCESBVC5a0AqhIfxn4dWQTBU="
     },
     {
       "mvn-path": "org/babashka/sci.impl.types/0.0.2/sci.impl.types-0.0.2.jar",
@@ -7146,6 +7166,11 @@
       "hash": "sha256-6rULcjyeeEkPWDy5n7HUa8KA/xH9X4Ujub7XamTq8CM="
     },
     {
+      "mvn-path": "rewrite-clj/rewrite-clj/1.1.45/rewrite-clj-1.1.45.pom",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-2tGJhWfuZlNy4+tNdHY9JGTHmR0CSC0L9Qionkr7rPI="
+    },
+    {
       "mvn-path": "rewrite-clj/rewrite-clj/1.1.46/rewrite-clj-1.1.46.jar",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-RC/rDPGS2pxbDX0puVwXWZi0PyMIS0m+GHpOVIOOpGI="
@@ -7226,14 +7251,14 @@
       "hash": "sha256-ioOeUVqr5yGL5BotCeCDQVNm2wInbaxqSt7l5RmzPK8="
     },
     {
-      "mvn-path": "selmer/selmer/1.12.50/selmer-1.12.50.jar",
+      "mvn-path": "selmer/selmer/1.12.59/selmer-1.12.59.jar",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-C7wRDRpyDQrLwaEOSZ73BUSku4KVCzgXap02AI7AvmI="
+      "hash": "sha256-HUbXWZQSx2Q+f/tSYjjt8KYwzyD4RCy/RDfiyXMJaSo="
     },
     {
-      "mvn-path": "selmer/selmer/1.12.50/selmer-1.12.50.pom",
+      "mvn-path": "selmer/selmer/1.12.59/selmer-1.12.59.pom",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-U2goezlCRdsKPiipDhqTtJxu/TkERh3fThqVN+oUQDk="
+      "hash": "sha256-/BcxmDGuLyET9PKCgt3FUpPXefABFuetXcBgvxRfjVc="
     },
     {
       "mvn-path": "slingshot/slingshot/0.12.2/slingshot-0.12.2.jar",
