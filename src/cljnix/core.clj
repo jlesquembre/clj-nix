@@ -475,14 +475,17 @@
                                      slurp
                                      edn/read-string)}
                      opts))
-        lock-str (json/write-str
-                   lock-data
-                   :escape-slash false
-                   :escape-unicode false
-                   :escape-js-separators false)]
-    (->> (sh/sh "jq" "-n" "--argjson" "data" lock-str "$data")
+        tmp-json (fs/create-temp-file {:suffix ".json"})]
+    (with-open [writer (-> tmp-json fs/file io/writer)]
+      (json/write lock-data
+                  writer
+                  :escape-slash false
+                  :escape-unicode false
+                  :escape-js-separators false))
+    (->> (sh/sh "jq" "." (str tmp-json))
          :out
          (spit lock-file-name))
+    (fs/delete tmp-json)
     (when-not (git-tracked-file? lock-file-name)
       (git-add lock-file-name)))
   (shutdown-agents))
