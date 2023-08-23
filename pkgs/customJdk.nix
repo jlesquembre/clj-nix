@@ -23,16 +23,13 @@ let
     "name"
     "version"
     "cljDrv"
-    "jdkModules"
-    "extraJdkModules"
-    "locales"
   ];
 
   jarPath = lib.fileContents "${cljDrv}/nix-support/jar-path";
 
 in
 stdenv.mkDerivation ({
-  inherit locales jdkModules jarPath;
+  inherit jarPath;
   name = if cljDrv == null then name else cljDrv.pname;
   version = if cljDrv == null then version else cljDrv.version;
 
