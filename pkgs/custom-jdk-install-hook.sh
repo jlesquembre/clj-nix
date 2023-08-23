@@ -33,10 +33,10 @@ customJdkInstallHook() {
       export jdkModules="java.base"
     else
       if unzip -p "$jarPath" META-INF/MANIFEST.MF | grep "Multi-Release: true"; then
-        export multiReleaseArgs="--multi-release base --ignore-missing-deps"
+        export multiReleaseArgs="--multi-release base"
       fi
       # shellcheck disable=SC2086
-      jdkModules=$(jdeps $multiReleaseArgs --print-module-deps "$jarPath")
+      jdkModules=$(jdeps $multiReleaseArgs --ignore-missing-deps --print-module-deps "$jarPath")
       export jdkModules
     fi
   fi
@@ -60,11 +60,12 @@ customJdkInstallHook() {
   echo "JDK modules: $jdkModules${extraJdkModules-}"
   echo "Locales: $localesFlag $locales"
 
+  # shellcheck disable=SC2086
   jlink \
     --no-header-files \
     --no-man-pages \
     --add-modules "$jdkModules${extraJdkModules-}" \
-    "$localesFlag" "$locales" \
+    $localesFlag $locales \
     --compress 2 \
     --output "${jdk-$out}"
 
