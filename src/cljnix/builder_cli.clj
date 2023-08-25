@@ -31,7 +31,7 @@
       (check-main-class args)
       (build/uber
        (interleave
-        [:lib-name :version :main-ns :java-opts]
+        [:lib-name :version :main-ns :compile-clj-opts]
         args)))
 
     (= cmd "check-main")

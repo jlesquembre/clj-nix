@@ -3,7 +3,8 @@
     [clojure.java.io :as io]
     [clojure.string :as string]
     [clojure.tools.deps :as deps]
-    [clojure.tools.build.api :as b]))
+    [clojure.tools.build.api :as b]
+    [clojure.data.json :as json]))
 
 (defn remove-timestamp!
   [root-dir lib-name]
@@ -23,6 +24,27 @@
       :paths
       (or ["src"])))
 
+(defn- parse-compile-clj-opts
+  "Transform JSON string to the exptect Clojure data type (keywords, symbols, ...)"
+  [s]
+  (let [opts (json/read-str s :key-fn keyword)]
+    (cond-> opts
+      (:ns-compile opts)
+      (update :ns-compile #(mapv symbol %))
+
+      (:sort opts)
+      (update :sort keyword)
+
+      (get-in opts [:compile-opts :elide-meta])
+      (update-in [:compile-opts :elide-meta] #(mapv keyword %))
+
+      (:filter-nses opts)
+      (update :filter-nses #(mapv symbol %))
+
+      (:use-cp-file opts)
+      (update :use-cp-file keyword))))
+
+
 (def class-dir "target/classes")
 
 (defn common-compile-options
@@ -38,7 +60,7 @@
                          version)}))
 
 (defn uber
-  [{:keys [main-ns java-opts] :as opts}]
+  [{:keys [main-ns compile-clj-opts] :as opts}]
   (let [{:keys [src-dirs basis output-jar]}
         (common-compile-options opts)]
     (b/copy-dir {:src-dirs src-dirs
@@ -47,7 +69,7 @@
     (b/compile-clj (cond-> {:basis basis
                             :src-dirs src-dirs
                             :class-dir class-dir}
-                     (seq java-opts) (assoc :java-opts java-opts)))
+                     compile-clj-opts (merge (parse-compile-clj-opts compile-clj-opts))))
 
     (b/uber {:class-dir class-dir
              :uber-file output-jar
