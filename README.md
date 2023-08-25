@@ -216,6 +216,10 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
 - **java-opts**: List of Java options to include the application wrapper, e.g.:
   `[ "-Djava.awt.headless=true" ]`. (Default: `[ ]`)
 
+- **compileCljOpts**: Override options passed to
+  [`compile-clj`](https://clojure.github.io/tools.build/clojure.tools.build.api.html#var-compile-clj).
+  (Default: `null`)
+
 **Example**:
 
 ```nix
