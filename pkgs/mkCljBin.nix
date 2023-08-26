@@ -23,6 +23,7 @@
 , java-opts ? [ ]
 , buildCommand ? null
 , compileCljOpts ? null
+, javacOpts ? null
 
   # Needed for version ranges
   # TODO maybe we can find a better solution?
@@ -43,6 +44,7 @@ let
     "maven-extra"
     "nativeBuildInputs"
     "compileCljOpts"
+    "javacOpts"
   ];
 
   deps-cache = mk-deps-cache {
@@ -137,7 +139,9 @@ stdenv.mkDerivation ({
     (
       if builtins.isNull buildCommand then
         ''
-          clj-builder uber "${fullId}" "${version}" "${main-ns}" '${builtins.toJSON compileCljOpts}'
+          clj-builder uber "${fullId}" "${version}" "${main-ns}" \
+            '${builtins.toJSON compileCljOpts}' \
+            '${builtins.toJSON javacOpts}'
         ''
 
       # Don't check for :gen-class with custom build commands

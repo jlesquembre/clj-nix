@@ -3,8 +3,7 @@
     [clojure.java.io :as io]
     [clojure.string :as string]
     [clojure.tools.deps :as deps]
-    [clojure.tools.build.api :as b]
-    [clojure.data.json :as json]))
+    [clojure.tools.build.api :as b]))
 
 (defn remove-timestamp!
   [root-dir lib-name]
@@ -26,23 +25,22 @@
 
 (defn- parse-compile-clj-opts
   "Transform JSON string to the exptect Clojure data type (keywords, symbols, ...)"
-  [s]
-  (let [opts (json/read-str s :key-fn keyword)]
-    (cond-> opts
-      (:ns-compile opts)
-      (update :ns-compile #(mapv symbol %))
+  [opts]
+  (cond-> opts
+    (:ns-compile opts)
+    (update :ns-compile #(mapv symbol %))
 
-      (:sort opts)
-      (update :sort keyword)
+    (:sort opts)
+    (update :sort keyword)
 
-      (get-in opts [:compile-opts :elide-meta])
-      (update-in [:compile-opts :elide-meta] #(mapv keyword %))
+    (get-in opts [:compile-opts :elide-meta])
+    (update-in [:compile-opts :elide-meta] #(mapv keyword %))
 
-      (:filter-nses opts)
-      (update :filter-nses #(mapv symbol %))
+    (:filter-nses opts)
+    (update :filter-nses #(mapv symbol %))
 
-      (:use-cp-file opts)
-      (update :use-cp-file keyword))))
+    (:use-cp-file opts)
+    (update :use-cp-file keyword)))
 
 
 (def class-dir "target/classes")
@@ -60,12 +58,16 @@
                          version)}))
 
 (defn uber
-  [{:keys [main-ns compile-clj-opts] :as opts}]
+  [{:keys [main-ns compile-clj-opts javac-opts] :as opts}]
   (let [{:keys [src-dirs basis output-jar]}
         (common-compile-options opts)]
     (b/copy-dir {:src-dirs src-dirs
                  :target-dir class-dir})
-    ; TODO Add compile java step
+    (when javac-opts
+      (b/javac (merge
+                 javac-opts
+                 {:basis basis
+                  :class-dir class-dir})))
     (b/compile-clj (cond-> {:basis basis
                             :src-dirs src-dirs
                             :class-dir class-dir}
