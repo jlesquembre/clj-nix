@@ -220,6 +220,11 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
   [`compile-clj`](https://clojure.github.io/tools.build/clojure.tools.build.api.html#var-compile-clj).
   (Default: `null`)
 
+- **javacOpts**: Options passed to
+  [`javac`](https://clojure.github.io/tools.build/clojure.tools.build.api.html#var-javac).
+  Needed if the projects contains java source files. Only 2 options are
+  supoorted: `src-dirs` and `javac-opts`. (Default: `null`)
+
 **Example**:
 
 ```nix
