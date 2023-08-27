@@ -22,6 +22,7 @@
 , main-ns
 , java-opts ? [ ]
 , buildCommand ? null
+, lockfile ? null
 , compileCljOpts ? null
 , javacOpts ? null
 
@@ -48,7 +49,7 @@ let
   ];
 
   deps-cache = mk-deps-cache {
-    lockfile = attrs.lockfile or (projectSrc + "/deps-lock.json");
+    lockfile = if isNull lockfile then (projectSrc + "/deps-lock.json") else lockfile;
     inherit maven-extra;
   };
 
@@ -98,9 +99,9 @@ stdenv.mkDerivation ({
       runHook prePatch
     ''
     +
-    (lib.strings.optionalString (builtins.hasAttr "lockfile" attrs)
+    (lib.strings.optionalString (! isNull lockfile)
       ''
-        cp "${attrs.lockfile}" deps-lock.json
+        cp "${lockfile}" deps-lock.json
       ''
     )
     +

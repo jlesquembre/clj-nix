@@ -116,7 +116,7 @@
           };
       });
 
-      lib = import ./helpers.nix;
+      lib = import ./helpers.nix { clj-nix_overlay = self.overlays.default; };
 
       templates.default = {
         path = ./templates/default;
