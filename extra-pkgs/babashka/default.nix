@@ -71,6 +71,7 @@ let
       inherit (projectInfo) version;
       projectSrc = projectInfo.src;
       lockfile = ./deps-lock.json;
+      enableLeiningen = true;
 
       name = "babashka/babashka";
       main-ns = "babashka.main";

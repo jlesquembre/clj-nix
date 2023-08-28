@@ -225,6 +225,9 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
   Needed if the projects contains java source files. Only 2 options are
   supoorted: `src-dirs` and `javac-opts`. (Default: `null`)
 
+- **enableLeiningen**: Makes Leiningen accessible at build time (Default:
+  `false`)
+
 **Example**:
 
 ```nix

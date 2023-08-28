@@ -4,7 +4,8 @@
 , clojure
 , leiningen
 
-  # Used by clj tools.build to compile the code
+  # Default JDK.
+  # Needed by clj tools.build to compile the code
 , jdk
 
   # Custom utils
@@ -25,6 +26,7 @@
 , lockfile ? null
 , compileCljOpts ? null
 , javacOpts ? null
+, enableLeiningen ? false
 
   # Needed for version ranges
   # TODO maybe we can find a better solution?
@@ -82,11 +84,11 @@ stdenv.mkDerivation ({
     attrs.nativeBuildInputs or [ ]
       ++
       [
-        jdk
-        clojure
+        jdkRunner
         clj-builder
-        leiningen
-      ];
+      ]
+      ++ (lib.lists.optional (! isNull buildCommand) (clojure.override { jdk = jdkRunner; }))
+      ++ (lib.lists.optional enableLeiningen leiningen);
 
   outputs = [ "out" "lib" ];
 
