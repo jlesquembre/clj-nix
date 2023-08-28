@@ -153,6 +153,21 @@ project (e.g.: [depify](https://github.com/hagmonk/depify))
 **IMPORTANT**: Leiningen projects **must** define a `buildCommand` in the
 `mkCljBin` function. The default build command assumes a `deps.edn` project.
 
+### Nix Module
+
+TODO
+
+**NOTE**: If you want to build a binary from you clojure code, I recommended to
+use the Nix module. For more complex cases, you can use the functions
+`mkCljBin`, `customJdk` and `mkGraalBin` directly, but consider those a lower
+level API.
+
+**NOTE 2**: The clj-nix Nix modules is still experimental and may still undergo
+breaking changes.
+
+More documentation about modules:
+[NixOS modules](https://nixos.org/manual/nixos/stable/index.html#sec-writing-modules)
+
 ### API
 
 Derivations:

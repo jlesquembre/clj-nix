@@ -43,10 +43,10 @@ in
               {
                 options = {
 
-                  jdkRunner = lib.mkOption {
+                  jdk = lib.mkOption {
                     type = types.package;
-                    default = pkgs.jdk_headless;
-                    description = "JDK used at runtime by the application.";
+                    default = pkgs'.jdk_headless;
+                    description = "JDK used to build and run the application.";
                   };
 
                   projectSrc = lib.mkOption {
@@ -114,6 +114,12 @@ in
                     );
                   };
 
+                  withLeiningen = lib.mkOption {
+                    default = false;
+                    description = "Enable it to invoke leiningen during the build";
+                    type = types.bool;
+                  };
+
                   ###
                   # Options for customJdk
                   ###
@@ -125,6 +131,9 @@ in
                         enable = lib.mkOption {
                           default = false;
                           type = types.bool;
+                          description = ''
+                            Creates a custom JDK runtime with jlink.
+                          '';
                         };
 
                         jdkModules = lib.mkOption {
@@ -150,6 +159,44 @@ in
                       };
                     };
                   };
+
+                  ###
+                  # Options for nativeImage ()
+                  ###
+
+                  nativeImage = lib.mkOption {
+                    default = { };
+                    type = types.submodule {
+                      options = {
+                        enable = lib.mkOption {
+                          default = false;
+                          type = types.bool;
+                          description = "Generates a binary with GraalVM";
+                        };
+
+                        graalvm = lib.mkOption {
+                          default = pkgs'.graalvmCEPackages.graalvm19-ce;
+                          type = types.package;
+                          description = "GraalVM used at build time";
+                        };
+
+                        extraNativeImageBuildArgs = lib.mkOption {
+                          default = [ ];
+                          type = types.listOf types.str;
+                          description = "Extra arguments to be passed to the native-image command";
+                        };
+
+                        graalvmXmx = lib.mkOption {
+                          default = "-J-Xmx6g";
+                          type = types.str;
+                          description = "XMX size of GraalVM during build";
+                        };
+
+                      };
+                    };
+                  };
+
+
                 };
               })
 
@@ -159,26 +206,41 @@ in
       cfg = _m.config;
 
       cljDrv = pkgs'.mkCljBin {
-        inherit (cfg) jdkRunner projectSrc name version main-ns buildCommand
+        jdkRunner = cfg.jdk;
+        inherit (cfg) projectSrc name version main-ns buildCommand
           lockfile java-opts compileCljOpts javacOpts;
       };
     in
 
-    assert
-    (
-      pkgs'.lib.assertMsg
-        (! cfg.customJdk.enable)
-        ''
-          customJdk enabled!
-        ''
+    assert (pkgs'.lib.assertMsg
+      (cfg.customJdk.enable == true -> cfg.nativeImage.enable == false)
+      "customJdk and nativeImage are incompatible, you can enable only one"
     );
+
+    assert (pkgs'.lib.assertMsg
+      (cfg.withLeiningen == true -> ! isNull cfg.buildCommand)
+      "With Leiningen you have to provide a 'buildCommand'"
+    );
+
+    assert (pkgs'.lib.assertMsg
+      (cfg.withLeiningen == true -> cfg.compileCljOpts == false && cfg.javacOpts == false)
+      "Leiningen is incompatible with Clojure tools.build options (compileCljOpts and javacOpts)"
+    );
+
 
     if cfg.customJdk.enable then
       pkgs'.customJdk
         {
           inherit cljDrv;
-          jdkBase = cfg.jdkRunner;
+          jdkBase = cfg.jdk;
           inherit (cfg.customJdk) jdkModules extraJdkModules locales;
+        }
+
+    else if cfg.nativeImage.enable then
+      pkgs'.mkGraalBin
+        {
+          inherit cljDrv;
+          inherit (cfg.nativeImage) graalvm extraNativeImageBuildArgs graalvmXmx;
         }
     else
       cljDrv;
