@@ -1,0 +1,58 @@
+docs_dir: docs
+
+site_name: clj-nix
+repo_name: jlesquembre/clj-nix
+repo_url: https://github.com/jlesquembre/clj-nix
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  # icon:
+  #   logo: simple/clojure
+  #   repo: fontawesome/brands/github
+
+  features:
+    - navigation.expand
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - content.action.edit
+nav:
+  - Intro: index.md
+  - Usage:
+      - Quickstart: usage.md
+      - Lock files: lock-file.md
+      - Nix Module: nix-module.md
+      - API: api.md
+      - GitHub Actions: github-action.md
+  - Options: options.md
+  - FAQ: faq.md
+  - Tutorial: tutorial.md
+
+plugins:
+  - search:
+      lang: en
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
