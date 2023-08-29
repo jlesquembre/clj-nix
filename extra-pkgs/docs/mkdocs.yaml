@@ -3,6 +3,7 @@ docs_dir: docs
 site_name: clj-nix
 repo_name: jlesquembre/clj-nix
 repo_url: https://github.com/jlesquembre/clj-nix
+edit_uri: edit/main/docs/
 
 theme:
   name: material
