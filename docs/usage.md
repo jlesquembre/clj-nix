@@ -9,6 +9,10 @@ nix flake new --template github:jlesquembre/clj-nix ./my-new-project
 cd ./my-new-project
 git init
 git add .
+
+# Build and test the binary
+nix build .
+./result/bin/cljdemo
 ```
 
 Remember that with flakes, only the files tracked by git are recognized by Nix.

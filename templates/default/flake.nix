@@ -4,39 +4,32 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    clj-nix = {
-      url = "github:jlesquembre/clj-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    clj-nix.url = "github:jlesquembre/clj-nix";
   };
+
   outputs = { self, nixpkgs, flake-utils, clj-nix }:
 
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        cljpkgs = clj-nix.packages."${system}";
-      in
+    flake-utils.lib.eachDefaultSystem (system: {
 
-      {
-        packages = {
+      packages = {
 
-          hello-clj = cljpkgs.mkCljBin {
-            projectSrc = ./.;
-            name = "me.lafuente/cljdemo";
-            main-ns = "hello.core";
-            jdkRunner = pkgs.jdk17_headless;
-          };
+        default = clj-nix.lib.mkCljApp {
+          pkgs = nixpkgs.legacyPackages.${system};
+          modules = [
+            # Option list:
+            # https://jlesquembre.github.io/clj-nix/options/
+            {
+              projectSrc = ./.;
+              name = "me.lafuente/cljdemo";
+              main-ns = "hello.core";
 
-          hello-jdk = cljpkgs.customJdk {
-            cljDrv = self.packages."${system}".hello-clj;
-            locales = "en,es";
-          };
+              nativeImage.enable = true;
 
-          hello-graal = cljpkgs.mkGraalBin {
-            cljDrv = self.packages."${system}".hello-clj;
-          };
-
+              # customJdk.enable = true;
+            }
+          ];
         };
-      });
 
+      };
+    });
 }
