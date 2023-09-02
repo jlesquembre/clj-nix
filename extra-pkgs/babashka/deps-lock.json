@@ -93,6 +93,13 @@
       "hash": "sha256-VxfSsmySCTqgWBpS21jZ3kTYtwKglrGUyqM+FTFrGkY="
     },
     {
+      "lib": "integrant/integrant",
+      "url": "https://github.com/weavejester/integrant",
+      "rev": "a9fd7c02bd7201f36344b47142badc3c3ef22f88",
+      "git-dir": "https/github.com/weavejester/integrant",
+      "hash": "sha256-U6cZsavHT0XNpj9AUnOsR9pkiuCH6hxsbBMlMUU9aqA="
+    },
+    {
       "lib": "io.github.clojure/tools.build",
       "url": "https://github.com/clojure/tools.build.git",
       "rev": "7d40500863818c6f9a6e077b18db305d02149384",
@@ -346,29 +353,19 @@
       "hash": "sha256-RFslARFvys/YjtdWiyRqHwyDy6BYAF3KG+Oo/6cIh7M="
     },
     {
+      "mvn-path": "borkdude/edamame/0.0.19/edamame-0.0.19.jar",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-DFO1vXj652r3KEklEuxcmyEsjxC2biwx/3RlZ1zzn48="
+    },
+    {
+      "mvn-path": "borkdude/edamame/0.0.19/edamame-0.0.19.pom",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-B4FvN6YLPV8uDVq7mdfBPIsKTSXrLOa+cj/HKB0Xc3w="
+    },
+    {
       "mvn-path": "borkdude/edamame/1.0.0/edamame-1.0.0.pom",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-eFDZmNPLm0jqo3Ja0NItNptIqISi4n+8gCDGP79zUQE="
-    },
-    {
-      "mvn-path": "borkdude/edamame/1.1.17/edamame-1.1.17.jar",
-      "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-QdHXxv1hkppapxTXGzWjZ6/j8iNP6X+JnYoCIqI4KNg="
-    },
-    {
-      "mvn-path": "borkdude/edamame/1.1.17/edamame-1.1.17.pom",
-      "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-mU55fCDJvYaGxVStkaYbFtJc2Xa4CZRUM01F36uVPmE="
-    },
-    {
-      "mvn-path": "borkdude/edamame/1.3.22/edamame-1.3.22.jar",
-      "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-hbU43TSzToVk7MAljFNk8NhfuuqrcXiGRejop+pADgE="
-    },
-    {
-      "mvn-path": "borkdude/edamame/1.3.22/edamame-1.3.22.pom",
-      "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-v2BrAgwKJeQbV3qj9vjGtBTkxu+82Oi7aivakHFlgdA="
     },
     {
       "mvn-path": "borkdude/edamame/1.3.23/edamame-1.3.23.jar",
@@ -506,14 +503,14 @@
       "hash": "sha256-lpdycqiN8JdVTT9zP/uT2NRDQv1AN2ejORAr1mOPTp0="
     },
     {
-      "mvn-path": "clj-commons/clj-yaml/1.0.26/clj-yaml-1.0.26.jar",
+      "mvn-path": "clj-commons/clj-yaml/1.0.27/clj-yaml-1.0.27.jar",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-d5eTQ8uSCabGzgSCJiW+B6j4+tWfxTmbpXhzN6fYpTs="
+      "hash": "sha256-HSQEtugY8EpfVGIBwre000S5I5ZlVoV4S2TKUK5iTbM="
     },
     {
-      "mvn-path": "clj-commons/clj-yaml/1.0.26/clj-yaml-1.0.26.pom",
+      "mvn-path": "clj-commons/clj-yaml/1.0.27/clj-yaml-1.0.27.pom",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-89d/qo4tN1NX89YB/1Rr2FnUfeMR/Hpi2q1yHmmwO9I="
+      "hash": "sha256-rlozuezZ31m3rjp5TXX3+nJOH6MADlb6IUbXnO4xO1w="
     },
     {
       "mvn-path": "clj-commons/conch/0.9.2/conch-0.9.2.jar",
@@ -3231,16 +3228,6 @@
       "hash": "sha256-/CcshAiYvvzM5MnJH7k6bGxM5WDG1sWGmgOKu+5qWFI="
     },
     {
-      "mvn-path": "integrant/integrant/0.8.0/integrant-0.8.0.jar",
-      "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-SBsJooGzHQr0SbGdngkDYe4p8qDdWdLoIUXz23GRFh0="
-    },
-    {
-      "mvn-path": "integrant/integrant/0.8.0/integrant-0.8.0.pom",
-      "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-LxralOe3oYhuxvIOYHYEEyXeNol9bBaOc+uWwAmRzIg="
-    },
-    {
       "mvn-path": "into-docker/pem-reader/1.0.2/pem-reader-1.0.2.jar",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-8NPqqPWwg0l7erUdNUr256OPIYuT/1WqwdO+xO9i4Nk="
@@ -5006,14 +4993,14 @@
       "hash": "sha256-fwwYdzehpVkJ/5gPsmn2yOtJWqFSLGSr7HGCVDnJENA="
     },
     {
-      "mvn-path": "org/babashka/http-client/0.4.12/http-client-0.4.12.jar",
+      "mvn-path": "org/babashka/http-client/0.4.14/http-client-0.4.14.jar",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-1fvqPrVPShTAoXaNoBXQso8J/Y3hmRVfNgFr9Ie0ifQ="
+      "hash": "sha256-/gMMkkhah9m1S34hmkbehXHX8BY9SjxdcmhTS2vKnCk="
     },
     {
-      "mvn-path": "org/babashka/http-client/0.4.12/http-client-0.4.12.pom",
+      "mvn-path": "org/babashka/http-client/0.4.14/http-client-0.4.14.pom",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-VS3qfcFARd+ZKamh/6geCESBVC5a0AqhIfxn4dWQTBU="
+      "hash": "sha256-7UchldVLgLsJmTgJJYnlD8Qa73GDH3SHlYW09QgIvn8="
     },
     {
       "mvn-path": "org/babashka/sci.impl.types/0.0.2/sci.impl.types-0.0.2.jar",
@@ -5026,14 +5013,14 @@
       "hash": "sha256-G2nywdVJ8si0e2uT3KcQPW/sQFBryQvVqXV1zWpEeh4="
     },
     {
-      "mvn-path": "org/babashka/sci/0.7.39/sci-0.7.39.jar",
+      "mvn-path": "org/babashka/sci/0.3.2/sci-0.3.2.jar",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-o5xxOsaLB3mkBgiCvWDhTaMXrqgcjxG7R3RSPGf4hIA="
+      "hash": "sha256-Y4iLjBGxwUMf1VPV1SHSjJLl6nEJcP5Qdc7bJhHSoio="
     },
     {
-      "mvn-path": "org/babashka/sci/0.7.39/sci-0.7.39.pom",
+      "mvn-path": "org/babashka/sci/0.3.2/sci-0.3.2.pom",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-EA/tWIBHCtPQvHuLgPXkOH91PVeN/qhRBOF2625fifI="
+      "hash": "sha256-neutGiOLhwJX+Y+CefwezwsSzHZanMPM8LoP28MjdkU="
     },
     {
       "mvn-path": "org/basepom/basepom-foundation/29/basepom-foundation-29.pom",
@@ -7116,14 +7103,14 @@
       "hash": "sha256-wdGxyWdxa7FZ8hNrXKTFBTMpk/36UANNNd0CpLgC5h8="
     },
     {
-      "mvn-path": "org/yaml/snakeyaml/1.33/snakeyaml-1.33.jar",
+      "mvn-path": "org/yaml/snakeyaml/2.1/snakeyaml-2.1.jar",
       "mvn-repo": "https://repo1.maven.org/maven2/",
-      "hash": "sha256-Ef9Fl4jwoteB9WpKhtfmkgLOus0Cc9UmnErp8C8/2PA="
+      "hash": "sha256-aaRTcEXdvK7Uxo7vB0Ri6xLTJNeVP2LF7NNd9kXorsk="
     },
     {
-      "mvn-path": "org/yaml/snakeyaml/1.33/snakeyaml-1.33.pom",
+      "mvn-path": "org/yaml/snakeyaml/2.1/snakeyaml-2.1.pom",
       "mvn-repo": "https://repo1.maven.org/maven2/",
-      "hash": "sha256-6n1I/UUyGmAz2XzSiBhtSOXpLMDHBm5ziNfEzrSvWVc="
+      "hash": "sha256-SMUuaVrih2NBmG7SlIpZrOb7BkGPgpglhi2OGwgeKPc="
     },
     {
       "mvn-path": "persistent-sorted-set/persistent-sorted-set/0.1.2/persistent-sorted-set-0.1.2.jar",
