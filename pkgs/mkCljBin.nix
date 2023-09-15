@@ -3,6 +3,7 @@
 , runtimeShell
 , clojure
 , leiningen
+, writeText
 
   # Default JDK.
   # Needed by clj tools.build to compile the code
@@ -11,6 +12,7 @@
   # Custom utils
 , clj-builder
 , mk-deps-cache
+, common
 
 }:
 
@@ -62,19 +64,10 @@ let
   asCljVector = list: lib.concatMapStringsSep " " lib.strings.escapeNixString list;
 
   javaMain = builtins.replaceStrings [ "-" ] [ "_" ] main-ns;
-  javaOpts = lib.concatStringsSep " " java-opts;
 
-  template =
-    ''
-      #!${runtimeShell}
-
-      exec "${jdkRunner}/bin/java" ${javaOpts} \
-          -jar "@jar@" "$@"
-    '';
 in
 stdenv.mkDerivation ({
-  inherit version template;
-  passAsFile = [ "template" ];
+  inherit version;
 
   pname = lib.strings.sanitizeDerivationName artifactId;
   src = projectSrc;
@@ -91,6 +84,8 @@ stdenv.mkDerivation ({
       ++ (lib.lists.optional enableLeiningen leiningen);
 
   outputs = [ "out" "lib" ];
+
+  javaOpts = lib.escapeShellArgs java-opts;
 
   passthru = {
     inherit main-ns fullId groupId artifactId javaMain;
@@ -178,10 +173,14 @@ stdenv.mkDerivation ({
       jarPath=$(basename $jarPath)
       echo "$lib/$jarPath" > $out/nix-support/jar-path
 
-      cljBinary="$out/bin/${artifactId}"
-      substitute $templatePath "$cljBinary" \
-        --subst-var-by jar "$lib/$jarPath"
-      chmod +x "$cljBinary"
+      binaryPath="$out/bin/${artifactId}"
+
+      substitute ${common.binaryTemplate} "$binaryPath" \
+        --subst-var-by jar "$lib/$jarPath" \
+        --subst-var-by jdk "${jdkRunner}" \
+        --subst-var javaOpts
+
+      chmod +x "$binaryPath"
 
       runHook postInstall
     '';

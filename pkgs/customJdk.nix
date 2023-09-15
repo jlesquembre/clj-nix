@@ -13,6 +13,7 @@
 , jdkModules ? null
 , extraJdkModules ? [ ]
 , locales ? null
+, java-opts ? [ ]
 , ...
 }@attrs:
 
@@ -23,6 +24,7 @@ let
     "name"
     "version"
     "cljDrv"
+    "java-opts"
   ];
 
   jarPath = lib.fileContents "${cljDrv}/nix-support/jar-path";
@@ -38,6 +40,8 @@ stdenv.mkDerivation ({
     jdkBase
     cljHooks.customJdkInstallHook
   ];
+
+  javaOpts = lib.escapeShellArgs java-opts;
 
   outputs =
     if cljDrv == null then
