@@ -70,6 +70,7 @@ in
         {
           inherit cljDrv;
           jdkBase = cfg.jdk;
+          java-opts = cfg.java-opts;
           inherit (cfg.customJdk) jdkModules extraJdkModules locales;
         }
 

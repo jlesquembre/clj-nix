@@ -2,8 +2,8 @@
 , makeSetupHook
 , unzip
 , gnugrep
-, runtimeShell
 , writeText
+, common
 }:
 
 {
@@ -15,12 +15,7 @@
         gnugrep
       ];
       substitutions = {
-        binaryTemplate = writeText "template" ''
-          #!${runtimeShell}
-
-          exec "@jdk@/bin/java" \
-              -jar "@jar@" "$@"
-        '';
+        inherit (common) binaryTemplate;
       };
     } ./custom-jdk-install-hook.sh;
 }

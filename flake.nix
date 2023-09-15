@@ -125,20 +125,22 @@
         description = "A simple clj-nix project";
       };
 
-      overlays.default = final: prev: {
-        inherit (final.callPackage ./pkgs/cljApps.nix { }) clj-builder deps-lock;
-        mk-deps-cache = final.callPackage ./pkgs/mkDepsCache.nix;
-        mkCljBin = final.callPackage ./pkgs/mkCljBin.nix { };
-        mkCljLib = final.callPackage ./pkgs/mkCljLib.nix { };
-        mkGraalBin = final.callPackage ./pkgs/mkGraalBin.nix { };
-        customJdk = final.callPackage ./pkgs/customJdk.nix { };
+      overlays.default = final: prev:
+        let common = final.callPackage ./pkgs/common.nix { }; in
+        {
+          inherit (final.callPackage ./pkgs/cljApps.nix { }) clj-builder deps-lock;
+          mk-deps-cache = final.callPackage ./pkgs/mkDepsCache.nix;
+          mkCljBin = final.callPackage ./pkgs/mkCljBin.nix { inherit common; };
+          mkCljLib = final.callPackage ./pkgs/mkCljLib.nix { };
+          mkGraalBin = final.callPackage ./pkgs/mkGraalBin.nix { };
+          customJdk = final.callPackage ./pkgs/customJdk.nix { };
 
-        cljHooks = final.callPackage ./pkgs/cljHooks.nix { };
+          cljHooks = final.callPackage ./pkgs/cljHooks.nix { inherit common; };
 
-        mkBabashka = final.callPackage ./extra-pkgs/babashka { };
-        bbTasksFromFile = final.callPackage ./extra-pkgs/bbTasks { };
-      }
-      // inputs.nix-fetcher-data.overlays.default final prev;
+          mkBabashka = final.callPackage ./extra-pkgs/babashka { };
+          bbTasksFromFile = final.callPackage ./extra-pkgs/bbTasks { };
+        }
+        // inputs.nix-fetcher-data.overlays.default final prev;
 
     };
 }
