@@ -761,6 +761,10 @@ default are mandatory):</p>
 <p><strong>version</strong>: Derivation version. (Default: <code>cljDrv.version</code>)</p>
 </li>
 <li>
+<p><strong>java-opts</strong>: List of Java options to include the application wrapper, e.g.:
+  <code>[ "-Djava.awt.headless=true" ]</code>. (Default: <code>[ ]</code>)</p>
+</li>
+<li>
 <p><strong>jdkModules</strong>: Option passed to jlink <code>--add-modules</code>. If null,
   <a href="https://docs.oracle.com/en/java/javase/17/docs/specs/man/jdeps.html"><code>jeps</code></a>
   will be used to analyze the <code>cljDrv</code> and pick the necessary modules
