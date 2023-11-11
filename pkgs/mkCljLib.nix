@@ -28,6 +28,7 @@ let
     "version"
     "buildCommand"
     "maven-extra"
+    "nativeBuildInputs"
   ];
 
   deps-cache = mk-deps-cache {
@@ -48,10 +49,12 @@ stdenv.mkDerivation ({
 
   # Build time deps
   nativeBuildInputs =
-    [
-      jdk
-      clojure
-    ];
+    attrs.nativeBuildInputs or [ ]
+      ++
+      [
+        jdk
+        clojure
+      ];
 
   passthru = {
     inherit fullId groupId artifactId;
