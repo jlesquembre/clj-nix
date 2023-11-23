@@ -4,16 +4,16 @@
 { lib
 , stdenv
 , fetchurl
-, graalvmCEPackages
 , glibcLocales
 , writeShellScript
+, graalvm-ce
 , writeText
 }:
 
 { cljDrv
 , name ? cljDrv.pname
 , version ? cljDrv.version
-, graalvm ? graalvmCEPackages.graalvm19-ce
+, graalvm ? graalvm-ce
 
 , nativeBuildInputs ? [ ]
 

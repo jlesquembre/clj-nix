@@ -5,13 +5,13 @@
 , rlwrap
 , makeWrapper
 , writeShellApplication
-, graalvmCEPackages
+, graalvm-ce
 , nix-package-updater
 , srcFromJson
 , writeScriptBin
 }:
 
-{ graalvm ? graalvmCEPackages.graalvm19-ce
+{ graalvm ? graalvm-ce
 , withFeatures ? [ ]
 , bbLean ? false
 , wrap ? true
