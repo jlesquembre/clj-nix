@@ -12,13 +12,13 @@ cljpkgs.mkCljBin {
 # ...
 nativeBuildInputs = [ pkgs.makeWrapper ];
 postInstall = ''
-  wrapProgram $cljBinary \
+  wrapProgram $binaryPath \
     --set PATH ${pkgs.lib.makeBinPath [ pkgs.cowsay ]}
 '';
 }
 ```
 
-Notice that the `$cljBinary` is a proper Bash variable. It is created by
+Notice that the `$binaryPath` is a proper Bash variable. It is created by
 `mkCljBin` during the install phase.
 
 or if you want to define the dependencies in a docker image:
