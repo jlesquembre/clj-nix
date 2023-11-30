@@ -530,12 +530,12 @@ possible solution is to wrap the binary:</p>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># ...</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="ss">nativeBuildInputs =</span> <span class="p">[</span> pkgs<span class="o">.</span>makeWrapper <span class="p">];</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="ss">postInstall =</span> <span class="s1">&#39;&#39;</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="s1">  wrapProgram $cljBinary \</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="s1">  wrapProgram $binaryPath \</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="s1">    --set PATH </span><span class="si">${</span>pkgs<span class="o">.</span>lib<span class="o">.</span>makeBinPath <span class="p">[</span> pkgs<span class="o">.</span>cowsay <span class="p">]</span><span class="si">}</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="s1">&#39;&#39;</span><span class="p">;</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">}</span>
 </code></pre></div>
-<p>Notice that the <code>$cljBinary</code> is a proper Bash variable. It is created by
+<p>Notice that the <code>$binaryPath</code> is a proper Bash variable. It is created by
 <code>mkCljBin</code> during the install phase.</p>
 <p>or if you want to define the dependencies in a docker image:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pkgs<span class="o">.</span>dockerTools<span class="o">.</span>buildLayeredImage <span class="p">{</span>
