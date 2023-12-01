@@ -41,28 +41,17 @@
     in
     {
       packages = eachSystem (pkgs:
-        concatMapAttrs
-          (k: v:
-            if isFunction v then
-              {
-                ${k} = {
-                  type = "derivation";
-                  name = "derivation-function";
-                  __functor = _: v;
-                };
-              }
-            else { ${k} = v; })
-          {
-            inherit (pkgs) clj-builder deps-lock mk-deps-cache
-              mkCljBin mkCljLib mkGraalBin customJdk
-              cljHooks
-              mkBabashka bbTasksFromFile;
+        {
+          inherit (pkgs) clj-builder deps-lock mk-deps-cache
+            mkCljBin mkCljLib mkGraalBin customJdk
+            cljHooks
+            mkBabashka bbTasksFromFile;
 
-            babashka = pkgs.mkBabashka { };
-            babashka-unwrapped = pkgs.mkBabashka { wrap = false; };
+          babashka = pkgs.mkBabashka { };
+          babashka-unwrapped = pkgs.mkBabashka { wrap = false; };
 
-            docs = pkgs.callPackage ./extra-pkgs/docs { inherit pkgs; };
-          });
+          docs = pkgs.callPackage ./extra-pkgs/docs { inherit pkgs; };
+        });
 
       devShells = eachSystem (pkgs: {
         default =
