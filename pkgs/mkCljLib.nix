@@ -28,6 +28,7 @@ let
     "version"
     "buildCommand"
     "maven-extra"
+    "nativeBuildInputs"
   ];
 
   deps-cache = mk-deps-cache {
@@ -48,10 +49,12 @@ stdenv.mkDerivation ({
 
   # Build time deps
   nativeBuildInputs =
-    [
-      jdk
-      clojure
-    ];
+    attrs.nativeBuildInputs or [ ]
+      ++
+      [
+        jdk
+        clojure
+      ];
 
   passthru = {
     inherit fullId groupId artifactId;
@@ -60,7 +63,7 @@ stdenv.mkDerivation ({
   patchPhase =
     ''
       runHook prePatch
-      ${clj-builder} patch-git-sha "$(pwd)"
+      ${clj-builder}/bin/clj-builder patch-git-sha "$(pwd)"
       runHook postPatch
     '';
 
@@ -75,7 +78,7 @@ stdenv.mkDerivation ({
     (
       if builtins.isNull buildCommand then
         ''
-          ${clj-builder} jar "${fullId}" "${version}"
+          ${clj-builder}/bin/clj-builder jar "${fullId}" "${version}"
         ''
       else
         ''

@@ -1,9 +1,4 @@
-{ self
-, stdenv
-, python311Packages
-
-, pkgs
-}:
+{ stdenv, python311Packages, pkgs, ... }:
 
 let
   inherit (pkgs) lib;

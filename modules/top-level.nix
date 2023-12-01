@@ -138,8 +138,8 @@ let types = lib.types; in
           };
 
           graalvm = lib.mkOption {
-            default = pkgs.graalvmCEPackages.graalvm19-ce;
-            defaultText = lib.literalExpression "pkgs.graalvmCEPackages.graalvm19-ce";
+            default = pkgs.graalvm-ce;
+            defaultText = lib.literalExpression "pkgs.graalvm-ce";
             type = types.package;
             description = lib.mdDoc "GraalVM used at build time";
           };
