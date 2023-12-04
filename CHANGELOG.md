@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add support for additional maven repositories. Fixes #98.
+
 - Refactor CLI, now we use [babashka.cli](https://github.com/babashka/cli) to
   parse the command line arguments (see #54 and #63, thanks to @bendlas to help
   with this one)

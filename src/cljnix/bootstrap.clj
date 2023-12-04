@@ -6,7 +6,7 @@
     [clojure.tools.gitlibs.config :as gitlibs-config]
     [clojure.data.json :as json]
     [babashka.fs :as fs]
-    [cljnix.utils :refer [throw+ *mvn-repos*] :as utils]
+    [cljnix.utils :refer [throw+] :as utils]
     [cljnix.nix :refer [nix-hash]]))
 
 
@@ -60,21 +60,20 @@
   [deps-path]
   (let [options {:user nil :project deps-path}
         _ (tools/prep options)
-        {:keys [classpath-roots mvn/repos]} (deps/create-basis options)]
+        {:keys [classpath-roots]} (deps/create-basis options)]
 
-    (with-redefs [*mvn-repos* repos]
-      (transduce
-        (comp
-          (filter fs/absolute?)
-          (map nixify-dep))
-        (completing
-          (fn [acc v]
-            (if (same-git-dep? (peek acc) v)
-              (update-in acc [(dec (count acc)) :paths] #(into % (:paths v)))
-              (conj acc v)))
-          #(into [] (sort-by :url %)))
-        []
-        classpath-roots))))
+    (transduce
+      (comp
+        (filter fs/absolute?)
+        (map nixify-dep))
+      (completing
+        (fn [acc v]
+          (if (same-git-dep? (peek acc) v)
+            (update-in acc [(dec (count acc)) :paths] #(into % (:paths v)))
+            (conj acc v)))
+        #(into [] (sort-by :url %)))
+      []
+      classpath-roots)))
 
 (defn as-json
   [{:keys [deps-path]}]

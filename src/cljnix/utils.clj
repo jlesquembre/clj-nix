@@ -13,16 +13,15 @@
     [version-clj.core :as version]
     [clojure.zip :as zip]
     [borkdude.rewrite-edn :as r]
-    [clojure.tools.deps.util.io :refer [printerrln]])
+    [clojure.tools.deps.util.io :refer [printerrln]]
+    [clojure.tools.deps.extensions.pom :refer [read-model-file]])
   (:import
     [org.apache.maven.model.io.xpp3 MavenXpp3Reader]
-    [org.apache.maven.model Model]))
+    [org.apache.maven.model Model Repository]))
 
 (defn throw+
   [msg data]
   (throw (ex-info (prn-str msg data) data)))
-
-(def ^:dynamic *mvn-repos* mvn/standard-repos)
 
 (defn- snapshot?
   [path]
@@ -99,14 +98,14 @@
 
 
 (defn- get-mvn-repo-name
-  [path]
+  [path mvn-repos]
   (let [info-file (fs/path (fs/parent path) "_remote.repositories")
         file-name (fs/file-name path)
         repo-name-finder (fn [s] (second (re-find
                                            (re-pattern (str file-name #">(\S+)="))
                                            s)))]
     (some #(let [repo-name (repo-name-finder %)]
-             (when (contains? *mvn-repos* repo-name)
+             (when (contains? mvn-repos repo-name)
                repo-name))
           (fs/read-all-lines info-file))))
 
@@ -114,17 +113,19 @@
   "Given a path for a jar in the maven local repo, e.g:
    $REPO/babashka/fs/0.1.4/fs-0.1.4.jar
    return the maven repository url and the dependecy url"
-  [path {:keys [cache-dir exact-version]
-         :or {cache-dir @mvn/cached-local-repo}}]
+  [path & {:keys [cache-dir exact-version mvn-repos]
+           :or {cache-dir @mvn/cached-local-repo
+                mvn-repos mvn/standard-repos}}]
   {:pre [(if (snapshot? path)
            (not (nil? exact-version))
            true)]}
   (let [{:keys [resolved-path snapshot]} (resolve-snapshot path exact-version)
-        repo-name (get-mvn-repo-name resolved-path)
-        repo-url (get-in *mvn-repos* [repo-name :url])
+        repo-name (get-mvn-repo-name resolved-path mvn-repos)
+        repo-url (get-in mvn-repos [repo-name :url])
         repo-url (cond
                    (nil? repo-url) (throw+ "Maven repo not found"
-                                           {:mvn-repos *mvn-repos*
+                                           {:mvn-repos mvn-repos
+                                            :repo-name repo-name
                                             :file path})
                    ((complement string/ends-with?) repo-url "/") (str repo-url "/")
                    :else repo-url)]
@@ -250,23 +251,70 @@
     (string/split #"/")
     (->> (apply keyword))))
 
-(comment
-  (expand-shas! "/home/jlle/projects/clojure-lsp")
 
-  (mvn-repo-info "/home/jlle/.m2/repository/org/clojure/clojure/1.11.1/clojure-1.11.1.jar"
-                 @mvn/cached-local-repo)
-  (mvn-repo-info "/home/jlle/.m2/repository/org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"
-                 @mvn/cached-local-repo)
-  (mvn-repo-info "/tmp/clj-cache7291733112505590287/mvn/org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"
-                 @mvn/cached-local-repo)
+(defn mvn?
+  [[_ {:keys [mvn/version]}]]
+  (boolean version))
+
+(defn git?
+  [[_ {:keys [git/url]}]]
+  (boolean url))
+
+(defn artifact->pom
+  [path]
+  (str (->> (fs/glob (fs/parent path) "*.pom")
+            (sort (fn [x y]
+                    (cond
+                      (string/includes? (fs/file-name x) "SNAPSHOT") -1
+                      (string/includes? (fs/file-name y) "SNAPSHOT") 1
+                      :else (compare (fs/file-name x) (fs/file-name y)))))
+            first)))
+
+(defn get-repos
+  "For a given path to a pom, returns all maven repos"
+  [pom-path]
+  (try
+    (let [pom (io/file pom-path)
+          model (read-model-file pom nil)]
+      (into {}
+            (map (fn [^Repository repo] (vector (.getId repo)
+                                                {:url (.getUrl repo)})))
+            (.getRepositories model)))
+    (catch Exception _ {})))
+
+
+(defn get-maven-repos
+  "Given a basis, returns all maven repos"
+  [basis]
+  (into mvn/standard-repos
+        (comp
+          (filter mvn?)
+          (map val)
+          (mapcat :paths)
+          (map artifact->pom)
+          (map get-repos))
+        (:libs basis)))
+
+
+(comment
+
+  (get-maven-repos
+    (deps/create-basis {:user nil
+                        :project (str (fs/expand-home "~/projects/clj-demo-project/deps.edn"))}))
+
+  (expand-shas! (fs/expand-home "~/projects/clojure-lsp"))
+
+  (mvn-repo-info (fs/expand-home "~/.m2/repository/org/clojure/clojure/1.11.1/clojure-1.11.1.jar"))
+  (mvn-repo-info (fs/expand-home "~/.m2/repository/org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"))
 
 
   (=
     (mvn-repo-info
-      "/home/jlle/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-SNAPSHOT.jar"
+      (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-SNAPSHOT.jar")
       {:exact-version "2022.04.26-SNAPSHOT"})
+
     (mvn-repo-info
-      "/home/jlle/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar"
+      (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar")
       {:exact-version "2022.04.26-20220502.201054-5"}))
 
 

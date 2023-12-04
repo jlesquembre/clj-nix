@@ -6,6 +6,7 @@
     [cljnix.test-helpers :as h]
     [cljnix.core :as c]
     [clojure.tools.deps.specs :as deps.spec]
+    [clojure.tools.deps.util.maven :as mvn]
     [clojure.spec.alpha :as s]
     [matcher-combinators.test]
     [matcher-combinators.matchers :as m]))
@@ -20,6 +21,12 @@
 (defn- dissoc-dep
   [m dep]
   (update m :deps #(dissoc % dep)))
+
+(defn- maven-deps
+  [deps-map]
+  (c/maven-deps
+    (h/basis deps-map)
+    mvn/standard-repos))
 
 (defn deps-cache-fixture [f]
   (h/prep-deps all-deps)
@@ -101,7 +108,7 @@
 
 (deftest maven-deps-test
 
-  (let [mvn-deps (c/maven-deps (h/basis {:deps {'cider/piggieback {:mvn/version "0.4.1-20190222.154954-1"}}}))]
+  (let [mvn-deps (maven-deps {:deps {'cider/piggieback {:mvn/version "0.4.1-20190222.154954-1"}}})]
     (is (match?
           {:hash "sha256-PvlYv5KwGYHd1MCIQiMNRoVAJRmWLF7FuEM9OMh0FOk=",
            :lib 'cider/piggieback,
@@ -121,7 +128,7 @@
                       :snapshot "piggieback-0.4.1-SNAPSHOT.pom",}])
           mvn-deps)))
 
-  (let [mvn-deps (c/maven-deps (h/basis {:deps {'cider/piggieback {:mvn/version "0.4.1-SNAPSHOT"}}}))]
+  (let [mvn-deps (maven-deps {:deps {'cider/piggieback {:mvn/version "0.4.1-SNAPSHOT"}}})]
     (is (match?
           {:hash "sha256-PvlYv5KwGYHd1MCIQiMNRoVAJRmWLF7FuEM9OMh0FOk=",
            :lib 'cider/piggieback,
@@ -143,7 +150,7 @@
 
 
   (testing "Latest SNAPSHOT version is used"
-    (let [mvn-deps (c/maven-deps (h/basis {:deps {'clj-kondo/clj-kondo {:mvn/version "2022.04.26-SNAPSHOT"}}}))
+    (let [mvn-deps (maven-deps {:deps {'clj-kondo/clj-kondo {:mvn/version "2022.04.26-SNAPSHOT"}}})
           snapshot-resolved-version "2022.04.26-20220526.212013-27"]
       (is (match?
             {:mvn-path (str "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-" snapshot-resolved-version ".jar",)
@@ -167,7 +174,7 @@
             mvn-deps))))
 
   (testing "Exact SNAPSHOT version is used"
-    (let [mvn-deps (c/maven-deps (h/basis {:deps {'clj-kondo/clj-kondo {:mvn/version "2022.04.26-20220502.201054-5"}}}))]
+    (let [mvn-deps (maven-deps {:deps {'clj-kondo/clj-kondo {:mvn/version "2022.04.26-20220502.201054-5"}}})]
       (is (match?
             {:mvn-path "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar",
              :mvn-repo "https://repo.clojars.org/",
