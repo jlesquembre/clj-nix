@@ -26,49 +26,31 @@
     (fs/exists? "/nix/store")
     (System/getenv "CLJNIX_ADD_NIX_STORE")))
 
-(defn- mvn?
-  [[_ {:keys [mvn/version]}]]
-  (boolean version))
-
-(defn- git?
-  [[_ {:keys [git/url]}]]
-  (boolean url))
-
-(defn- artifact->pom
-  [path]
-  (str (->> (fs/glob (fs/parent path) "*.pom")
-            (sort (fn [x y]
-                    (cond
-                      (string/includes? (fs/file-name x) "SNAPSHOT") -1
-                      (string/includes? (fs/file-name y) "SNAPSHOT") 1
-                      :else (compare (fs/file-name x) (fs/file-name y)))))
-            first)))
-
 (defn maven-deps
-  [basis]
+  [basis mvn-repos]
   (into []
         (comp
-          (filter mvn?)
+          (filter utils/mvn?)
           (map (fn [[lib {:keys [mvn/version paths]}]]
                  (when-not (= 1 (count paths))
                    (throw+ "Maven deps can have only 1 path" {:lib lib :paths paths}))
                  (let [local-path (first paths)]
-                   (assoc (utils/mvn-repo-info local-path {:exact-version version})
+                   (assoc (utils/mvn-repo-info local-path {:exact-version version :mvn-repos mvn-repos})
                           :lib lib
                           :version version
                           :local-path local-path))))
           ; Add POM
           (mapcat (juxt identity
                         (fn [{:keys [local-path version]}]
-                          (let [pom-path (artifact->pom local-path)]
-                            (assoc (utils/mvn-repo-info pom-path {:exact-version version})
+                          (let [pom-path (utils/artifact->pom local-path)]
+                            (assoc (utils/mvn-repo-info pom-path {:exact-version version :mvn-repos mvn-repos})
                                    :version version
                                    :local-path pom-path)))))
           ; Add parent POM
           (mapcat (juxt identity
                         (fn [{:keys [local-path]}]
                           (when-let [parent-pom-path (utils/get-parent local-path)]
-                            (assoc (utils/mvn-repo-info parent-pom-path {})
+                            (assoc (utils/mvn-repo-info parent-pom-path {:mvn-repos mvn-repos})
                                    :local-path parent-pom-path)))))
           (remove nil?)
           (distinct)
@@ -80,7 +62,7 @@
   [basis]
   (into []
         (comp
-          (filter git?)
+          (filter utils/git?)
           (map (fn [[lib {:keys [git/sha git/url deps/root git/tag]}]]
                  {:lib lib
                   :rev sha
@@ -160,7 +142,7 @@
 
 
 (defn missing-mvn-deps
-  [deps cache-dir]
+  [deps cache-dir mvn-repos]
   (let [cache-dir (fs/path cache-dir mvn-cache-subdir)
         deps-set (into #{} (mapcat (fn [{:keys [snapshot mvn-path]}]
                                      (if-not snapshot
@@ -175,7 +157,7 @@
             (remove deps-set)
             (map (fn [mvn-path]
                    (let [full-path (fs/path cache-dir mvn-path)]
-                     (assoc (utils/mvn-repo-info full-path {:cache-dir cache-dir})
+                     (assoc (utils/mvn-repo-info full-path {:cache-dir cache-dir :mvn-repos mvn-repos})
                             :hash (nix-hash full-path))))))
 
           (fs/glob cache-dir "**.{pom,jar}"))))
@@ -244,7 +226,8 @@
        (tools/prep options)
 
        (let [basis (deps/create-basis options)
-             mvn-deps (maven-deps basis)
+             mvn-repos (utils/get-maven-repos basis)
+             mvn-deps (maven-deps basis mvn-repos)
              git-deps (git-deps basis)
              _ (make-cache! {:mvn-deps mvn-deps
                              :git-deps git-deps
@@ -252,6 +235,7 @@
                              :prep-options options})]
 
          {:mvn mvn-deps
+          :mvn-repos mvn-repos
           :git git-deps})))))
 
 (defn- aliases-combinations
@@ -355,17 +339,18 @@
          (mapcat aliases-combinations)
          (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
        (completing
-         (fn [acc {:keys [mvn git]}]
+         (fn [acc {:keys [mvn git mvn-repos]}]
            (-> acc
              (update :mvn into mvn)
+             (update :mvn-repos into mvn-repos)
              (update :git into git)))
-         (fn [{:keys [mvn git]}]
+         (fn [{:keys [mvn git mvn-repos]}]
            (when lein?
              (download-lein-deps cache-dir))
            (sorted-map-by
              map-comparator
              :lock-version LOCK-VERSION
-             :mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir))
+             :mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir mvn-repos))
                             (sort-by :mvn-path)
                             (map add-to-nix-store!)
                             (map #(into (sorted-map-by map-comparator)
@@ -389,6 +374,7 @@
                                     [])))))
 
        {:mvn extra-mvn
+        :mvn-repos mvn/standard-repos
         :git extra-git}
        (utils/get-deps-files project-dir opts)))))
 
@@ -516,8 +502,8 @@
 (comment
 
   (clojure-deps)
-  (lock-file "/home/jlle/projects/clojure-lsp")
-  (lock-file "/home/jlle/projects/clj-demo-project"
+  (lock-file (fs/expand-home "~/projects/clojure-lsp"))
+  (lock-file (fs/expand-home "~/projects/clj-demo-project")
              {:extra-mvn (-> (io/resource "clojure-deps.edn")
                              slurp
                              edn/read-string)})
@@ -526,7 +512,8 @@
     (tools-deps.dir/with-dir (fs/file (fs/parent deps-path))
       (maven-deps
         (deps/create-basis {:user nil
-                            :project (str deps-path)}))))
+                            :project (str deps-path)})
+        mvn/standard-repos)))
 
   (add-to-nix-store!
     {:local-path
