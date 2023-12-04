@@ -137,17 +137,17 @@ Takes the following attributes (those without a default are mandatory):
 
 - **cljDrv**: Derivation generated with `mkCljBin`.
 
-- **graalvm**: GraalVM used at build time. (Default:
-  `nixpkgs.graalvm-ce`)
+- **graalvm**: GraalVM used at build time. (Default: `nixpkgs.graalvm-ce`)
 
 - **name**: Derivation name. (Default: `cljDrv.name`)
 
 - **version**: Derivation version. (Default: `cljDrv.version`)
 
-- **extraNativeImageBuildArgs**: Extra arguments to be passed to the
-  native-image command. (Default: `[ ]`)
-
-- **graalvmXmx**: XMX size of GraalVM during build (Default: `"-J-Xmx6g"`)
+- Options passed to nixpkgs
+  [buildGraalvmNativeImage](https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/build-graalvm-native-image/default.nix):
+  **nativeBuildInputs**, **nativeImageBuildArgs**,
+  **extraNativeImageBuildArgs**, **graalvmXmx**, **meta**. Empty options are
+  ignored.
 
 **Example**:
 
@@ -156,9 +156,6 @@ mkGraalBin {
   cljDrv = myCljBinDerivation;
 }
 ```
-
-An extra attribute is present in the derivation, `agentlib`, which generates a
-script to help with the generation of a reflection config file
 
 ### mkCljLib
 
@@ -204,8 +201,7 @@ Takes the following attributes:
 
 - **bbLean**: Disable default Babashka features. (Default: `false`)
 
-- **graalvm**: GraalVM used at build time. (Default:
-  `nixpkgs.graalvm-ce`)
+- **graalvm**: GraalVM used at build time. (Default: `nixpkgs.graalvm-ce`)
 
 - **wrap**: Create a wrapper with `rlwrap` (Default: `true`)
 

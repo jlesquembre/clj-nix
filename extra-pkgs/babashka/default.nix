@@ -75,6 +75,7 @@ let
 
       name = "babashka/babashka";
       main-ns = "babashka.main";
+      jdkRunner = graalvm;
       buildCommand =
         ''
           ${if bbLean then "export BABASHKA_LEAN=true" else ""}

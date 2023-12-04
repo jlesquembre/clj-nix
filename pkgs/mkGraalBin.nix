@@ -1,58 +1,64 @@
-# Adapted from
-# https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/build-graalvm-native-image/default.nix
-
 { lib
 , stdenv
 , fetchurl
 , glibcLocales
 , writeShellScript
-, graalvm-ce
+, graalvmCEPackages
 , writeText
+, buildGraalvmNativeImage
 }:
 
 { cljDrv
 , name ? cljDrv.pname
 , version ? cljDrv.version
-, graalvm ? graalvm-ce
 
+  # Options to buildGraalvmNativeImage (passed as provided)
+  # TODO rename to graalvmDrv, align with buildGraalvmNativeImage on nixpkgs
+, graalvm ? graalvmCEPackages.graalvm-ce
+, meta ? { }
+
+  # Options to buildGraalvmNativeImage
+  # If empty, we don't pass those, defaults from buildGraalvmNativeImage are used
 , nativeBuildInputs ? [ ]
-
-  # Default native-image arguments. You probably don't want to set this,
-  # except in special cases. In most cases, use extraNativeBuildArgs instead
-, nativeImageBuildArgs ? [
-    "-H:CLibraryPath=${lib.getLib graalvm}/lib"
-    (lib.optionalString stdenv.isDarwin "-H:-CheckToolchain")
-    "-H:+ReportExceptionStackTraces"
-    # "-H:+PrintClassInitialization"
-    # "--initialize-at-build-time"
-    "--no-fallback"
-    "--verbose"
-  ]
-
-  # Extra arguments to be passed to the native-image
+, nativeImageBuildArgs ? [ ]
 , extraNativeImageBuildArgs ? [ ]
-
-  # XMX size of GraalVM during build
-, graalvmXmx ? "-J-Xmx6g"
+, graalvmXmx ? ""
 , ...
 }@attrs:
 
 let
+  is-empty = element:
+    if builtins.isList element then element == [ ]
+    else if builtins.isString element then element == ""
+    else false;
+
+  # Always remove
   extra-attrs = builtins.removeAttrs attrs [
     "cljDrv"
     "name"
     "version"
+    "extraNativeImageBuildArgs"
     "graalvm"
+  ];
+
+  # Remove only if empty
+  other-attrs = [
     "nativeBuildInputs"
     "nativeImageBuildArgs"
-    "extraNativeImageBuildArgs"
     "graalvmXmx"
   ];
 
-  graal-build-time = fetchurl {
-    url = "https://repo.clojars.org/com/github/clj-easy/graal-build-time/0.1.4/graal-build-time-0.1.4.jar";
-    hash = "sha256-LxsgDKwg1tfioJlny6yrxX76svCLrZsetPAgXP30+hU=";
-  };
+  extra-attrs' =
+    lib.filterAttrs
+      (k: v: (builtins.elem k other-attrs) && (is-empty v))
+      extra-attrs;
+
+  graal-build-time =
+    let version = "1.0.5"; in
+    fetchurl {
+      url = "https://repo.clojars.org/com/github/clj-easy/graal-build-time/${version}/graal-build-time-${version}.jar";
+      hash = "sha256-M6/U27a5n/QGuUzGmo8KphVnNa2K+LFajP5coZiFXoY=";
+    };
 
 in
 
@@ -65,78 +71,19 @@ assert
     ''
 );
 
-stdenv.mkDerivation ({
+buildGraalvmNativeImage ({
+
   inherit version;
   pname = name;
+  graalvmDrv = graalvm;
 
   dontUnpack = true;
+  jar = lib.fileContents "${cljDrv}/nix-support/jar-path";
 
-  nativeBuildInputs = nativeBuildInputs ++ [ graalvm glibcLocales ];
-
-  nativeImageBuildArgs =
+  extraNativeImageBuildArgs = extraNativeImageBuildArgs ++
     [
       "-classpath"
       "${graal-build-time}"
-    ] ++
-    nativeImageBuildArgs ++
-    extraNativeImageBuildArgs ++
-    [
-      graalvmXmx
+      "--features=clj_easy.graal_build_time.InitClojureClasses"
     ];
-
-  # For the options, see:
-  # https://www.graalvm.org/22.1/reference-manual/native-image/BuildConfiguration/
-  # https://www.graalvm.org/22.1/reference-manual/native-image/Options/
-  # Option order is important
-  buildPhase =
-    ''
-      export LC_ALL="en_US.UTF-8"
-
-      runHook preBuild
-
-      export jarPath=$(cat ${cljDrv}/nix-support/jar-path)
-      native-image ''${nativeImageBuildArgs[@]} -jar "$jarPath" ${name}
-
-      runHook postBuild
-    '';
-
-  installPhase =
-    ''
-      runHook preInstall
-
-      install -Dm755 ${name} -t $out/bin
-
-      runHook postInstall
-    '';
-
-  passthru =
-
-    let
-      # See
-      # https://github.com/clj-easy/graal-docs#reflection
-      filter-json = writeText "filter.json"
-        ''
-          {
-            "rules": [
-              { "excludeClasses": "clojure.**" },
-              { "includeClasses": "clojure.lang.Reflector" }
-            ]
-          }
-        '';
-
-      outDir = "./resources/META-INF/native-image-new/${cljDrv.fullId}";
-    in
-
-    {
-      # See https://www.graalvm.org/22.0/reference-manual/native-image/BuildConfiguration/
-      agentlib = writeShellScript "agentlib-helper.sh"
-        ''
-          export jarPath=$(cat ${cljDrv}/nix-support/jar-path)
-          ${graalvm}/bin/java \
-            -agentlib:native-image-agent=caller-filter-file=${filter-json},config-output-dir=${outDir} \
-            -cp "${graal-build-time}" \
-            -jar "$jarPath" \
-            ${cljDrv.javaMain} "$@"
-        '';
-    };
-} // extra-attrs)
+} // extra-attrs')
