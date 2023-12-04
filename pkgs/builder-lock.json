@@ -1,12 +1,12 @@
 [
   {
     "url": "https://github.com/clojure/tools.build.git",
-    "rev": "24f2894d69d14e58ce48eec59d531035303367d7",
+    "rev": "8e78bccc35116f6b6fc0bf0c125dba8b8db8da6b",
     "paths": [
       "src/main/clojure",
       "src/main/resources"
     ],
-    "hash": "sha256-slIuDAcVxPAadxxUfnq0fQ2bBGrDHpdgVmc+TU4wb7M="
+    "hash": "sha256-HxhF4tY5HYvknqpuy5KevUQrHE9G1qtBZX1NNjQh00A="
   },
   {
     "url": "https://repo.clojars.org/babashka/fs/0.4.19/fs-0.4.19.jar",
@@ -25,8 +25,8 @@
     "hash": "sha256-r0NE4pykCo5jCXt7fzs3lnHvNzge2dlVEl1GgwtB3LM="
   },
   {
-    "url": "https://repo.clojars.org/org/babashka/cli/0.7.52/cli-0.7.52.jar",
-    "hash": "sha256-FvcgmncjYCsGZgcExUY7rr5l3RMerZKFdyg/Nm3iYdY="
+    "url": "https://repo.clojars.org/org/babashka/cli/0.7.53/cli-0.7.53.jar",
+    "hash": "sha256-n2GpmSZvwc3EFTsZ1S+yOQIAg5pT1zG+P6V6Os3RmQ4="
   },
   {
     "url": "https://repo.clojars.org/org/clj-commons/byte-streams/0.3.4/byte-streams-0.3.4.jar",
