@@ -46,12 +46,17 @@
                             (assoc (utils/mvn-repo-info pom-path {:exact-version version :mvn-repos mvn-repos})
                                    :version version
                                    :local-path pom-path)))))
-          ; Add parent POM
-          (mapcat (juxt identity
-                        (fn [{:keys [local-path]}]
-                          (when-let [parent-pom-path (utils/get-parent local-path)]
-                            (assoc (utils/mvn-repo-info parent-pom-path {:mvn-repos mvn-repos})
-                                   :local-path parent-pom-path)))))
+
+          ; Add extra POMs (parent and management)
+          (mapcat (fn [{:keys [local-path] :as dep}]
+                    (into [dep]
+                          (map #(assoc (utils/mvn-repo-info % {:mvn-repos mvn-repos})
+                                       :local-path %))
+                          (concat
+                            ; (utils/get-parent local-path)
+                            (utils/get-parent-poms local-path)
+                            (utils/get-management-deps local-path)))))
+
           (remove nil?)
           (distinct)
           (map #(assoc % :hash (nix-hash (:local-path %)))))
