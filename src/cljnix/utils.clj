@@ -17,7 +17,7 @@
     [clojure.tools.deps.extensions.pom :refer [read-model-file]])
   (:import
     [org.apache.maven.model.io.xpp3 MavenXpp3Reader]
-    [org.apache.maven.model Model Repository]))
+    [org.apache.maven.model Model Repository Dependency]))
 
 (defn throw+
   [msg data]
@@ -33,12 +33,18 @@
       (string/includes? "snapshot")))
 
 
-; https://maven.apache.org/ref/3.6.3/maven-model/apidocs/index.html
+; https://maven.apache.org/ref/3.9.6/maven-model/apidocs/index.html
 (defn- pom
   ^Model [pom-path]
   (when (= "pom" (fs/extension pom-path))
     (let [f (io/input-stream (str pom-path))]
       (.read (MavenXpp3Reader.) f))))
+
+; Alternative implementation
+; (defn- pom'
+;   ^Model [pom-path]
+;   (when (= "pom" (fs/extension pom-path))
+;     (read-model-file (io/file pom-path) {:mvn/repos mvn/standard-repos})))
 
 ;; Snapshot jar can be
 ;; foo-123122312.jar
@@ -81,21 +87,6 @@
                                               "."
                                               ext))))
        :snapshot (str artifact-id "-" snapshot-version "." ext)})))
-
-
-(defn get-parent
- [pom-path]
- (when-let [parent (some-> (pom pom-path) (.getParent))]
-    (let [parent-path
-          (fs/path
-            @mvn/cached-local-repo
-            (string/replace (.getGroupId parent) "." "/")
-            (.getArtifactId parent)
-            (.getVersion parent)
-            (format "%s-%s.pom" (.getArtifactId parent) (.getVersion parent)))]
-      (when (fs/exists? parent-path)
-        (str parent-path)))))
-
 
 (defn- get-mvn-repo-name
   [path mvn-repos]
@@ -295,6 +286,65 @@
           (map get-repos))
         (:libs basis)))
 
+
+(defn- dep-path
+  [^Dependency dep]
+  (str
+    (fs/path
+      @mvn/cached-local-repo
+      (string/replace (.getGroupId dep) "." "/")
+      (.getArtifactId dep)
+      (.getVersion dep)
+      (format "%s-%s.pom" (.getArtifactId dep) (.getVersion dep)))))
+
+
+(defn- get-deps
+  [pom-path]
+  (some->> (pom pom-path)
+      (.getDependencyManagement)
+      (.getDependencies)
+      (map dep-path)
+      (filter fs/exists?)
+      (distinct)
+      (remove #(= % pom-path))))
+
+
+(defn get-management-deps
+  "Given a pom file, recursively returns all the management dependencies
+   In many cases those POMs contain BOM information"
+  [pom-path]
+  (when pom-path
+    (loop [deps #{}
+           deps' (get-deps pom-path)]
+      (if-let [dep (first deps')]
+        (recur (conj deps dep)
+               (concat (rest deps') (get-deps dep)))
+        deps))))
+
+
+(defn get-parent
+ [pom-path]
+ (when-let [parent (some-> (pom pom-path) (.getParent))]
+    (let [parent-path
+          (fs/path
+            @mvn/cached-local-repo
+            (string/replace (.getGroupId parent) "." "/")
+            (.getArtifactId parent)
+            (.getVersion parent)
+            (format "%s-%s.pom" (.getArtifactId parent) (.getVersion parent)))]
+      (when (fs/exists? parent-path)
+        (str parent-path)))))
+
+
+(defn get-parent-poms
+  "Given a pom file, recursively returns all parent POMs"
+  [pom-path]
+  (loop [parents []
+         new-parent (get-parent pom-path)]
+     (if (nil? new-parent)
+       parents
+       (recur (conj parents new-parent)
+              (get-parent new-parent)))))
 
 (comment
 
