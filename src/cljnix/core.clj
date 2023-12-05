@@ -16,7 +16,8 @@
     [cljnix.utils :refer [throw+] :as utils]
     [cljnix.nix :refer [nix-hash]]
     [clojure.tools.deps.util.dir :as tools-deps.dir]
-    [clojure.tools.deps.util.io :refer [printerrln]]))
+    [clojure.tools.deps.util.io :refer [printerrln]]
+    [medley.core :as medley]))
 
 
 (def LOCK-VERSION 3)
@@ -328,6 +329,15 @@
         (->> (remove (set alias-exclude)))
         (cond->> (seq alias-include) (filter (set alias-include))))))
 
+(def standard-repos
+  (into #{}
+    (map :url)
+    (vals mvn/standard-repos)))
+
+(defn- is-standard-repo
+  [{:keys [mvn-repo]}]
+  (if (standard-repos mvn-repo)
+    0 1))
 
 (defn lock-file
   ([project-dir]
@@ -356,7 +366,8 @@
              map-comparator
              :lock-version LOCK-VERSION
              :mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir mvn-repos))
-                            (sort-by :mvn-path)
+                            (sort-by (juxt :mvn-path is-standard-repo :mvn-repo))
+                            (medley/dedupe-by :mvn-path)
                             (map add-to-nix-store!)
                             (map #(into (sorted-map-by map-comparator)
                                         (select-keys % [:mvn-repo :mvn-path :hash :snapshot])))
