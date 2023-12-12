@@ -277,7 +277,7 @@
 (defn get-maven-repos
   "Given a basis, returns all maven repos"
   [basis]
-  (into mvn/standard-repos
+  (into (merge mvn/standard-repos (:mvn/repos basis))
         (comp
           (filter mvn?)
           (map val)
