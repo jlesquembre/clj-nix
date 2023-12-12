@@ -29,6 +29,10 @@
 , compileCljOpts ? null
 , javacOpts ? null
 , enableLeiningen ? false
+, builder-extra-inputs ? [ ]
+, builder-java-opts ? [ ]
+, builder-preBuild ? ""
+, builder-postBuild ? ""
 
   # Needed for version ranges
   # TODO maybe we can find a better solution?
@@ -50,6 +54,10 @@ let
     "nativeBuildInputs"
     "compileCljOpts"
     "javacOpts"
+    "builder-extra-inputs"
+    "builder-java-opts"
+    "builder-preBuild"
+    "builder-postBuild"
   ];
 
   deps-cache = mk-deps-cache {
@@ -78,7 +86,13 @@ stdenv.mkDerivation ({
       ++
       [
         jdkRunner
-        clj-builder
+        (clj-builder.override {
+          jdk = jdkRunner;
+          extra-runtime-inputs = builder-extra-inputs;
+          java-opts = builder-java-opts;
+          preBuild = builder-preBuild;
+          postBuild = builder-postBuild;
+        })
       ]
       ++ (lib.lists.optional (! isNull buildCommand) (clojure.override { jdk = jdkRunner; }))
       ++ (lib.lists.optional enableLeiningen leiningen);

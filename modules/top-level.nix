@@ -46,8 +46,32 @@ let types = lib.types; in
     buildCommand = lib.mkOption {
       default = null;
       type = types.nullOr types.str;
-      description = "Command to build the jar application. If not provided, a default builder is used";
+      description = lib.mdDoc "Command to build the jar application. If not provided, a default builder is used";
     };
+
+    builder-extra-inputs = lib.mkOption {
+      default = [ ];
+      type = types.listOf types.package;
+      description = lib.mdDoc "Extra inputs to the default builder";
+    };
+
+    builder-java-opts = lib.mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = lib.mdDoc "List of Java options to include in default builder command";
+    };
+
+    builder-preBuild = lib.mkOption {
+      default = "";
+      type = types.str;
+      description = lib.mdDoc "Pre build commands for the default builder";
+    };
+    builder-postBuild = lib.mkOption {
+      default = "";
+      type = types.str;
+      description = lib.mdDoc "Post build commands for the default builder";
+    };
+
 
     lockfile = lib.mkOption {
       default = null;

@@ -63,6 +63,16 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
 - **enableLeiningen**: Makes Leiningen accessible at build time (Default:
   `false`)
 
+- **builder-extra-inputs**: Extra inputs to the default builder (Default: `[ ]`)
+
+- **builder-java-opts** List of Java options to include in default builder
+  command (Default: `[ ]`)
+
+- **builder-preBuild** Pre build commands for the default builder (Default:
+  `""`)
+- **builder-postBuild** Post build commands for the default builder (Default:
+  `""`)
+
 **Example**:
 
 ```nix
