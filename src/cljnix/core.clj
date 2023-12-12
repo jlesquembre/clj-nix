@@ -542,7 +542,7 @@
      :rev "7d40500863818c6f9a6e077b18db305d02149384"
      :lib "io.github.clojure/tools.build"})
 
-  (get-deps! (fs/file "deps.edn") "/tmp/my-deps")
+  (get-deps! "~/projects/clj-demo-project/deps.edn" "/tmp/my-deps" nil)
 
   (-> (fs/canonicalize "deps.edn")
     (deps-file->deps+alias {:alias-include [:main]})
