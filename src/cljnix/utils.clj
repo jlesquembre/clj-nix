@@ -41,10 +41,10 @@
       (.read (MavenXpp3Reader.) f))))
 
 ; Alternative implementation
-; (defn- pom'
-;   ^Model [pom-path]
-;   (when (= "pom" (fs/extension pom-path))
-;     (read-model-file (io/file pom-path) {:mvn/repos mvn/standard-repos})))
+(defn- pom'
+  ^Model [pom-path]
+  (when (= "pom" (fs/extension pom-path))
+    (read-model-file (io/file (str pom-path)) {:mvn/repos mvn/standard-repos})))
 
 ;; Snapshot jar can be
 ;; foo-123122312.jar
@@ -301,13 +301,12 @@
 (defn- get-deps
   [pom-path]
   (some->> (pom pom-path)
-      (.getDependencyManagement)
-      (.getDependencies)
-      (map dep-path)
-      (filter fs/exists?)
-      (distinct)
-      (remove #(= % pom-path))))
-
+           (.getDependencyManagement)
+           (.getDependencies)
+           (map dep-path)
+           (filter fs/exists?)
+           (distinct)
+           (remove #(= % pom-path))))
 
 (defn get-management-deps
   "Given a pom file, recursively returns all the management dependencies
@@ -316,10 +315,11 @@
   (when pom-path
     (loop [deps #{}
            deps' (get-deps pom-path)]
-      (if-let [dep (first deps')]
-        (recur (conj deps dep)
-               (concat (rest deps') (get-deps dep)))
-        deps))))
+      (let [new-deps (remove deps deps')]
+        (if-let [dep (first new-deps)]
+          (recur (conj deps dep)
+                 (concat (rest new-deps) (get-deps dep)))
+          deps)))))
 
 
 (defn get-parent
@@ -339,7 +339,7 @@
 (defn get-parent-poms
   "Given a pom file, recursively returns all parent POMs"
   [pom-path]
-  (loop [parents []
+  (loop [parents #{}
          new-parent (get-parent pom-path)]
      (if (nil? new-parent)
        parents
@@ -356,6 +356,11 @@
 
   (mvn-repo-info (fs/expand-home "~/.m2/repository/org/clojure/clojure/1.11.1/clojure-1.11.1.jar"))
   (mvn-repo-info (fs/expand-home "~/.m2/repository/org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"))
+  (get-management-deps (fs/expand-home "~/.m2/repository/metosin/reitit/0.5.15/reitit-0.5.15.pom"))
+
+  (fs/expand-home "~/.m2/repository/metosin/reitit/0.5.15/reitit-0.5.15.pom")
+  (get-management-deps (fs/expand-home "~/.m2/repository/com/google/firebase/firebase-admin/9.2.0/firebase-admin-9.2.0.pom"))
+  (get-parent-poms (fs/expand-home "~/.m2/repository/io/grpc/grpc-bom/1.55.1/pom.xml"))
 
 
   (=
