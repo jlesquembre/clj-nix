@@ -49,3 +49,17 @@
                        {:mvn-path "org/apache/geronimo/specs/specs/1.1/specs-1.1.pom"
                         :hash "sha256-C7dXlXPQwHQ8O4HAN297KRrPb/OwP0DQvULK2gOjYlA="}])
             (:mvn-deps (c/lock-file project-dir)))))))
+
+(deftest invalid-_remote.repositories
+  (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
+    (let [spit-helper (h/make-spit-helper project-dir)]
+      (spit-helper "deps.edn" {:deps {'org.clojure/clojure {:mvn/version "1.11.0-alpha1"}}})
+      (is (match?
+            (m/embeds [{:mvn-path "org/clojure/clojure/1.11.0-alpha1/clojure-1.11.0-alpha1.jar"
+                        :mvn-repo "https://repo.maven.apache.org/maven2/"}])
+            (:mvn-deps (c/lock-file project-dir))))
+      (fs/delete-if-exists (fs/expand-home "~/.m2/repository/org/clojure/clojure/1.11.0-alpha1/_remote.repositories"))
+      (is (match?
+            (m/embeds [{:mvn-path "org/clojure/clojure/1.11.0-alpha1/clojure-1.11.0-alpha1.jar"
+                        :mvn-repo "https://repo.maven.apache.org/maven2/"}])
+            (:mvn-deps (c/lock-file project-dir)))))))
