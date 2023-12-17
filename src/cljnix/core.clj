@@ -347,7 +347,7 @@
                  :or {extra-mvn []
                       extra-git []}
                  :as opts}]
-   (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
+   (let [cache-dir (fs/create-temp-dir {:prefix "clj-cache"})]
      (transduce
        (comp
          (map #(deps-file->deps+alias % opts))
