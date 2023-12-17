@@ -36,9 +36,12 @@
 ; https://maven.apache.org/ref/3.9.6/maven-model/apidocs/index.html
 (defn- pom
   ^Model [pom-path]
-  (when (= "pom" (fs/extension pom-path))
-    (let [f (io/input-stream (str pom-path))]
-      (.read (MavenXpp3Reader.) f))))
+  (try
+    (when (= "pom" (fs/extension pom-path))
+      (let [f (io/input-stream (str pom-path))]
+        (.read (MavenXpp3Reader.) f)))
+    (catch Exception _
+      (printerrln "Error parsing [skiping]" pom-path))))
 
 ; Alternative implementation
 (defn- pom'
