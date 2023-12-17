@@ -86,10 +86,10 @@
 (defn- copy-if-needed
   "Copy if dest doesn't exist"
   [src dest]
-  (let [dest (cond-> dest (fs/directory? dest) (fs/path (fs/file-name src)))]
-    (when-not (fs/exists? (cond-> dest))
-      (fs/copy src dest))))
-
+  (when (fs/exists? src) ;; _remote.repositories files aren't always present
+    (let [dest (cond-> dest (fs/directory? dest) (fs/path (fs/file-name src)))]
+      (when-not (fs/exists? (cond-> dest))
+        (fs/copy src dest)))))
 
 (defn make-maven-cache!
   [deps cache-path]

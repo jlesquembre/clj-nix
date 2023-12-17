@@ -10,6 +10,7 @@
     [clojure.tools.gitlibs.impl :as gli]
     [clojure.tools.deps :as deps]
     [babashka.fs :as fs]
+    [babashka.http-client :as http]
     [version-clj.core :as version]
     [clojure.zip :as zip]
     [borkdude.rewrite-edn :as r]
@@ -17,7 +18,8 @@
     [clojure.tools.deps.extensions.pom :refer [read-model-file]])
   (:import
     [org.apache.maven.model.io.xpp3 MavenXpp3Reader]
-    [org.apache.maven.model Model Repository Dependency]))
+    [org.apache.maven.model Model Repository Dependency]
+    [java.net URI]))
 
 (defn throw+
   [msg data]
@@ -93,15 +95,41 @@
 
 (defn- get-mvn-repo-name
   [path mvn-repos]
-  (let [info-file (fs/path (fs/parent path) "_remote.repositories")
-        file-name (fs/file-name path)
-        repo-name-finder (fn [s] (second (re-find
-                                           (re-pattern (str file-name #">(\S+)="))
-                                           s)))]
-    (some #(let [repo-name (repo-name-finder %)]
-             (when (contains? mvn-repos repo-name)
-               repo-name))
-          (fs/read-all-lines info-file))))
+  (try
+    (let [info-file (fs/path (fs/parent path) "_remote.repositories")
+          file-name (fs/file-name path)
+          repo-name-finder (fn [s] (second (re-find
+                                             (re-pattern (str file-name #">(\S+)="))
+                                             s)))]
+      (some #(let [repo-name (repo-name-finder %)]
+               (when (contains? mvn-repos repo-name)
+                 repo-name))
+           (fs/read-all-lines info-file)))
+    (catch Exception _ nil)))
+
+
+(defn- valid-url?
+  [url]
+  (try
+    (boolean (http/head url))
+    (catch Exception _ false)))
+
+(defn- join-url
+  [url path]
+  (let [url (if (string/ends-with? url "/")
+              url
+              (str url "/"))]
+    (-> (URI. url)
+      (.resolve path)
+      (str))))
+
+(defn- find-mvn-repo-name!
+  [mvn-path mvn-repos]
+  (some (fn [[repo-name {:keys [url]}]]
+          (when (valid-url? (join-url url mvn-path))
+            repo-name))
+        mvn-repos))
+
 
 (defn mvn-repo-info
   "Given a path for a jar in the maven local repo, e.g:
@@ -114,7 +142,10 @@
            (not (nil? exact-version))
            true)]}
   (let [{:keys [resolved-path snapshot]} (resolve-snapshot path exact-version)
-        repo-name (get-mvn-repo-name resolved-path mvn-repos)
+        mvn-path (str (fs/relativize cache-dir resolved-path))
+        repo-name (or
+                    (get-mvn-repo-name resolved-path mvn-repos)
+                    (find-mvn-repo-name! mvn-path mvn-repos))
         repo-url (get-in mvn-repos [repo-name :url])
         repo-url (cond
                    (nil? repo-url) (throw+ "Maven repo not found"
@@ -124,7 +155,7 @@
                    ((complement string/ends-with?) repo-url "/") (str repo-url "/")
                    :else repo-url)]
      (cond-> {:mvn-repo repo-url
-              :mvn-path (str (fs/relativize cache-dir resolved-path))
+              :mvn-path mvn-path
               :url (str repo-url (fs/relativize cache-dir resolved-path))}
        snapshot (assoc :snapshot snapshot))))
 
