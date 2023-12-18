@@ -790,6 +790,19 @@ default are mandatory, extra attributes are passed to <strong>mkDerivation</stro
 <p><strong>enableLeiningen</strong>: Makes Leiningen accessible at build time (Default:
   <code>false</code>)</p>
 </li>
+<li>
+<p><strong>builder-extra-inputs</strong>: Extra inputs to the default builder (Default: <code>[ ]</code>)</p>
+</li>
+<li>
+<p><strong>builder-java-opts</strong> List of Java options to include in default builder
+  command (Default: <code>[ ]</code>)</p>
+</li>
+<li>
+<p><strong>builder-preBuild</strong> Pre build commands for the default builder (Default:
+  <code>""</code>)</p>
+</li>
+<li><strong>builder-postBuild</strong> Post build commands for the default builder (Default:
+  <code>""</code>)</li>
 </ul>
 <p><strong>Example</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mkCljBin <span class="p">{</span>
