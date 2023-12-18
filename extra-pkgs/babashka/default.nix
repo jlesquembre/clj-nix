@@ -2,6 +2,7 @@
 , mkCljBin
 , mkGraalBin
 , fetchFromGitHub
+, fetchurl
 , rlwrap
 , makeWrapper
 , writeShellApplication
@@ -72,6 +73,15 @@ let
       projectSrc = projectInfo.src;
       lockfile = ./deps-lock.json;
       enableLeiningen = true;
+
+      # TODO temp fix until next babashka version:
+      # https://github.com/babashka/babashka/issues/1647
+      patches = [
+        (fetchurl {
+          url = "https://github.com/babashka/babashka/commit/6052b9ba3572ae13b3ae6002d6a4a7c7aab199da.patch";
+          hash = "sha256-/wNHb1GDKDSdskAaotl56vu5a888pBC5u7wi1g+SLkM=";
+        })
+      ];
 
       name = "babashka/babashka";
       main-ns = "babashka.main";
