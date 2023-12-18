@@ -91,20 +91,15 @@ stdenv.mkDerivation ({
     inherit main-ns fullId groupId artifactId javaMain;
   };
 
-  patchPhase =
-    ''
-      runHook prePatch
-    ''
-    +
+  preBuildPhases = [ "preBuildPhase" ];
+  preBuildPhase =
     (lib.strings.optionalString (! isNull lockfile)
       ''
         cp "${lockfile}" deps-lock.json
       ''
-    )
-    +
+    ) +
     ''
       clj-builder patch-git-sha "$(pwd)"
-      runHook postPatch
     '';
 
   # Clojure environment variables:
