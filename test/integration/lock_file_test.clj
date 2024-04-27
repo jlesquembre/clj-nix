@@ -7,6 +7,35 @@
     [matcher-combinators.test]
     [matcher-combinators.matchers :as m]))
 
+(deftest manual-manifest
+  (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
+    (let [spit-helper (h/make-spit-helper project-dir)]
+      (spit-helper "deps.edn"
+                   {:deps
+                    {'squint/squint
+                     {:deps/manifest :deps
+                      :git/sha "435db9c953a5c00a37f20fde5b76c0542a44abaa"
+                      :git/url "https://github.com/squint-cljs/squint"}}})
+      (is (match?
+           (m/embeds [{:mvn-path "borkdude/edamame/1.0.16/edamame-1.0.16.jar"
+                       :mvn-repo "https://repo.clojars.org/"
+                       :hash "sha256-Y4GkQ+c5+EwR3wcqUoo11jVRO8O2rP3Um5CgqlN018A=" }])
+           (:mvn-deps (c/lock-file project-dir)))))))
+
+(deftest metrics-test
+  (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
+    (let [spit-helper (h/make-spit-helper project-dir)]
+      (spit-helper "deps.edn"
+                   {:deps
+                    {'metrics-clojure/metrics-clojure
+                     {:git/url "https://github.com/clj-commons/metrics-clojure"
+                      :deps/root "metrics-clojure-core"
+                      :git/sha "532fc437e734b049a54cb9a198f201dc5f47328e"}}})
+      (is (match?
+           (m/embeds [{:mvn-path "io/dropwizard/metrics/metrics-core/4.0.5/metrics-core-4.0.5.jar"
+                       :mvn-repo "https://repo.maven.apache.org/maven2/"
+                       :hash "sha256-4x9bwvxY3KzQzzH36vpD07mBhz2sDT8P/rsUVnXxyKg="}])
+           (:mvn-deps (c/lock-file project-dir)))))))
 
 (deftest firebase-admin-test
   (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]

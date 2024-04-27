@@ -17,7 +17,8 @@
     [cljnix.nix :refer [nix-hash]]
     [clojure.tools.deps.util.dir :as tools-deps.dir]
     [clojure.tools.deps.util.io :refer [printerrln]]
-    [medley.core :as medley]))
+    [medley.core :as medley]
+    [clojure.string :as str]))
 
 
 (def LOCK-VERSION 3)
@@ -70,15 +71,19 @@
         (comp
           (filter utils/git?)
           (map (fn [[lib {:keys [git/sha git/url deps/root git/tag]}]]
-                 {:lib lib
-                  :rev sha
-                  :url url
-                  :tag tag
-                  :git-dir (utils/git-dir url)
-                  :hash (nix-hash root)
-                  :local-path root})))
+                 (let [local-path
+                       ;; we need the root repository, even when a :deps/root sub directory has been specified
+                       (-> (str/split root (re-pattern sha))
+                           first
+                           (str sha "/"))]
+                   {:lib lib
+                    :rev sha
+                    :url url
+                    :tag tag
+                    :git-dir (utils/git-dir url)
+                    :hash (nix-hash local-path)
+                    :local-path local-path}))))
         (:libs basis)))
-
 
 (def mvn-cache-subdir "mvn")
 (def git-cache-subdir "git")
