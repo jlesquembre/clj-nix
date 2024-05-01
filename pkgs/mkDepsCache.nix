@@ -10,7 +10,7 @@
 , maven-extra ? [ ]
 }:
 let
-  deps-lock-version = 3;
+  deps-lock-version = 4;
 
   consUrl = segments:
     lib.pipe
@@ -70,10 +70,12 @@ let
       '' +
       (lib.concatMapStringsSep
         "\n"
-        ({ git-dir, ... }:
+        ({ git-dir, rev, ... }@data:
           ''
-            mkdir -p $out/${git-dir}
+            mkdir -p $out/${git-dir}/revs
+            json='${builtins.toJSON data}'
             touch $out/${git-dir}/config
+            echo "$json" > $out/${git-dir}/revs/${rev}
           ''
         )
         lock.git-deps)

@@ -18,10 +18,11 @@
     [clojure.tools.deps.util.dir :as tools-deps.dir]
     [clojure.tools.deps.util.io :refer [printerrln]]
     [medley.core :as medley]
-    [clojure.string :as str]))
+    [clojure.string :as str]
+    [cljnix.git :as git]))
 
 
-(def LOCK-VERSION 3)
+(def LOCK-VERSION 4)
 
 (def add-to-nix-store?
   (and
@@ -344,6 +345,26 @@
   (if (standard-repos mvn-repo)
     0 1))
 
+(defn calc-ancestors [{:keys [cache-dir]} git-libs]
+  (let [gits (group-by :lib git-libs)]
+    (->> git-libs
+         (mapv (fn [{:keys [lib rev git-dir] :as o}]
+                 (if-let [anc (some->> (get gits lib)
+                                       (remove #(= (:rev %) rev))
+                                       (map (fn [{sib-rev :rev}]
+                                              [sib-rev
+                                               (git/ancestor?
+                                                (str (fs/file
+                                                      cache-dir
+                                                      "git/_repos"
+                                                      git-dir))
+                                                rev
+                                                sib-rev)]))
+                                       seq
+                                       (into {}))]
+                   (assoc o :ancestor? anc)
+                   o))))))
+
 (defn lock-file
   ([project-dir]
    (lock-file project-dir {}))
@@ -392,7 +413,8 @@
                                       (if (same-git-dep? (peek acc) v)
                                         (conj (pop acc) (merge v (peek acc)))
                                         (conj acc v)))
-                                    [])))))
+                                    [])
+                            (calc-ancestors {:cache-dir cache-dir})))))
 
        {:mvn extra-mvn
         :mvn-repos mvn/standard-repos

@@ -43,6 +43,7 @@
       packages = eachSystem (pkgs:
         {
           inherit (pkgs) clj-builder deps-lock mk-deps-cache
+            fake-git
             mkCljBin mkCljLib mkGraalBin customJdk
             cljHooks
             mkBabashka bbTasksFromFile;
@@ -117,6 +118,7 @@
       overlays.default = final: prev:
         let common = final.callPackage ./pkgs/common.nix { }; in
         {
+          fake-git = final.callPackage ./pkgs/fakeGit.nix { };
           deps-lock = final.callPackage ./pkgs/depsLock.nix { inherit common; };
           clj-builder = final.callPackage ./pkgs/cljBuilder.nix { inherit common; };
           mk-deps-cache = final.callPackage ./pkgs/mkDepsCache.nix;
