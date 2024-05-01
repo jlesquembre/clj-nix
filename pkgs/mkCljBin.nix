@@ -13,6 +13,7 @@
 , clj-builder
 , mk-deps-cache
 , common
+, fake-git
 
 }:
 
@@ -94,6 +95,7 @@ stdenv.mkDerivation ({
           postBuild = builder-postBuild;
         })
       ]
+      ++ [ fake-git ]
       ++ (lib.lists.optional (! isNull buildCommand) (clojure.override { jdk = jdkRunner; }))
       ++ (lib.lists.optional enableLeiningen leiningen);
 

@@ -17,10 +17,47 @@
                       :git/sha "435db9c953a5c00a37f20fde5b76c0542a44abaa"
                       :git/url "https://github.com/squint-cljs/squint"}}})
       (is (match?
-           (m/embeds [{:mvn-path "borkdude/edamame/1.0.16/edamame-1.0.16.jar"
-                       :mvn-repo "https://repo.clojars.org/"
-                       :hash "sha256-Y4GkQ+c5+EwR3wcqUoo11jVRO8O2rP3Um5CgqlN018A=" }])
-           (:mvn-deps (c/lock-file project-dir)))))))
+           (m/embeds [{:lib "squint/squint"
+                       :url "https://github.com/squint-cljs/squint"
+                       :rev "435db9c953a5c00a37f20fde5b76c0542a44abaa"
+                       :git-dir "https/github.com/squint-cljs/squint"
+                       :hash "sha256-c6Rfl+wMJpkSnS1DOPwHCQjrNmu+KLJoracqSm2luOk="}])
+           (:git-deps (c/lock-file project-dir)))))))
+
+(deftest maestro-build-test
+  (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
+    (let [spit-helper (h/make-spit-helper project-dir)]
+      (spit-helper "deps.edn"
+                   {:deps
+                    {'protosens/maestro.plugin.build
+                     {:deps/root "module/maestro.plugin.build"
+                      :git/sha "b9ecc401e480060aac19c246dc160056452707d7"
+                      :git/url   "https://github.com/protosens/monorepo.cljc"}}})
+      (is (match?
+           (m/embeds [{:lib "protosens/classpath"
+                       :url "https://github.com/protosens/monorepo.cljc"
+                       :rev "277a4eda9c1b9a847c89f135a39637c206914869"
+                       :git-dir "https/github.com/protosens/monorepo.cljc"
+                       :hash "sha256-tjBLQ5ivHo9xBriVIK54jYFQQYHGupSU1UWbqEnIEwE="
+                       :ancestor? {"5d3ec3037483f09336a79e9e38eb4f64e4b30232" false}}])
+           (:git-deps (c/lock-file project-dir)))))))
+
+(deftest maestro-test
+  (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
+    (let [spit-helper (h/make-spit-helper project-dir)]
+      (spit-helper "deps.edn"
+                   {:deps
+                    {'protosens/maestro
+                     {:deps/root "module/maestro"
+                      :git/sha "b9ecc401e480060aac19c246dc160056452707d7"
+                      :git/url   "https://github.com/protosens/monorepo.cljc"}}})
+      (is (match?
+           (m/embeds [{:lib "protosens/maestro"
+                       :url "https://github.com/protosens/monorepo.cljc"
+                       :rev "b9ecc401e480060aac19c246dc160056452707d7"
+                       :git-dir "https/github.com/protosens/monorepo.cljc"
+                       :hash "sha256-jYYl5WIeyjmL5yv3CMPua0gtYFkccJCwEYNdnaibIuQ="}])
+           (:git-deps (c/lock-file project-dir)))))))
 
 (deftest metrics-test
   (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
