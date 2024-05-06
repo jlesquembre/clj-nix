@@ -18,18 +18,22 @@
 
       (= rest-args ["tag" "--sort=v:refname"])
       (->> (rev-data git-dir)
-           (map :tag)
-           (remove nil?)
+           (eduction
+            (map :tag)
+            (map str/trim)
+            (remove str/blank?)
+            (remove nil?))
            vec)
 
       (= (first rest-args) "rev-parse")
       (let [commit (str/replace (second rest-args) #"\^\{commit\}" "")]
         (->> (rev-data git-dir)
-             (filter #(or (let [tag (:tag %)]
-                            (and tag (= tag commit)))
-                          (str/starts-with? (:rev %) commit)))
-             (map :rev)
-             (take 1)
+             (eduction
+              (filter #(or (let [tag (:tag %)]
+                             (and tag (= tag commit)))
+                           (str/starts-with? (:rev %) commit)))
+              (map :rev)
+              (take 1))
              vec))
 
       (and (= (first rest-args) "merge-base")

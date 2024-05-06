@@ -26,7 +26,7 @@
        (= expected
           (get-result (run-fake-git project-dir cmd)))))))
 
-(deftest test-fake-git-tags
+(deftest fake-git-tags-test
   (fake-git-test
    [{:rev "rev1"
      :tag "v0.0.1"}
@@ -37,10 +37,7 @@
     "v0.0.2"]
    #(-> % :out str/split-lines)))
 
-(comment
-  (test-fake-git-tags))
-
-(deftest test-fake-git-rev-parse-tag
+(deftest fake-git-rev-parse-tag-test
   (fake-git-test
    [{:rev "rev1"
      :tag "v0.0.1"}
@@ -50,7 +47,7 @@
    ["rev1"]
    #(-> % :out str/split-lines)))
 
-(deftest test-fake-git-rev-parse-short-sha
+(deftest fake-git-rev-parse-short-sha-test
   (fake-git-test
    [{:rev "rev1abc"
      :tag "v0.0.1"}
@@ -60,7 +57,7 @@
    ["rev2abc"]
    #(-> % :out str/split-lines)))
 
-(deftest test-fake-git-rev-parse-full-sha
+(deftest fake-git-rev-parse-full-sha-test
   (fake-git-test
    [{:rev "rev1abc"
      :tag "v0.0.1"}
@@ -70,7 +67,7 @@
    ["rev2abc"]
    #(-> % :out str/split-lines)))
 
-(deftest test-fake-git-is-ancestor
+(deftest fake-git-is-ancestor-test
   (fake-git-test
    [{:rev "rev1abc"
      :tag "v0.0.1"
@@ -81,7 +78,7 @@
    0
    #(-> % :exit)))
 
-(deftest test-fake-git-is-not-ancestor
+(deftest fake-git-is-not-ancestor-test
   (fake-git-test
    [{:rev "rev1abc"
      :tag "v0.0.1"
