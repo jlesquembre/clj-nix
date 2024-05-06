@@ -10,6 +10,7 @@
     [clojure.tools.deps.cli.api :as tools]
     [clojure.tools.deps :as deps]
     [clojure.tools.gitlibs.config :as gitlibs-config]
+    [clojure.tools.gitlibs.impl :as gitlibs-impl]
     [clojure.data.json :as json]
     [babashka.cli :as cli]
     [babashka.fs :as fs]
@@ -18,8 +19,7 @@
     [clojure.tools.deps.util.dir :as tools-deps.dir]
     [clojure.tools.deps.util.io :refer [printerrln]]
     [medley.core :as medley]
-    [clojure.string :as str]
-    [cljnix.git :as git]))
+    [clojure.string :as str]))
 
 
 (def LOCK-VERSION 4)
@@ -353,7 +353,7 @@
                                        (remove #(= (:rev %) rev))
                                        (map (fn [{sib-rev :rev}]
                                               [sib-rev
-                                               (git/ancestor?
+                                               (#'gitlibs-impl/ancestor?
                                                 (str (fs/file
                                                       cache-dir
                                                       "git/_repos"
