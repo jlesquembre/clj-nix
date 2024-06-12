@@ -2,17 +2,18 @@
   (:require
    [clojure.test :refer [deftest is use-fixtures]]
    [babashka.fs :as fs]
+   [babashka.process :as ps]
    [cljnix.test-helpers :as h]
-   [cljnix.nix :as nix]
    [matcher-combinators.test]
-   [clojure.java.shell :as sh]
-   [clojure.string :as str])
-  )
+   [fake-git :as fake-git]))
 
 (defn- run-fake-git [project-dir cmd]
-  (sh/sh
-   "bash" "-c"
-   (str "nix run .#fake-git -- --git-dir " project-dir " " cmd)))
+  (fake-git/main*
+   (concat
+    ["--git-dir"
+     project-dir]
+
+    (ps/tokenize cmd))))
 
 (defn- fake-git-test [revs cmd expected get-result]
   (fs/with-temp-dir [project-dir {:prefix "gitlibs"}]
@@ -35,7 +36,7 @@
     "tag --sort=v:refname"
    ["v0.0.1"
     "v0.0.2"]
-   #(-> % :out str/split-lines)))
+   #(-> % :out)))
 
 (deftest fake-git-rev-parse-tag-test
   (fake-git-test
@@ -45,7 +46,7 @@
      :tag "v0.0.2"}]
     "rev-parse v0.0.1^{commit}"
    ["rev1"]
-   #(-> % :out str/split-lines)))
+   #(-> % :out)))
 
 (deftest fake-git-rev-parse-short-sha-test
   (fake-git-test
@@ -55,7 +56,7 @@
      :tag "v0.0.2"}]
     "rev-parse rev2^{commit}"
    ["rev2abc"]
-   #(-> % :out str/split-lines)))
+   #(-> % :out)))
 
 (deftest fake-git-rev-parse-full-sha-test
   (fake-git-test
@@ -65,7 +66,7 @@
      :tag "v0.0.2"}]
     "rev-parse rev2abc^{commit}"
    ["rev2abc"]
-   #(-> % :out str/split-lines)))
+   #(-> % :out)))
 
 (deftest fake-git-is-ancestor-test
   (fake-git-test
