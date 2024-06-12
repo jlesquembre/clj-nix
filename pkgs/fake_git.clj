@@ -14,27 +14,31 @@
   (let [git-dir (-> args :opts :git-dir)
         rest-args (:args args)]
     (cond
-      (= (first rest-args) "fetch") nil
+      (= (first rest-args) "fetch") {:exit 0}
 
       (= rest-args ["tag" "--sort=v:refname"])
-      (->> (rev-data git-dir)
-           (eduction
-            (map :tag)
-            (map str/trim)
-            (remove str/blank?)
-            (remove nil?))
-           vec)
+      {:exit 0
+       :out
+       (->> (rev-data git-dir)
+            (eduction
+             (map :tag)
+             (map str/trim)
+             (remove str/blank?)
+             (remove nil?))
+            vec)}
 
       (= (first rest-args) "rev-parse")
       (let [commit (str/replace (second rest-args) #"\^\{commit\}" "")]
-        (->> (rev-data git-dir)
-             (eduction
-              (filter #(or (let [tag (:tag %)]
-                             (and tag (= tag commit)))
-                           (str/starts-with? (:rev %) commit)))
-              (map :rev)
-              (take 1))
-             vec))
+        {:exit 0
+         :out
+         (->> (rev-data git-dir)
+              (eduction
+               (filter #(or (let [tag (:tag %)]
+                              (and tag (= tag commit)))
+                            (str/starts-with? (:rev %) commit)))
+               (map :rev)
+               (take 1))
+              vec)})
 
       (and (= (first rest-args) "merge-base")
            (= (second rest-args) "--is-ancestor"))
@@ -43,17 +47,19 @@
             rev-f (str git-dir "/revs/" rev)
             rev-d (json/parse-string (slurp rev-f))]
         (if (get-in rev-d ["ancestor?" ancestor])
-          [0]
-          [1]))
+          {:exit 0}
+          {:exit 1}))
 
       :else
       (throw (Exception. (str "fake-git: unknown git command - " args))))))
 
-(defn -main []
-  (let [res (result (cli/parse-args *command-line-args*))]
-    (doseq [line res]
-      (cond (= line 0) (System/exit 0)
-            (= line 1) (System/exit 1)
-            :else (println line)))))
+(defn main* [args]
+  (result (cli/parse-args args)))
 
-(-main)
+(defn main []
+  (when (= *file* (System/getProperty "babashka.file"))
+    (let [{:keys [exit out] :as res} (main* *command-line-args*)]
+      (if (= 0 exit)
+        (->> out (str/join "\n") println)
+        (System/exit exit)))))
+(main)
