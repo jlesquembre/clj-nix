@@ -133,8 +133,8 @@
       "git-dir": "https/github.com/cognitect-labs/test-runner",
       "hash": "sha256-NZ9/S82Ae1aq0gnuTLOYg/cc7NcYIoK2JP6c/xI+xJE=",
       "ancestor?": {
-        "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73": true,
-        "7284cda41fb9edc0f3bc6b6185cfb7138fc8a023": true
+        "7284cda41fb9edc0f3bc6b6185cfb7138fc8a023": true,
+        "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73": true
       }
     },
     {
@@ -144,8 +144,8 @@
       "git-dir": "https/github.com/cognitect-labs/test-runner",
       "hash": "sha256-/opMnUA5tnUFZrDr34ug1Zy5hWnuYNap6yf3iJAGkLw=",
       "ancestor?": {
-        "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73": false,
-        "48c3c67f98362ba1e20526db4eeb6996209c050a": false
+        "48c3c67f98362ba1e20526db4eeb6996209c050a": false,
+        "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73": false
       }
     },
     {
