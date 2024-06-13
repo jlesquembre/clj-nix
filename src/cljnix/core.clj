@@ -361,7 +361,7 @@
                                                 rev
                                                 sib-rev)]))
                                        seq
-                                       (into {}))]
+                                       (into (sorted-map)))]
                    (assoc o :ancestor? anc)
                    o))))))
 
