@@ -86,7 +86,9 @@ stdenv.mkDerivation ({
     attrs.nativeBuildInputs or [ ]
       ++
       [
+        fake-git
         jdkRunner
+        (clojure.override { jdk = jdkRunner; })
         (clj-builder.override {
           jdk = jdkRunner;
           extra-runtime-inputs = builder-extra-inputs;
@@ -95,8 +97,6 @@ stdenv.mkDerivation ({
           postBuild = builder-postBuild;
         })
       ]
-      ++ [ fake-git ]
-      ++ (lib.lists.optional (! isNull buildCommand) (clojure.override { jdk = jdkRunner; }))
       ++ (lib.lists.optional enableLeiningen leiningen);
 
   outputs = [ "out" "lib" ];
