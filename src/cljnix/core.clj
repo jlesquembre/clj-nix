@@ -18,8 +18,7 @@
     [cljnix.nix :refer [nix-hash]]
     [clojure.tools.deps.util.dir :as tools-deps.dir]
     [clojure.tools.deps.util.io :refer [printerrln]]
-    [medley.core :as medley]
-    [clojure.string :as str]))
+    [medley.core :as medley]))
 
 
 (def LOCK-VERSION 4)
@@ -74,7 +73,7 @@
           (map (fn [[lib {:keys [git/sha git/url deps/root git/tag]}]]
                  (let [local-path
                        ;; we need the root repository, even when a :deps/root sub directory has been specified
-                       (-> (str/split root (re-pattern sha))
+                       (-> (string/split root (re-pattern sha))
                            first
                            (str sha "/"))]
                    {:lib lib
@@ -522,7 +521,7 @@
 ; We need all clojure versions in nixpkgs, in case the flake consumer wants to
 ; use a different nixpkgs version
 ; Minimum supported version is 1.10.3
-(def clojure-versions ["1.10.3" "1.11.0" "1.11.1"])
+(def clojure-versions ["1.10.3" "1.11.0" "1.11.1" "1.11.2" "1.11.3"])
 
 (defn clojure-deps
   []
