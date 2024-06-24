@@ -531,7 +531,7 @@
       (str (fs/path tmp-project "deps.edn"))
       {:aliases
        (into {}
-             (map (juxt #(str "clojure-" (string/replace % "." "_"))
+             (map (juxt #(->> (string/replace % "." "_") (str "clojure-") keyword)
                         (fn [v] {:override-deps
                                  {'org.clojure/clojure {:mvn/version v}}})))
              clojure-versions)})
