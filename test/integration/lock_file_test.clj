@@ -67,7 +67,7 @@
                     {'metrics-clojure/metrics-clojure
                      {:git/url "https://github.com/clj-commons/metrics-clojure"
                       :deps/root "metrics-clojure-core"
-                      :git/sha "532fc437e734b049a54cb9a198f201dc5f47328e"}}})
+                      :git/sha "cb08195d1032c1b500d8b34a355ac4c1aaa21b05"}}})
       (is (match?
            (m/embeds [{:mvn-path "io/dropwizard/metrics/metrics-core/4.0.5/metrics-core-4.0.5.jar"
                        :mvn-repo "https://repo.maven.apache.org/maven2/"
