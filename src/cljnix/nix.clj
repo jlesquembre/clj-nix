@@ -3,7 +3,8 @@
     [clojure.java.io :as io]
     [babashka.fs :as fs]
     [clj-commons.byte-streams :as bs]
-    [cljnix.utils :refer [throw+]])
+    [cljnix.utils :refer [throw+]]
+    [clojure.string :as str])
   (:import
     [java.io ByteArrayOutputStream]
     [java.nio ByteBuffer ByteOrder]
@@ -18,7 +19,8 @@
   *path-filter*
  "Takes 1 argument, the path name. If true, the element will not be included in
  the NAR file"
- #{".git"})
+ #{".git"
+   ".clj-kondo/.cache"})
 
 
 (declare serialize-entry)
@@ -114,7 +116,9 @@
       (str! "type")
       (str! "directory"))
   (doseq [entry (sort-by fs/file-name
-                         (remove (comp *path-filter* fs/file-name)
+                         (remove (fn [fl]
+                                   (some #(str/ends-with? (str fl) (str "/" %))
+                                         *path-filter*))
                                  (fs/list-dir path)))]
     (serialize-entry sink entry))
   sink)
