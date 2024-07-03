@@ -8,7 +8,8 @@
 
 (def all-deps '{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
                        io.github.babashka/fs {:git/sha "7adcefeb773bd786408cdc788582f145f79626a6"}
-                       io.github.weavejester/medley {:git/sha "0044c6aacc0b23eafa3b58091f49c794f5a1f5aa"}}})
+                       io.github.weavejester/medley {:git/sha "0044c6aacc0b23eafa3b58091f49c794f5a1f5aa"}
+                       io.github.teknql/systemic {:git/sha "2c0be3a90884f998a61f2a8174cff3c5a15a30bf"}}})
 
 (defn deps-cache-fixture [f]
   (h/prep-deps all-deps)
@@ -24,5 +25,7 @@
          (nix/nix-hash (fs/expand-home "~/.gitlibs/libs/io.github.babashka/fs/7adcefeb773bd786408cdc788582f145f79626a6"))))
 
   (is (= "sha256-drh0opl3JjrpGadg74wIdOcDTaP2GT31X3O1PGXkvqk="
-         (nix/nix-hash (fs/expand-home "~/.gitlibs/libs/io.github.weavejester/medley/0044c6aacc0b23eafa3b58091f49c794f5a1f5aa")))))
+         (nix/nix-hash (fs/expand-home "~/.gitlibs/libs/io.github.weavejester/medley/0044c6aacc0b23eafa3b58091f49c794f5a1f5aa"))))
 
+  (is (= "sha256-pxbxFZirXL9CD37rhXUw/MMdxMZbLkVqfZIQXSpDqaI="
+         (nix/nix-hash (fs/expand-home "~/.gitlibs/libs/io.github.teknql/systemic/2c0be3a90884f998a61f2a8174cff3c5a15a30bf")))))

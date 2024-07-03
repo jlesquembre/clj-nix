@@ -14,6 +14,7 @@
 
 (def narVersionMagic1 "nix-archive-1")
 
+; TODO probably, a better solution would be to use the .gitignore file (if present)
 (def ^:dynamic
   *path-filter*
  "Takes 1 argument, the path name. If true, the element will not be included in
