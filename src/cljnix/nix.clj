@@ -18,7 +18,8 @@
   *path-filter*
  "Takes 1 argument, the path name. If true, the element will not be included in
  the NAR file"
- #{".git"})
+ #{".git"
+   ".clj-kondo/.cache"})
 
 
 (declare serialize-entry)
@@ -114,7 +115,7 @@
       (str! "type")
       (str! "directory"))
   (doseq [entry (sort-by fs/file-name
-                         (remove (comp *path-filter* fs/file-name)
+                         (remove (fn [child] (some #(fs/ends-with? child %) *path-filter*))
                                  (fs/list-dir path)))]
     (serialize-entry sink entry))
   sink)
