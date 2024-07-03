@@ -4,7 +4,6 @@
     [babashka.fs :as fs]
     [clj-commons.byte-streams :as bs]
     [cljnix.utils :refer [throw+]]
-    [clojure.string :as str])
   (:import
     [java.io ByteArrayOutputStream]
     [java.nio ByteBuffer ByteOrder]
@@ -116,9 +115,7 @@
       (str! "type")
       (str! "directory"))
   (doseq [entry (sort-by fs/file-name
-                         (remove (fn [fl]
-                                   (some #(str/ends-with? (str fl) (str "/" %))
-                                         *path-filter*))
+                         (remove (fn [child] (some #(fs/ends-with? child %) *path-filter*))
                                  (fs/list-dir path)))]
     (serialize-entry sink entry))
   sink)
