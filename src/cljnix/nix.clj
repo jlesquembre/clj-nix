@@ -3,7 +3,7 @@
     [clojure.java.io :as io]
     [babashka.fs :as fs]
     [clj-commons.byte-streams :as bs]
-    [cljnix.utils :refer [throw+]]
+    [cljnix.utils :refer [throw+]])
   (:import
     [java.io ByteArrayOutputStream]
     [java.nio ByteBuffer ByteOrder]
