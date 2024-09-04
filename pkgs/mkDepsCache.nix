@@ -43,22 +43,15 @@ let
     { lib, url, rev, hash, ... }:
     {
       name = "${lib}/${rev}";
-      # we're using builtins.fetchGit, instead of fetchgit from
+      # we're using builtins.fetchTree, instead of fetchgit from
       # build-support, so that we have seamless integration with
       # ssh-agent or other credential mechanisms.
-      path = runCommand "${lib}/${rev}" {
-        src = builtins.fetchGit {
-          inherit url rev;
-          allRefs = true;
-        };
-        # we're wrapping builtins.fetchGit with a fixed-output
-        # derivation, re-using the same hash, that the fetchgit would
-        # use, from the prefetcher
-        outputHashMode = "recursive";
-        outputHash = hash;
-      } ''
-        cp -R $src $out
-      '';
+      # See https://nix.dev/manual/nix/latest/language/builtins.html#builtins-fetchTree
+      path = builtins.fetchTree {
+        type = "git";
+        allRefs = true;
+        narHash = hash;
+        inherit url rev;
     };
 
   maven-extra-cache = { path, content }:
