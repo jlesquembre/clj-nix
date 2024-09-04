@@ -52,6 +52,9 @@ let
         allRefs = true;
         narHash = hash;
         inherit url rev;
+        # deep cloning is necessary, for allRefs to work
+        # See https://nix.dev/manual/nix/latest/language/builtins.html#source-types
+        shallow = false;
       };
     };
 
