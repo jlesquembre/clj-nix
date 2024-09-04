@@ -53,7 +53,7 @@ There is also a `--alias-include` option, to include only certain aliases.
 #### Git dependencies in private/ssh repositories
 
 In order to use the nix builtin fetcher on a git dependency, add a key-value
-`:clj-nix.git/fetch :builtins.fetchTree` to the dependency in deps.edn, e.g.
+`:clj-nix.git/fetch :builtins.fetchTree` to the dependency in `deps.edn`, e.g.
 
 ```edn
 {:deps {private/dependency {:git/url "git@private.host:secret/repo.git"
@@ -61,7 +61,7 @@ In order to use the nix builtin fetcher on a git dependency, add a key-value
                             :clj-nix.git/fetch :builtins.fetchTree}}}
 ```
 
-This should work well in any cases where a repository can be accessed
+This should work well in many cases where a repository can be accessed
 with the help of ssh-agent or other credential mechanisms, that nix
 builtin fetch supports.
 
