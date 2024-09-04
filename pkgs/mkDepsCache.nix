@@ -52,6 +52,7 @@ let
         allRefs = true;
         narHash = hash;
         inherit url rev;
+      };
     };
 
   maven-extra-cache = { path, content }:
