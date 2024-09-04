@@ -40,22 +40,31 @@ let
     };
 
   git-deps =
-    { lib, url, rev, hash, ... }:
+    { lib, url, rev, hash, fetch ? "pkgs.fetchgit", ... }:
     {
       name = "${lib}/${rev}";
-      # we're using builtins.fetchTree, instead of fetchgit from
-      # build-support, so that we have seamless integration with
-      # ssh-agent or other credential mechanisms.
-      # See https://nix.dev/manual/nix/latest/language/builtins.html#builtins-fetchTree
-      path = builtins.fetchTree {
-        type = "git";
-        allRefs = true;
-        narHash = hash;
-        inherit url rev;
-        # deep cloning is necessary, for allRefs to work
-        # See https://nix.dev/manual/nix/latest/language/builtins.html#source-types
-        shallow = false;
-      };
+      path =
+        if "pkgs.fetchgit" == fetch
+        then fetchgit {
+          inherit url rev hash;
+        }
+        else if "builtins.fetchTree" == fetch
+          # support credential integration (ssh-agent, ... ) for private git repositories
+          # through builtin fetching.
+          # See https://nix.dev/manual/nix/latest/language/builtins.html#builtins-fetchTree
+          # This is not a good default, because it will download
+          # the repository during evaluation, even for a dry-run
+          # Pending https://github.com/NixOS/nix/issues/9077
+        then builtins.fetchTree {
+          type = "git";
+          allRefs = true;
+          narHash = hash;
+          inherit url rev;
+          # deep cloning is necessary, for allRefs to work
+          # See https://nix.dev/manual/nix/latest/language/builtins.html#source-types
+          shallow = false;
+        }
+        else throw "clj-nix.mkDepsCache: unknown :clj-nix.git/fetch :${toString fetch}";
     };
 
   maven-extra-cache = { path, content }:

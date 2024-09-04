@@ -70,19 +70,24 @@
   (into []
         (comp
           (filter utils/git?)
-          (map (fn [[lib {:keys [git/sha git/url deps/root git/tag]}]]
+          (map (fn [[lib {:as desc :keys [git/sha git/url deps/root git/tag]}]]
                  (let [local-path
                        ;; we need the root repository, even when a :deps/root sub directory has been specified
                        (-> (string/split root (re-pattern sha))
                            first
                            (str sha "/"))]
-                   {:lib lib
-                    :rev sha
-                    :url url
-                    :tag tag
-                    :git-dir (utils/git-dir url)
-                    :hash (nix-hash local-path)
-                    :local-path local-path}))))
+                   (when-not (contains? #{nil :pkgs.fetchgit :builtins.fetchTree}
+                                        (:clj-nix.git/fetch desc))
+                     (printerrln "WARNING: No :clj-nix.git/fetch" (pr-str (:clj-nix.git/fetch desc))))
+                   (-> {:lib lib
+                        :rev sha
+                        :url url
+                        :tag tag
+                        :git-dir (utils/git-dir url)
+                        :hash (nix-hash local-path)
+                        :local-path local-path}
+                       (cond-> (contains? desc :clj-nix.git/fetch)
+                         (assoc :fetch (:clj-nix.git/fetch desc))))))))
         (:libs basis)))
 
 (def mvn-cache-subdir "mvn")
@@ -406,7 +411,7 @@
                                     (dissoc :tag)))
                             (map add-to-nix-store!)
                             (map #(into (sorted-map-by map-comparator)
-                                        (select-keys % [:tag :lib :rev :url :git-dir :hash])))
+                                        (select-keys % [:tag :lib :rev :url :git-dir :hash :fetch])))
                             (distinct)
                             (reduce (fn [acc v]
                                       (if (same-git-dep? (peek acc) v)
