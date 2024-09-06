@@ -34,9 +34,9 @@
     {:rev "rev2"
      :tag "v0.0.2"}]
     "tag --sort=v:refname"
-   ["v0.0.1"
-    "v0.0.2"]
-   #(-> % :out)))
+    #{"v0.0.1"
+      "v0.0.2"}
+   #(-> % :out set)))
 
 (deftest fake-git-rev-parse-tag-test
   (fake-git-test

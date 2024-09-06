@@ -50,6 +50,25 @@ nix run github:jlesquembre/clj-nix#deps-lock -- --alias-exclude test
 
 There is also a `--alias-include` option, to include only certain aliases.
 
+#### Git dependencies in private/ssh repositories
+
+In order to use the nix builtin fetcher on a git dependency, add a key-value
+`:clj-nix.git/fetch :builtins.fetchTree` to the dependency in `deps.edn`, e.g.
+
+```edn
+{:deps {private/dependency {:git/url "git@private.host:secret/repo.git"
+                            :git/sha "0000000000000000000000000000000000000000"
+                            :clj-nix.git/fetch :builtins.fetchTree}}}
+```
+
+This should work well in many cases where a repository can be accessed
+with the help of ssh-agent or other credential mechanisms, that nix
+builtin fetch supports.
+
+The trade-off (and reason that's not the default) is, that the
+dependency will be fetched at evaluation time, causing downloads even
+during `--dry-run`; Pending resolution of an [issue in nix](https://github.com/NixOS/nix/issues/9077).
+
 #### Babashka dependencies
 
 Dependencies on `bb.edn` files can be added to the `deps-lock.json` file:
