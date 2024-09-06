@@ -274,6 +274,7 @@
            :git-dir 14
 
            :hash 20
+           :fetch 30
 
            :lock-version 100
            :clojure-version 101
