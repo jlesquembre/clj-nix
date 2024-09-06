@@ -399,6 +399,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#git-dependencies-in-privatessh-repositories" class="md-nav__link">
+    <span class="md-ellipsis">
+      Git dependencies in private/ssh repositories
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#babashka-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       Babashka dependencies
@@ -613,6 +622,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#git-dependencies-in-privatessh-repositories" class="md-nav__link">
+    <span class="md-ellipsis">
+      Git dependencies in private/ssh repositories
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#babashka-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       Babashka dependencies
@@ -691,15 +709,28 @@ option:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>nix<span class="w"> </span>run<span class="w"> </span>github:jlesquembre/clj-nix#deps-lock<span class="w"> </span>--<span class="w"> </span>--alias-exclude<span class="w"> </span><span class="nb">test</span>
 </code></pre></div>
 <p>There is also a <code>--alias-include</code> option, to include only certain aliases.</p>
+<h4 id="git-dependencies-in-privatessh-repositories">Git dependencies in private/ssh repositories</h4>
+<p>In order to use the nix builtin fetcher on a git dependency, add a key-value
+<code>:clj-nix.git/fetch :builtins.fetchTree</code> to the dependency in <code>deps.edn</code>, e.g.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>{:deps {private/dependency {:git/url &quot;git@private.host:secret/repo.git&quot;
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>                            :git/sha &quot;0000000000000000000000000000000000000000&quot;
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>                            :clj-nix.git/fetch :builtins.fetchTree}}}
+</code></pre></div>
+<p>This should work well in many cases where a repository can be accessed
+with the help of ssh-agent or other credential mechanisms, that nix
+builtin fetch supports.</p>
+<p>The trade-off (and reason that's not the default) is, that the
+dependency will be fetched at evaluation time, causing downloads even
+during <code>--dry-run</code>; Pending resolution of an <a href="https://github.com/NixOS/nix/issues/9077">issue in nix</a>.</p>
 <h4 id="babashka-dependencies">Babashka dependencies</h4>
 <p>Dependencies on <code>bb.edn</code> files can be added to the <code>deps-lock.json</code> file:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>nix<span class="w"> </span>run<span class="w"> </span>github:jlesquembre/clj-nix#deps-lock<span class="w"> </span>--<span class="w"> </span>--bb
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>nix<span class="w"> </span>run<span class="w"> </span>github:jlesquembre/clj-nix#deps-lock<span class="w"> </span>--<span class="w"> </span>--bb
 </code></pre></div>
 <h4 id="leiningen">Leiningen</h4>
 <p>Leiningen projects are supported. Use the <code>--lein</code> option to add the
 <code>project.clj</code> dependencies to the lock file. This option can be combined with
 ignored files:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>nix<span class="w"> </span>run<span class="w"> </span>github:jlesquembre/clj-nix#deps-lock<span class="w"> </span>--<span class="w"> </span>--lein
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>nix<span class="w"> </span>run<span class="w"> </span>github:jlesquembre/clj-nix#deps-lock<span class="w"> </span>--<span class="w"> </span>--lein
 </code></pre></div>
 <p>Keep in mind that <code>deps-lock</code> command is not optimized for Leiningen projects,
 it will download all the maven dependencies every time we generate the lock
