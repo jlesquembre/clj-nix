@@ -6,7 +6,7 @@
 
 common.writeCljApplication {
   name = "deps-lock";
-  runtimeInputs = [ jq leiningen ];
+  runtimeInputs = [ jdk jq leiningen ];
   clj-main = "cljnix.core";
   classpath = "${../src}:${common.internal-deps-classpath}";
 
