@@ -75,7 +75,7 @@ let types = lib.types; in
 
     lockfile = lib.mkOption {
       default = null;
-      type = types.nullOr types.str;
+      type = types.nullOr types.path;
       description = lib.mdDoc "The lock file";
     };
 
