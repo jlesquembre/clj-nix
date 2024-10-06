@@ -2,7 +2,18 @@
 
 ## Unreleased
 
-- Add support for additional maven repositories. Fixes #98.
+## 0.4.0 (2024-10-06)
+
+- Added support to git dependencies in private repositories. See #128, thanks
+  @bendlas
+
+- Improved gitlibs support. See #120, thanks @mjmeintjes
+
+- Added new options to configure the default builder (`builder-..` options). See
+  #106 and
+  [mkCljBin API docs](https://jlesquembre.github.io/clj-nix/api/#mkcljbin)
+
+- Added support for additional maven repositories. Fixes #98.
 
 - Refactor CLI, now we use [babashka.cli](https://github.com/babashka/cli) to
   parse the command line arguments (see #54 and #63, thanks to @bendlas to help
