@@ -1,0 +1,27 @@
+From fd801cdf9db4300828cd2d4e7b1122d71e8a192d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jos=C3=A9=20Luis=20Lafuente?= <jl@lafuente.dev>
+Date: Mon, 7 Oct 2024 12:06:43 +0200
+Subject: [PATCH] Update build options for graal 23
+
+InHeap and Allocated are now Instantiated, see
+https://github.com/oracle/graal/commit/b9d387c4251dd0cdb4eaf945f71357d14ff38398
+---
+ script/compile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/script/compile b/script/compile
+index 04c3c1f7..279fae7f 100755
+--- a/script/compile
++++ b/script/compile
+@@ -39,7 +39,7 @@ args=("-jar" "$BABASHKA_JAR"
+       # "-H:DashboardDump=reports/dump"
+       # "-H:+DashboardPretty"
+       # "-H:+DashboardJson"
+-      "-H:ReportAnalysisForbiddenType=java.awt.Toolkit:InHeap,Allocated"
++      "-H:ReportAnalysisForbiddenType=java.awt.Toolkit:Instantiated"
+       "--verbose"
+       "--no-fallback"
+       "--native-image-info"
+-- 
+2.46.0
+
