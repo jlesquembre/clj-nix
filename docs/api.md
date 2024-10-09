@@ -43,7 +43,7 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
   [build.clj](https://github.com/jlesquembre/clj-nix/blob/main/src/cljnix/build.clj).
   If you provide your own build command, you can define the path to the final
   uberjar with the `jarPath` environment variable (e.g.:
-  `export jarPaht=$BUILD_DIR/my_uber.jar`). If `jarPath` is undefined, `clj-nix`
+  `export jarPath=$BUILD_DIR/my_uber.jar`). If `jarPath` is undefined, `clj-nix`
   will try to find a jar file in a directory called `target`.
 
 - **lockfile**: The lock file. (Default: `${projectSrc}/deps-lock.json`)
