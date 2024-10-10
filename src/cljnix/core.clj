@@ -308,7 +308,7 @@
     (let [profiles (or (seq profiles) (lein-project-profiles))]
       (if (empty? profiles)
         (sh/sh "lein" "deps" :env {"LEIN_HOME" lein-home})
-        (sh/sh "lein" "with-profiles" (string/join "," profiles) "deps" :env {"LEIN_HOME" lein-home})))))
+        (sh/sh "lein" "with-profiles" (string/join "," (cons "user" profiles)) "deps" :env {"LEIN_HOME" lein-home})))))
 
 (defn- add-to-nix-store!
   [{:keys [local-path lib rev] :as dep}]
