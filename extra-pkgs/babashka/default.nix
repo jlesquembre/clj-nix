@@ -10,6 +10,11 @@
 , nix-package-updater
 , srcFromJson
 , writeScriptBin
+, writers
+, deps-lock
+, coreutils
+, git
+, jq
 }:
 
 { graalvm ? graalvmCEPackages.graalvm-ce
@@ -94,9 +99,24 @@ let
           cp bb $out/bin
         '';
 
-      passthru.updateScript = writeScriptBin "update-babashka"
+      passthru.updateScript = writers.writeBashBin "update-babashka"
+        {
+          makeWrapperArgs = let bin-path = lib.makeBinPath [ jq coreutils git deps-lock ]; in [
+            "--prefix"
+            "PATH"
+            ":"
+            "${bin-path}"
+          ];
+        }
         ''
           ${nix-package-updater} extra-pkgs/babashka/src.json
+          VERSION=$(jq -r '.version' extra-pkgs/babashka/src.json)
+          TMP_DIR=$(mktemp -d)
+          git clone --depth 1 --branch "v$VERSION" --recursive https://github.com/babashka/babashka "$TMP_DIR/bb"
+          cd "$TMP_DIR/bb"
+          deps-lock --lein --deps-exclude resources/META-INF/babashka/deps.edn
+          cd -
+          cp "$TMP_DIR/bb/deps-lock.json" extra-pkgs/babashka/deps-lock.json
         '';
     };
 in
