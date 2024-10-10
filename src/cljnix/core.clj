@@ -297,19 +297,18 @@
                  "uberjar"
                  "update"
                  "offline"
-                 "debug"})
-       (string/join ",")))
+                 "debug"})))
 
 (defn- download-lein-deps
-  [cache-dir]
+  [cache-dir profiles]
   (let [lein-home (str (fs/path cache-dir "lein"))]
     (fs/create-dir lein-home)
     (spit (str (fs/path lein-home "profiles.clj"))
           {:user {:local-repo (str (fs/path cache-dir mvn-cache-subdir))}})
-    (let [profiles (lein-project-profiles)]
+    (let [profiles (or (seq profiles) (lein-project-profiles))]
       (if (empty? profiles)
         (sh/sh "lein" "deps" :env {"LEIN_HOME" lein-home})
-        (sh/sh "lein" "with-profiles" profiles "deps" :env {"LEIN_HOME" lein-home})))))
+        (sh/sh "lein" "with-profiles" (string/join "," profiles) "deps" :env {"LEIN_HOME" lein-home})))))
 
 (defn- add-to-nix-store!
   [{:keys [local-path lib rev] :as dep}]
@@ -374,7 +373,7 @@
   ([project-dir]
    (lock-file project-dir {}))
   ([project-dir {:keys [extra-mvn extra-git
-                        lein?]
+                        lein? lein-profiles]
                  :or {extra-mvn []
                       extra-git []}
                  :as opts}]
@@ -392,7 +391,7 @@
              (update :git into git)))
          (fn [{:keys [mvn git mvn-repos]}]
            (when lein?
-             (download-lein-deps cache-dir))
+             (download-lein-deps cache-dir lein-profiles))
            (sorted-map-by
              map-comparator
              :lock-version LOCK-VERSION
@@ -444,6 +443,10 @@
      {:desc "Include Leiningen dependecies."
       :validate {:pred boolean?}}
 
+     :lein-profiles
+     {:desc "If Leiningen dependencies are included, the Leiningen profiles to use. If not given, all custom profiles are used."
+      :coerce []}
+
      :deps-include
      {:desc "List of 'deps.edn' files to parse. All files are included by default."
       :coerce []
@@ -466,7 +469,7 @@
   []
   (println "deps-lock usage:\n")
   (println (cli/format-opts {:spec cli-spec
-                             :order [:deps-include :deps-exclude :alias-include :alias-exclude :bb :lein :help]})))
+                             :order [:deps-include :deps-exclude :alias-include :alias-exclude :bb :lein :lein-profiles :help]})))
 
 (defn- cli-parse-options
   [args]
