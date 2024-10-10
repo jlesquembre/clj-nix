@@ -73,6 +73,7 @@ in
         inherit (cfg) projectSrc name version main-ns buildCommand
           lockfile java-opts compileCljOpts javacOpts
           builder-extra-inputs builder-java-opts builder-preBuild builder-postBuild;
+        enableLeiningen = cfg.withLeiningen;
       };
     in
 
