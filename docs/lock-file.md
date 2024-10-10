@@ -87,6 +87,9 @@ ignored files:
 nix run github:jlesquembre/clj-nix#deps-lock -- --lein
 ```
 
+By default, all custom profiles (if any) are merged to download the dependencies. 
+This can be customized with the `--lein-profiles` option.
+
 Keep in mind that `deps-lock` command is not optimized for Leiningen projects,
 it will download all the maven dependencies every time we generate the lock
 file. For that reason, it is recommended to add a `deps.edn` file with the same
