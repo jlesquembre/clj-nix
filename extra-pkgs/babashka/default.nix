@@ -79,8 +79,6 @@ let
       lockfile = ./deps-lock.json;
       enableLeiningen = true;
 
-      patches = [ ./0001-Update-build-options-for-graal-23.patch ];
-
       name = "babashka/babashka";
       main-ns = "babashka.main";
       jdkRunner = graalvm;
