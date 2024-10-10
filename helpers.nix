@@ -55,7 +55,7 @@ in
     );
 
     assert (pkgs'.lib.assertMsg
-      (cfg.withLeiningen == true -> cfg.compileCljOpts == false && cfg.javacOpts == false)
+      (cfg.withLeiningen == true -> isNull cfg.compileCljOpts && isNull cfg.javacOpts)
       "Leiningen is incompatible with Clojure tools.build options (compileCljOpts and javacOpts)"
     );
 
