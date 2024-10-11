@@ -732,6 +732,8 @@ during <code>--dry-run</code>; Pending resolution of an <a href="https://github.
 ignored files:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>nix<span class="w"> </span>run<span class="w"> </span>github:jlesquembre/clj-nix#deps-lock<span class="w"> </span>--<span class="w"> </span>--lein
 </code></pre></div>
+<p>By default, all custom profiles (if any) are merged to download the dependencies. 
+This can be customized with the <code>--lein-profiles</code> option.</p>
 <p>Keep in mind that <code>deps-lock</code> command is not optimized for Leiningen projects,
 it will download all the maven dependencies every time we generate the lock
 file. For that reason, it is recommended to add a <code>deps.edn</code> file with the same
