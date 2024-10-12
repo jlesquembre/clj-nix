@@ -51,7 +51,7 @@
           docs = pkgs.callPackage ./extra-pkgs/docs { inherit pkgs; };
 
 
-          babashkaEnv = import ./extra-pkgs/bbenv/lib/bbenv2.nix { inherit pkgs; sys = system; };
+          babashkaEnv = import ./extra-pkgs/bbenv/lib/bbenv.nix { inherit pkgs; sys = system; };
 
           bb-drv-demo = self.packages.${system}.babashkaEnv.mkBabashkaDerivation {
             build = ./extra-pkgs/bbenv/build_demo.clj;
