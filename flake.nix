@@ -11,8 +11,6 @@
       url = "github:jlesquembre/nix-fetcher-data";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # Needed until Babashka can be build with graalvm23
-    nixpkgs-2405.url = "github:NixOS/nixpkgs/d51c28603def282a24fa034bcb007e2bcb5b5dd0";
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
@@ -134,8 +132,6 @@
 
           mkBabashka = final.callPackage ./extra-pkgs/babashka { };
           bbTasksFromFile = final.callPackage ./extra-pkgs/bbTasks { };
-          # TODO remove after babashka build with graalvm23 works
-          graalvmCEPackages = inputs.nixpkgs-2405.legacyPackages."${final.stdenv.system}".graalvmCEPackages;
         }
         // inputs.nix-fetcher-data.overlays.default final prev;
 
