@@ -75,22 +75,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-2405": {
-      "locked": {
-        "lastModified": 1728500571,
-        "narHash": "sha256-dOymOQ3AfNI4Z337yEwHGohrVQb4yPODCW9MDUyAc4w=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "d51c28603def282a24fa034bcb007e2bcb5b5dd0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "d51c28603def282a24fa034bcb007e2bcb5b5dd0",
-        "type": "github"
-      }
-    },
     "nixpkgs-lib": {
       "locked": {
         "lastModified": 1717284937,
@@ -107,8 +91,7 @@
       "inputs": {
         "devshell": "devshell",
         "nix-fetcher-data": "nix-fetcher-data",
-        "nixpkgs": "nixpkgs",
-        "nixpkgs-2405": "nixpkgs-2405"
+        "nixpkgs": "nixpkgs"
       }
     }
   },
