@@ -1,4 +1,4 @@
-(ns bootstrap2
+(ns bbenv-utils
   (:require
     [user]
     [babashka.fs :as fs]

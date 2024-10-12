@@ -1,63 +1,109 @@
+{ sys
+, pkgs
+}:
+
+let
+  inherit (pkgs) lib;
+  fetchDrvInfo = pkgs.callPackage ./fetchSrc.nix { };
+in
+
 {
   mkBabashkaDerivation =
-    babashka: # nixpkgs.babashka
-    sys: # nixpkgs.system
 
-    { name                            # The name of the derivation
-    , src ? null                      # The derivation's sources
-    , packages ? [ ]                  # Packages provided to the realisation process
+    { babashka ? pkgs.babashka        # Babashka version to use
+    , deps ? [ ]
+    , deps-build ? [ ]
     , system ? sys                    # The build system
-    , build ? ""                      # The build script itself
+    , build                           # The build script itself
     , debug ? true                    # Run in debug mode
     , outputs ? [ "out" ]             # Outputs to provide
-      # , envFile ? ../nuenv/user-env.nu  # Nushell environment passed to build phases
     , ...                             # Catch user-supplied env vars
     }@attrs:
 
     let
       # Gather arbitrary user-supplied environment variables
       reservedAttrs = [
+        "deps"
+        "deps-build"
         "build"
         "debug"
-        "envFile"
-        "name"
         "outputs"
-        "packages"
-        "src"
         "system"
-        "__bb_builder"
-        "__bb_debug"
-        "__bb_env"
-        "__bb_extra_attrs"
-        "__bb_binary"
+
+        # In the build.clj script
+        "name"
+        "version"
+        "src"
+
+        # "__bb_builder"
+        # "__bb_debug"
+        # "__bb_env"
+        # "__bb_extra_attrs"
+        # "__bb_binary"
       ];
 
       extraAttrs = removeAttrs attrs reservedAttrs;
+
+      # Extract data from the clj build file and save it to the nix store
+      bbenv-utils = pkgs.runCommand "bbenv-utils"
+        {
+          nativeBuildInputs = [ babashka ];
+        }
+        ''
+          mkdir -p $out/src
+          cp "${../bbenv_utils.clj}" $out/src/bbenv_utils.clj
+          bb --init ${build} -cp $out/src -x 'bbenv-utils/info->json' --out "$out/info.json"
+        '';
+
+
+      drvInfo = fetchDrvInfo bbenv-utils;
+
+      defaultBuildDeps = [
+        babashka
+        pkgs.gnutar
+        pkgs.coreutils
+        pkgs.findutils
+        pkgs.diffutils
+        pkgs.xz.bin
+        pkgs.gzip
+        pkgs.bzip2.bin
+        pkgs.gnused
+        pkgs.gnugrep
+        pkgs.gnumake
+        pkgs.gawk
+        pkgs.bash
+        pkgs.patch
+      ];
+
+
+      # JDK / Native image don't allow to modify environment variables, but we want to set the PATH
+      builder-wrapper =
+        let
+          path = lib.makeBinPath (defaultBuildDeps ++ deps ++ deps-build);
+        in
+        pkgs.writers.writeBashBin "bbenv-build-wrapper"
+          { }
+          ''
+            set -o errexit
+            set -o nounset
+            set -o pipefail
+            export PATH="${path}"
+            bb --init ${build} -cp "${bbenv-utils}/src" -x "bbenv-utils/mk-derivation" --src "${drvInfo.src}"
+          '';
+
     in
+
     derivation ({
-      # Core derivation info
-      inherit
-        # envFile
-        name outputs packages src system;
+      inherit (drvInfo) name version;
+      inherit outputs deps deps-build system build;
 
-      # Realisation phases (just one for now)
-      inherit build;
-
-      # Build logic
-      builder = "${babashka}/bin/bb"; # Use Babashka :-)
-      # args = [ ../bbenv/bootstrap.clj ]; # Run a bootstrap script that then runs the builder
-      args = [ "--init" ../bootstrap.clj build ]; # Run a bootstrap script that then runs the builder
+      builder = "${builder-wrapper}/bin/bbenv-build-wrapper";
+      # args = [ ];
 
       # When this is set, Nix writes the environment to a JSON file at
       # $NIX_BUILD_TOP/.attrs.json. This approach is generally cleaner than
       # parsing environment variables as strings.
       __structuredAttrs = true;
 
-      # Attributes passed to the environment (prefaced with __bb_ to avoid naming collisions)
-      # __bb_builder = ../nuenv/builder.nu;
-      __bb_debug = debug;
-      # __bb_env = [ ../nuenv/env.nu ];
-      __bb_extra_attrs = extraAttrs;
-      __bb_binary = "${babashka}/bin/bb";
     } // extraAttrs);
 }
