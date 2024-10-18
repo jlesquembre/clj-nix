@@ -31,3 +31,24 @@ pkgs.dockerTools.buildLayeredImage {
   };
 };
 ```
+
+### **My customJdk application has an SSL handshake_failure**
+
+If after creating an application using the `customJdk` package, you might see an error like the following:
+
+```
+javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure
+```
+
+This could be caused by a missing jdkModule, such as `jdk.crypto.ec`, which is required for many `https` connections.
+Add the missing modules explicitly.
+
+```nix
+custom-jdk = pkgs.clj-nix.customJdk {
+  cljDrv = clj;
+  jdkBase = pkgs.jdk17_headless;
+  # locales = "en";
+  javaOpts = [];
+  extraJdkModules = ["java.security.jgss" "java.security.sasl" "jdk.crypto.ec"];
+};
+```
