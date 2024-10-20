@@ -500,6 +500,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#my-customjdk-application-has-an-ssl-handshake_failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      My customJdk application has an SSL handshake_failure
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -576,6 +585,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#my-customjdk-application-has-an-ssl-handshake_failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      My customJdk application has an SSL handshake_failure
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -630,6 +648,20 @@ possible solution is to wrap the binary:</p>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="ss">Env</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;PATH=</span><span class="si">${</span>pkgs<span class="o">.</span>lib<span class="o">.</span>makeBinPath <span class="p">[</span> pkgs<span class="o">.</span>cowsay <span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="p">];</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  <span class="p">};</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">};</span>
+</code></pre></div>
+<h3 id="my-customjdk-application-has-an-ssl-handshake_failure"><strong>My customJdk application has an SSL handshake_failure</strong></h3>
+<p>If after creating an application using the <code>customJdk</code> package, you might see an error like the following:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure
+</code></pre></div>
+<p>This could be caused by a missing jdkModule, such as <code>jdk.crypto.ec</code>, which is required for many <code>https</code> connections.
+Add the missing modules explicitly.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="ss">custom-jdk</span> <span class="o">=</span> pkgs<span class="o">.</span>clj-nix<span class="o">.</span>customJdk <span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  <span class="ss">cljDrv</span> <span class="o">=</span> clj<span class="p">;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  <span class="ss">jdkBase</span> <span class="o">=</span> pkgs<span class="o">.</span>jdk17_headless<span class="p">;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  <span class="c1"># locales = &quot;en&quot;;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  <span class="ss">javaOpts</span> <span class="o">=</span> <span class="p">[];</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>  <span class="ss">extraJdkModules</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;java.security.jgss&quot;</span> <span class="s2">&quot;java.security.sasl&quot;</span> <span class="s2">&quot;jdk.crypto.ec&quot;</span><span class="p">];</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">};</span>
 </code></pre></div>
 
 
