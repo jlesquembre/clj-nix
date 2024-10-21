@@ -39,21 +39,21 @@
     {
       "lib": "cognitect-labs/test-runner",
       "url": "https://github.com/cognitect-labs/test-runner",
-      "rev": "a522ab2851a2aa5bf9c22a942b45287a3a019310",
-      "git-dir": "https/github.com/cognitect-labs/test-runner",
-      "hash": "sha256-gZ8CElakDZKejPByUJRAuRWXoJDfvI506blsHvnJJxg=",
-      "ancestor?": {
-        "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b": false
-      }
-    },
-    {
-      "lib": "cognitect-labs/test-runner",
-      "url": "https://github.com/cognitect-labs/test-runner",
       "rev": "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b",
       "git-dir": "https/github.com/cognitect-labs/test-runner",
       "hash": "sha256-xyk3KKWVIWXYXmkFMhHECdwpm/IlygwGeoJfyavDbZA=",
       "ancestor?": {
         "a522ab2851a2aa5bf9c22a942b45287a3a019310": true
+      }
+    },
+    {
+      "lib": "cognitect-labs/test-runner",
+      "url": "https://github.com/cognitect-labs/test-runner",
+      "rev": "a522ab2851a2aa5bf9c22a942b45287a3a019310",
+      "git-dir": "https/github.com/cognitect-labs/test-runner",
+      "hash": "sha256-gZ8CElakDZKejPByUJRAuRWXoJDfvI506blsHvnJJxg=",
+      "ancestor?": {
+        "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b": false
       }
     },
     {
@@ -130,13 +130,13 @@
     {
       "lib": "io.github.cognitect-labs/test-runner",
       "url": "https://github.com/cognitect-labs/test-runner.git",
-      "rev": "48c3c67f98362ba1e20526db4eeb6996209c050a",
-      "tag": "v0.5.0",
+      "rev": "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73",
+      "tag": "v0.5.1",
       "git-dir": "https/github.com/cognitect-labs/test-runner",
-      "hash": "sha256-NZ9/S82Ae1aq0gnuTLOYg/cc7NcYIoK2JP6c/xI+xJE=",
+      "hash": "sha256-PUNd+dHJNPTKno59YI27wpehyULYPvSyCQDjVIadKJ4=",
       "ancestor?": {
-        "7284cda41fb9edc0f3bc6b6185cfb7138fc8a023": true,
-        "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73": true
+        "48c3c67f98362ba1e20526db4eeb6996209c050a": false,
+        "7284cda41fb9edc0f3bc6b6185cfb7138fc8a023": true
       }
     },
     {
@@ -153,13 +153,13 @@
     {
       "lib": "io.github.cognitect-labs/test-runner",
       "url": "https://github.com/cognitect-labs/test-runner.git",
-      "rev": "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73",
-      "tag": "v0.5.1",
+      "rev": "48c3c67f98362ba1e20526db4eeb6996209c050a",
+      "tag": "v0.5.0",
       "git-dir": "https/github.com/cognitect-labs/test-runner",
-      "hash": "sha256-PUNd+dHJNPTKno59YI27wpehyULYPvSyCQDjVIadKJ4=",
+      "hash": "sha256-NZ9/S82Ae1aq0gnuTLOYg/cc7NcYIoK2JP6c/xI+xJE=",
       "ancestor?": {
-        "48c3c67f98362ba1e20526db4eeb6996209c050a": false,
-        "7284cda41fb9edc0f3bc6b6185cfb7138fc8a023": true
+        "7284cda41fb9edc0f3bc6b6185cfb7138fc8a023": true,
+        "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73": true
       }
     },
     {
