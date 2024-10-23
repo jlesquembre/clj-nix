@@ -138,9 +138,6 @@
   [path & {:keys [cache-dir exact-version mvn-repos]
            :or {cache-dir @mvn/cached-local-repo
                 mvn-repos mvn/standard-repos}}]
-  {:pre [(if (snapshot? path)
-           (not (nil? exact-version))
-           true)]}
   (let [{:keys [resolved-path snapshot]} (resolve-snapshot path exact-version)
         mvn-path (str (fs/relativize cache-dir resolved-path))
         repo-name (or
