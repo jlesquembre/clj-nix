@@ -173,7 +173,9 @@
             (remove deps-set)
             (map (fn [mvn-path]
                    (let [full-path (fs/path cache-dir mvn-path)]
-                     (assoc (utils/mvn-repo-info full-path {:cache-dir cache-dir :mvn-repos mvn-repos})
+                     ; Setting :exact-version to "SNAPSHOT" here should be fine – if the path isn't a snapshot, it doesn't
+                     ; matter, and if it is, mvn-repo-info should return the correct result
+                     (assoc (utils/mvn-repo-info full-path {:exact-version "SNAPSHOT" :cache-dir cache-dir :mvn-repos mvn-repos})
                             :hash (nix-hash full-path))))))
 
           (fs/glob cache-dir "**.{pom,jar}"))))
