@@ -21,7 +21,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: Update
-          title: Update clojure dependencies
+          title: Update babashka version
           assignees: jlesquembre
           branch: update-babahska
           labels: |
