@@ -34,7 +34,21 @@
           :mvn-repo "https://repo.clojars.org/"
           :url "https://repo.clojars.org/babashka/fs/0.1.5/fs-0.1.5.jar"}
          (utils/mvn-repo-info
-           (fs/path @mvn/cached-local-repo "babashka/fs/0.1.5/fs-0.1.5.jar")))))
+           (fs/path @mvn/cached-local-repo "babashka/fs/0.1.5/fs-0.1.5.jar"))))
+
+  (is (= {:mvn-path "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar"
+          :mvn-repo "https://repo.clojars.org/"
+          :url "https://repo.clojars.org/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar"
+          :snapshot "clj-kondo-2022.04.26-SNAPSHOT.jar"}
+         (utils/mvn-repo-info
+           (fs/path @mvn/cached-local-repo "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar"))))
+
+  (is (= {:mvn-repo "https://repo.clojars.org/",
+          :mvn-path "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220526.212013-27.jar",
+          :url "https://repo.clojars.org/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220526.212013-27.jar",
+          :snapshot "clj-kondo-2022.04.26-SNAPSHOT.jar"}
+         (utils/mvn-repo-info
+           (fs/path @mvn/cached-local-repo "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-SNAPSHOT.jar")))))
 
 (deftest get-parent-test
   (is (= (str (fs/path @mvn/cached-local-repo "org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"))

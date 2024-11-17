@@ -36,16 +36,17 @@
           (map (fn [[lib {:keys [mvn/version paths]}]]
                  (when-not (= 1 (count paths))
                    (throw+ "Maven deps can have only 1 path" {:lib lib :paths paths}))
-                 (let [local-path (first paths)]
-                   (assoc (utils/mvn-repo-info local-path {:exact-version version :mvn-repos mvn-repos})
-                          :lib lib
-                          :version version
-                          :local-path local-path))))
+                 (let [local-path (-> paths first (utils/fixed-snapshot-path version))
+                       result (assoc (utils/mvn-repo-info local-path {:mvn-repos mvn-repos})
+                                     :lib lib
+                                     :version version
+                                     :local-path local-path)]
+                   result)))
           ; Add POM
           (mapcat (juxt identity
                         (fn [{:keys [local-path version]}]
-                          (let [pom-path (utils/artifact->pom local-path)]
-                            (assoc (utils/mvn-repo-info pom-path {:exact-version version :mvn-repos mvn-repos})
+                          (let [pom-path (-> local-path utils/artifact->pom (utils/fixed-snapshot-path version))]
+                            (assoc (utils/mvn-repo-info pom-path {:mvn-repos mvn-repos})
                                    :version version
                                    :local-path pom-path)))))
 

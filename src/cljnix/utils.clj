@@ -56,17 +56,20 @@
 ;; foo-SNAPSHOT.jar
 (defn- snapshot-info
   [path]
-  (let [[artifact-id snapshot-version]
+  (let [[group-id artifact-id snapshot-version]
         (-> (str (fs/strip-ext path) ".pom")
             (pom)
             ((juxt
+               (memfn ^Model getGroupId)
                (memfn ^Model getArtifactId)
                (memfn ^Model getVersion))))]
     {:artifact-id artifact-id
+     :group-id group-id
      :snapshot-version snapshot-version
      :version (subs
                 (fs/file-name (fs/strip-ext path))
                 (inc (count artifact-id)))}))
+
 (defn- latest-snapshot
   [path]
   (->> (fs/glob (fs/parent path) "*.pom")
@@ -76,7 +79,7 @@
        (last)))
 
 (defn- resolve-snapshot
-  [path exact-version]
+  [path]
   (if-not (snapshot? path)
     {:resolved-path (str path)}
     (let [ext (fs/extension path)
@@ -86,12 +89,31 @@
           path
           (str (fs/path (fs/parent path) (str artifact-id
                                               "-"
-                                              (if (version/snapshot? exact-version)
+                                              (if (version/snapshot? version)
                                                 (latest-snapshot path)
-                                                exact-version)
+                                                version)
                                               "."
                                               ext))))
        :snapshot (str artifact-id "-" snapshot-version "." ext)})))
+
+; deps/create-basis returns '~/.../foo-1.0-SNAPSHOT.jar' as path,
+; even if the maven version is fixed: 'foo-1.0-20220502.201054-5'
+(defn fixed-snapshot-path
+  "Helper to convert a maven artifact snapshot to the fixed version.
+  e.g.: ~/.../foo-1.0-SNAPSHOT.jar -> ~/.../foo-1.0-20220502.201054-5.jar
+  Path must be a SNAPSHOT, and version a fixed version, if not, does nothing"
+  [path fixed-version]
+  (if-not (and
+            (snapshot? path)
+            (not (string/includes? fixed-version "SNAPSHOT")))
+    path
+    ;; fixed-version is 1.0-20220502.201054-5
+    ;; path is ~/.../my-lib-1.0-SNAPSHOT.jar
+    (let [{:keys [version]} (snapshot-info path)]
+      (fs/path
+        (fs/parent path)
+        (string/replace (fs/file-name path) version fixed-version)))))
+
 
 (defn- get-mvn-repo-name
   [path mvn-repos]
@@ -135,10 +157,10 @@
   "Given a path for a jar in the maven local repo, e.g:
    $REPO/babashka/fs/0.1.4/fs-0.1.4.jar
    return the maven repository url and the dependecy url"
-  [path & {:keys [cache-dir exact-version mvn-repos]
+  [path & {:keys [cache-dir mvn-repos]
            :or {cache-dir @mvn/cached-local-repo
                 mvn-repos mvn/standard-repos}}]
-  (let [{:keys [resolved-path snapshot]} (resolve-snapshot path exact-version)
+  (let [{:keys [resolved-path snapshot]} (resolve-snapshot path)
         mvn-path (str (fs/relativize cache-dir resolved-path))
         repo-name (or
                     (get-mvn-repo-name resolved-path mvn-repos)
@@ -379,6 +401,10 @@
 
 (comment
 
+  (fixed-snapshot-path
+    (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-SNAPSHOT.jar")
+    "2022.04.26-20220502.201054-5")
+
   (get-maven-repos
     (deps/create-basis {:user nil
                         :project (str (fs/expand-home "~/projects/clj-demo-project/deps.edn"))}))
@@ -394,14 +420,11 @@
   (get-parent-poms (fs/expand-home "~/.m2/repository/io/grpc/grpc-bom/1.55.1/pom.xml"))
 
 
-  (=
-    (mvn-repo-info
-      (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-SNAPSHOT.jar")
-      {:exact-version "2022.04.26-SNAPSHOT"})
+  (mvn-repo-info
+    (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-SNAPSHOT.jar"))
 
-    (mvn-repo-info
-      (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar")
-      {:exact-version "2022.04.26-20220502.201054-5"}))
+  (mvn-repo-info
+    (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar"))
 
 
   (get-deps-files (fs/canonicalize ".") {:bb? true :deps-exclude ["templates/default/deps.edn"]})
