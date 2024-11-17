@@ -6,6 +6,10 @@ on:
 
 jobs:
   clojure-deps:
+    permissions:
+      contents: write
+      pull-requests: write
+
     runs-on: ubuntu-latest
 
     steps:
