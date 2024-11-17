@@ -1,4 +1,4 @@
-name: "Update deps"
+name: "Update babashka"
 on:
   workflow_dispatch: # allows manual triggering
   schedule:
