@@ -2,7 +2,7 @@ name: "Update deps"
 on:
   workflow_dispatch: # allows manual triggering
   schedule:
-    - cron: "33 3 * * 1"
+    - cron: "39 3 * * 1"
 
 jobs:
   clojure-deps:
@@ -14,22 +14,16 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Update clj dependencies
-        run:
-          nix develop --command clojure -Sdeps '{:deps {com.github.liquidz/antq
-          {:mvn/version "RELEASE"}}}' -M -m antq.core -d . --upgrade --force
-          --skip=github-action
-
-      - name: Update clojure lock files
-        run: "nix develop --command update-deps"
+      - name: Update babashka version
+        run: "nix run .#babashka-unwrapped.updateScript"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          commit-message: Update clojure dependencies
+          commit-message: Update
           title: Update clojure dependencies
           assignees: jlesquembre
-          branch: update-clj-deps
+          branch: update-babahska
           labels: |
             dependencies
             automated
