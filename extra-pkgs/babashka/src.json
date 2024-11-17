@@ -1,11 +1,11 @@
 {
-  "version" : "1.12.194",
+  "version" : "1.12.195",
   "fetcher" : "fetchFromGitHub",
   "args" : {
     "owner" : "babashka",
     "repo" : "babashka",
-    "rev" : "v1.12.194",
-    "hash" : "sha256-AQNtFicyv9fPJC9pwiAFB+l4/rX+M1XPx0lPF0+0z2c=",
+    "rev" : "v1.12.195",
+    "hash" : "sha256-5s1s78zRK5/5AugvdPQtJr3vcZpU0l5JavZH3Z7F0SQ=",
     "fetchSubmodules" : true
   }
 }
