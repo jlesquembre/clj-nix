@@ -326,18 +326,22 @@
             (.getRepositories model)))
     (catch Exception _ {})))
 
-
+; https://maven.apache.org/guides/mini/guide-multiple-repositories.html#Repository_Order
 (defn get-maven-repos
   "Given a basis, returns all maven repos"
   [basis]
-  (into (merge mvn/standard-repos (:mvn/repos basis))
-        (comp
-          (filter mvn?)
-          (map val)
-          (mapcat :paths)
-          (map artifact->pom)
-          (map get-repos))
-        (:libs basis)))
+  (merge
+    (into {} (comp
+              (filter mvn?)
+              (map val)
+              (mapcat :paths)
+              (map artifact->pom)
+              (map get-repos))
+          (:libs basis))
+    mvn/standard-repos
+    (:mvn/repos basis)))
+
+
 
 
 (defn- dep-path

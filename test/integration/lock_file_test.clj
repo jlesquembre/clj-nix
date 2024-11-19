@@ -7,6 +7,8 @@
     [matcher-combinators.test]
     [matcher-combinators.matchers :as m]))
 
+(def default-mvn-url "https://repo1.maven.org/maven2/")
+
 (deftest manual-manifest
   (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
     (let [spit-helper (h/make-spit-helper project-dir)]
@@ -70,7 +72,7 @@
                       :git/sha "cb08195d1032c1b500d8b34a355ac4c1aaa21b05"}}})
       (is (match?
            (m/embeds [{:mvn-path "io/dropwizard/metrics/metrics-core/4.0.5/metrics-core-4.0.5.jar"
-                       :mvn-repo "https://repo.maven.apache.org/maven2/"
+                       :mvn-repo default-mvn-url
                        :hash "sha256-4x9bwvxY3KzQzzH36vpD07mBhz2sDT8P/rsUVnXxyKg="}])
            (:mvn-deps (c/lock-file project-dir)))))))
 
@@ -80,7 +82,7 @@
       (spit-helper "deps.edn" {:deps {'com.google.firebase/firebase-admin {:mvn/version "9.2.0"}}})
       (is (match?
             (m/embeds [{:mvn-path "com/google/firebase/firebase-admin/9.2.0/firebase-admin-9.2.0.jar"
-                        :mvn-repo "https://repo.maven.apache.org/maven2/"
+                        :mvn-repo default-mvn-url
                         :hash "sha256-pPTZGop6SjnQZqJ4tigwrUxpF3ESo6ALgns6CpoRgEA="}])
             (:mvn-deps (c/lock-file project-dir)))))))
 
@@ -122,10 +124,10 @@
       (spit-helper "deps.edn" {:deps {'org.clojure/clojure {:mvn/version "1.11.0-alpha1"}}})
       (is (match?
             (m/embeds [{:mvn-path "org/clojure/clojure/1.11.0-alpha1/clojure-1.11.0-alpha1.jar"
-                        :mvn-repo "https://repo.maven.apache.org/maven2/"}])
+                        :mvn-repo default-mvn-url}])
             (:mvn-deps (c/lock-file project-dir))))
       (fs/delete-if-exists (fs/expand-home "~/.m2/repository/org/clojure/clojure/1.11.0-alpha1/_remote.repositories"))
       (is (match?
             (m/embeds [{:mvn-path "org/clojure/clojure/1.11.0-alpha1/clojure-1.11.0-alpha1.jar"
-                        :mvn-repo "https://repo.maven.apache.org/maven2/"}])
+                        :mvn-repo default-mvn-url}])
             (:mvn-deps (c/lock-file project-dir)))))))
