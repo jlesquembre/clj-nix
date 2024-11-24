@@ -10,14 +10,12 @@ in
 {
   mkBabashkaDerivation =
 
-    { babashka ? pkgs.babashka        # Babashka version to use
-    , deps ? [ ]
-    , deps-build ? [ ]
-    , system ? sys                    # The build system
-    , build                           # The build script itself
-    , debug ? true                    # Run in debug mode
-    , outputs ? [ "out" ]             # Outputs to provide
-    , ...                             # Catch user-supplied env vars
+    { babashka ? pkgs.babashka-unwrapped    # Babashka version to use
+    , system ? sys                          # The build system
+    , build                                 # The build script itself
+    , debug ? true                          # Run in debug mode
+    , outputs ? [ "out" ]                   # Outputs to provide
+    , ...                                   # Catch user-supplied env vars
     }@attrs:
 
     let
@@ -76,11 +74,27 @@ in
       ];
 
 
+      deps-as-json = pkgs.runCommand "extract-deps"
+        {
+          __structuredAttrs = true;
+        }
+        ''
+          export PATH="${babashka}/bin"
+          bb --init ${build} -cp "${bbenv-utils}/src" -x "bbenv-utils/extract-deps"
+        '';
+
+      dependencies = lib.importJSON deps-as-json;
+      deps = dependencies.deps or [ ];
+      build-deps = dependencies.build-deps or [ ];
+
+      drvDeps = builtins.map (dep: builtins.getAttr dep pkgs)
+        (deps ++ build-deps);
+
+
       # JDK / Native image don't allow to modify environment variables, but we want to set the PATH
+      path = lib.makeBinPath (drvDeps ++ defaultBuildDeps ++ deps ++ build-deps);
+
       builder-wrapper =
-        let
-          path = lib.makeBinPath (defaultBuildDeps ++ deps ++ deps-build);
-        in
         pkgs.writers.writeBashBin "bbenv-build-wrapper"
           { }
           ''
@@ -95,7 +109,7 @@ in
 
     derivation ({
       inherit (drvInfo) name version;
-      inherit outputs deps deps-build system build;
+      inherit outputs deps build-deps system build dependencies path;
 
       builder = "${builder-wrapper}/bin/bbenv-build-wrapper";
       # args = [ ];

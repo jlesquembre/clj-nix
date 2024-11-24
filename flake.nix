@@ -55,7 +55,6 @@
 
           bb-drv-demo = self.packages.${system}.babashkaEnv.mkBabashkaDerivation {
             build = ./extra-pkgs/bbenv/build_demo.clj;
-            deps-build = [ pkgs.gcc ];
           };
         });
 

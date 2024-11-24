@@ -69,7 +69,22 @@
         env (get-build-env)]
     (build-fn
       {:env env
+       :path (get env :path)
        :src-origin src
        :src (prepare-src src)
        :outputs (get env :outputs)
        :out (get-in env [:outputs :out])})))
+
+
+
+(defn extract-deps
+  []
+  (let [{:keys [deps build-deps]
+         :or {deps [] build-deps []}} user/pkg
+        env (get-build-env)
+        output (get-in env [:outputs :out])]
+    (with-open [w (io/writer output)]
+      (json/generate-stream
+        {:deps deps
+         :build-deps build-deps}
+        w))))
