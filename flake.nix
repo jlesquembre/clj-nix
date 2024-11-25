@@ -53,9 +53,17 @@
 
           babashkaEnv = import ./extra-pkgs/bbenv/lib/bbenv.nix { inherit pkgs; sys = system; };
 
-          bb-drv-demo = self.packages.${system}.babashkaEnv.mkBabashkaDerivation {
-            build = ./extra-pkgs/bbenv/build_demo.clj;
-          };
+          bb-pkgs = let mkBabashkaDerivation = self.packages.${system}.babashkaEnv.mkBabashkaDerivation; in
+            {
+              hello = mkBabashkaDerivation {
+                pkg = ./extra-pkgs/bbenv/pkgs/hello;
+              };
+              hello-override = mkBabashkaDerivation {
+                pkg = ./extra-pkgs/bbenv/pkgs/hello;
+                override = ./extra-pkgs/bbenv/pkgs/hello_override;
+              };
+
+            };
         });
 
       devShells = eachSystem ({ pkgs, ... }: {

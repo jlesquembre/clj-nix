@@ -1,11 +1,15 @@
 (ns bbenv-utils
   (:require
-    [user]
+    ;[,pkg, :as package]
+    ;[,override, :as override-package]
     [babashka.fs :as fs]
     [cheshire.core :as json]
     [clojure.java.io :as io]
-    [babashka.process :refer [shell]])
+    [babashka.process :refer [shell]]
+    [rewrite-clj.zip :as z])
   (:import [java.nio.file FileSystems]))
+
+(def pkg ,{},)
 
 (defn- get-build-env
   []
@@ -19,12 +23,31 @@
       (json/parse-stream true))))
 
 
-(defn info->json
-  [{:keys [out]}]
+(defn get-ns
+  [path]
+  (-> (z/of-file path)
+      (z/find-value z/next 'ns)
+      z/next
+      z/sexpr))
+
+
+(defn write-ns-info
+  [{:keys [out pkg-path override-path]}]
+  (let [ns-str (get-ns pkg-path)]
+    (spit (str (fs/path out "ns.txt"))
+          ns-str))
+  (when-let [ns-str (get-ns override-path)]
+    (spit (str (fs/path out "override-ns.txt"))
+          ns-str)))
+
+
+(defn write-src-info
+  [{:keys [out override]}]
   (with-open [w (io/writer out)]
-    (json/generate-stream
-      (select-keys user/pkg [:name :version :src])
-      w)))
+    (let [pkg (if override (,:override-package, pkg) pkg)]
+      (json/generate-stream
+        (select-keys pkg [:name :version :src])
+        w))))
 
 
 ; See https://github.com/NixOS/nixpkgs/blob/9e447b48546c8ccf80ad039cbb56cc936fd82889/pkgs/stdenv/generic/setup.sh#L1190
@@ -65,7 +88,7 @@
 
 (defn mk-derivation
   [{:keys [src]}]
-  (let [build-fn (:build user/pkg)
+  (let [build-fn (:build pkg)
         env (get-build-env)]
     (build-fn
       {:env env
@@ -78,9 +101,9 @@
 
 
 (defn extract-deps
-  []
+  [_]
   (let [{:keys [deps build-deps]
-         :or {deps [] build-deps []}} user/pkg
+         :or {deps [] build-deps []}} pkg
         env (get-build-env)
         output (get-in env [:outputs :out])]
     (with-open [w (io/writer output)]

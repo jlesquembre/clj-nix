@@ -17,11 +17,11 @@
 , fetchFromSourcehut
 }:
 
-srcJsonPath:
+srcInfoPath:
 
 
 let
-  info = lib.importJSON (srcJsonPath + /info.json);
+  info = lib.importJSON srcInfoPath;
   src = info.src;
   fetcher = src.fetcher;
   args = builtins.removeAttrs src [ "fetcher" ];
@@ -44,7 +44,6 @@ let
     else if fetcher == "fetchFromRepoOrCz" then fetchFromRepoOrCz args
     else if fetcher == "fetchFromSourcehut" then fetchFromSourcehut args
     else abort "Invalid fetcher: ${fetcher}";
-
 
 in
 

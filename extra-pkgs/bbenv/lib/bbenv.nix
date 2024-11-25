@@ -12,9 +12,10 @@ in
 
     { babashka ? pkgs.babashka-unwrapped    # Babashka version to use
     , system ? sys                          # The build system
-    , build                                 # The build script itself
+    , pkg                                   # Path to the directory with the package
     , debug ? true                          # Run in debug mode
     , outputs ? [ "out" ]                   # Outputs to provide
+    , override ? null                       # Optional override
     , ...                                   # Catch user-supplied env vars
     }@attrs:
 
@@ -23,7 +24,7 @@ in
       reservedAttrs = [
         "deps"
         "deps-build"
-        "build"
+        "pkg"
         "debug"
         "outputs"
         "system"
@@ -42,6 +43,9 @@ in
 
       extraAttrs = removeAttrs attrs reservedAttrs;
 
+      ifOverride = s: (lib.optionalString (! isNull override) s);
+      ifElseOverride = s1: s2: (if (isNull override) then s2 else s1);
+
       # Extract data from the clj build file and save it to the nix store
       bbenv-utils = pkgs.runCommand "bbenv-utils"
         {
@@ -50,11 +54,39 @@ in
         ''
           mkdir -p $out/src
           cp "${../bbenv_utils.clj}" $out/src/bbenv_utils.clj
-          bb --init ${build} -cp $out/src -x 'bbenv-utils/info->json' --out "$out/info.json"
+
+          pkg=$(stripHash ${pkg})
+          cp -r "${pkg}" $out/src/$pkg
+          ${ifElseOverride
+            ''
+              override=$(stripHash ${override})
+              cp -r ${override} "$out/src/$override"
+            ''
+            ''
+              mkdir -p $out/src/override
+              echo '(ns override.dummy) (def override identity)' > $out/src/override/dummy.clj
+            ''
+          }
+
+          bb -cp $out/src -x 'bbenv-utils/write-ns-info' \
+             --out "$out" \
+             --pkg-path "${pkg}/package.clj" \
+             --override-path ${ifElseOverride "${override}/override.clj" "$out/src/override/dummy.clj"}
+
+          substituteInPlace "$out/src/bbenv_utils.clj" \
+            --replace-fail ',{},' 'package/pkg' \
+            --replace-fail ',:override-package,' 'override-package/override' \
+            --replace-fail ';[,pkg,' "[$(head -1 $out/ns.txt)" \
+            --replace-fail ';[,override,' "[$(head -1 $out/override-ns.txt)"
+
+
+          bb -cp $out/src -x 'bbenv-utils/write-src-info' \
+             --out "$out/src.json" \
+             --override ${ifElseOverride "true" "false"}
         '';
 
 
-      drvInfo = fetchDrvInfo bbenv-utils;
+      drvInfo = fetchDrvInfo (bbenv-utils + /src.json);
 
       defaultBuildDeps = [
         babashka
@@ -80,7 +112,7 @@ in
         }
         ''
           export PATH="${babashka}/bin"
-          bb --init ${build} -cp "${bbenv-utils}/src" -x "bbenv-utils/extract-deps"
+          bb -cp "${bbenv-utils}/src" -x "bbenv-utils/extract-deps"
         '';
 
       dependencies = lib.importJSON deps-as-json;
@@ -102,14 +134,16 @@ in
             set -o nounset
             set -o pipefail
             export PATH="${path}"
-            bb --init ${build} -cp "${bbenv-utils}/src" -x "bbenv-utils/mk-derivation" --src "${drvInfo.src}"
+            bb -cp "${bbenv-utils}/src" \
+              -x "bbenv-utils/mk-derivation" \
+              --src "${drvInfo.src}"
           '';
 
     in
 
     derivation ({
       inherit (drvInfo) name version;
-      inherit outputs deps build-deps system build dependencies path;
+      inherit outputs deps build-deps system pkg dependencies path;
 
       builder = "${builder-wrapper}/bin/bbenv-build-wrapper";
       # args = [ ];
