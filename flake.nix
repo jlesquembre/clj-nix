@@ -50,8 +50,10 @@
 
           docs = pkgs.callPackage ./extra-pkgs/docs { inherit pkgs; };
 
-
-          babashkaEnv = import ./extra-pkgs/bbenv/lib/bbenv.nix { inherit pkgs; sys = system; };
+          babashkaEnv = import ./extra-pkgs/bbenv/lib/bbenv.nix {
+            inherit pkgs; sys = system;
+            bb-pkgs = self.outputs.packages.${system}.bb-pkgs;
+          };
 
           bb-pkgs = let mkBabashkaDerivation = self.packages.${system}.babashkaEnv.mkBabashkaDerivation; in
             {

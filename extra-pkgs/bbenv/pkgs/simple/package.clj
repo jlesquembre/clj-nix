@@ -14,12 +14,13 @@
     (fs/write-lines
       path
       [(format "#!%s" (fs/file bash "bin/bash"))
-       (format "export PATH=%s" (h/make-bin-path (select-keys deps [:hello])))
-       "hello"])))
+       (format "export PATH=%s" (h/make-bin-path (dissoc deps :bash)))
+       "hello"
+       "hello --version"])))
 
 
 (def pkg
   {:name "simple"
-   :deps [:bash :hello]
+   :deps [:bash :bb/hello-override]
    :version "DEV"
    :build build})

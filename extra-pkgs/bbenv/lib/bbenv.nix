@@ -1,5 +1,6 @@
 { sys
 , pkgs
+, bb-pkgs ? null
 }:
 
 let
@@ -120,7 +121,16 @@ in
       deps = dependencies.deps or [ ];
       build-deps = dependencies.build-deps or [ ];
 
-      drvDeps = builtins.map (dep: builtins.getAttr dep pkgs)
+      getDepByName =
+        (name:
+          let
+            parts = lib.splitString "/" name;
+            isBbPkg = (builtins.head parts) == "bb";
+            name' = if isBbPkg then (lib.last parts) else name;
+          in
+          builtins.getAttr name' (if isBbPkg then bb-pkgs else pkgs));
+
+      drvDeps = builtins.map getDepByName
         (deps ++ build-deps);
 
 
@@ -140,7 +150,7 @@ in
               --src "${drvInfo.src or "nil"}"
           '';
 
-      mapDeps = ds: lib.genAttrs ds (name: (builtins.getAttr name pkgs));
+      mapDeps = ds: lib.genAttrs ds getDepByName;
 
     in
 
