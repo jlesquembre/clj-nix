@@ -62,6 +62,9 @@
                 pkg = ./extra-pkgs/bbenv/pkgs/hello;
                 override = ./extra-pkgs/bbenv/pkgs/hello_override;
               };
+              simple = mkBabashkaDerivation {
+                pkg = ./extra-pkgs/bbenv/pkgs/simple;
+              };
 
             };
         });

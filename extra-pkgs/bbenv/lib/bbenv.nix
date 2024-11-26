@@ -54,6 +54,7 @@ in
         ''
           mkdir -p $out/src
           cp "${../bbenv_utils.clj}" $out/src/bbenv_utils.clj
+          cp "${../helpers.clj}" $out/src/helpers.clj
 
           pkg=$(stripHash ${pkg})
           cp -r "${pkg}" $out/src/$pkg
@@ -124,7 +125,7 @@ in
 
 
       # JDK / Native image don't allow to modify environment variables, but we want to set the PATH
-      path = lib.makeBinPath (drvDeps ++ defaultBuildDeps ++ deps ++ build-deps);
+      path = lib.makeBinPath (drvDeps ++ defaultBuildDeps);
 
       builder-wrapper =
         pkgs.writers.writeBashBin "bbenv-build-wrapper"
@@ -136,14 +137,18 @@ in
             export PATH="${path}"
             bb -cp "${bbenv-utils}/src" \
               -x "bbenv-utils/mk-derivation" \
-              --src "${drvInfo.src}"
+              --src "${drvInfo.src or "nil"}"
           '';
+
+      mapDeps = ds: lib.genAttrs ds (name: (builtins.getAttr name pkgs));
 
     in
 
     derivation ({
       inherit (drvInfo) name version;
-      inherit outputs deps build-deps system pkg dependencies path;
+      deps = mapDeps deps;
+      build-deps = mapDeps build-deps;
+      inherit outputs system pkg path;
 
       builder = "${builder-wrapper}/bin/bbenv-build-wrapper";
       # args = [ ];

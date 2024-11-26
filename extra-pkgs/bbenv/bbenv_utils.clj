@@ -91,12 +91,11 @@
   (let [build-fn (:build pkg)
         env (get-build-env)]
     (build-fn
-      {:env env
-       :path (get env :path)
-       :src-origin src
-       :src (prepare-src src)
-       :outputs (get env :outputs)
-       :out (get-in env [:outputs :out])})))
+      (merge
+        env
+        {:src-origin src
+         :src (prepare-src src)
+         :out (get-in env [:outputs :out])}))))
 
 
 
