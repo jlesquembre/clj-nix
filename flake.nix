@@ -50,25 +50,8 @@
 
           docs = pkgs.callPackage ./extra-pkgs/docs { inherit pkgs; };
 
-          babashkaEnv = import ./extra-pkgs/bbenv/lib/bbenv.nix {
-            inherit pkgs; sys = system;
-            bb-pkgs = self.outputs.packages.${system}.bb-pkgs;
-          };
+          babashkaEnv = import ./extra-pkgs/bbenv/lib/bbenv.nix;
 
-          bb-pkgs = let mkBabashkaDerivation = self.packages.${system}.babashkaEnv.mkBabashkaDerivation; in
-            {
-              hello = mkBabashkaDerivation {
-                pkg = ./extra-pkgs/bbenv/pkgs/hello;
-              };
-              hello-override = mkBabashkaDerivation {
-                pkg = ./extra-pkgs/bbenv/pkgs/hello;
-                override = ./extra-pkgs/bbenv/pkgs/hello_override;
-              };
-              simple = mkBabashkaDerivation {
-                pkg = ./extra-pkgs/bbenv/pkgs/simple;
-              };
-
-            };
         });
 
       devShells = eachSystem ({ pkgs, ... }: {
