@@ -16,31 +16,28 @@
   outputs = { self, nixpkgs, ... }@inputs:
 
     let
-      inherit (nixpkgs.lib)
-        concatMapAttrs
-        genAttrs
-        isFunction;
+      supportedSystems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "x86_64-linux"
+      ];
 
-      eachSystem = f: genAttrs
-        [
-          "aarch64-darwin"
-          "aarch64-linux"
-          "x86_64-darwin"
-          "x86_64-linux"
-        ]
-        (system: f
-          (import nixpkgs
-            {
-              inherit system;
-              overlays = [
-                inputs.devshell.overlays.default
-                inputs.nix-fetcher-data.overlays.default
-                self.overlays.default
-              ];
-            }));
+      eachSystem = f: nixpkgs.lib.genAttrs supportedSystems (system: f {
+        pkgs = import nixpkgs
+          {
+            inherit system;
+            overlays = [
+              inputs.devshell.overlays.default
+              inputs.nix-fetcher-data.overlays.default
+              self.overlays.default
+            ];
+          };
+        inherit system;
+      });
     in
     {
-      packages = eachSystem (pkgs:
+      packages = eachSystem ({ pkgs, system }:
         {
           inherit (pkgs) clj-builder deps-lock mk-deps-cache
             fake-git
@@ -52,9 +49,12 @@
           babashka-unwrapped = pkgs.mkBabashka { wrap = false; };
 
           docs = pkgs.callPackage ./extra-pkgs/docs { inherit pkgs; };
+
+          babashkaEnv = import ./extra-pkgs/bbenv/lib/bbenv.nix;
+
         });
 
-      devShells = eachSystem (pkgs: {
+      devShells = eachSystem ({ pkgs, ... }: {
         default =
           pkgs.devshell.mkShell {
             packages = [

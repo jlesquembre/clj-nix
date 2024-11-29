@@ -43,6 +43,7 @@ nav:
   - Options: options.md
   - FAQ: faq.md
   - Tutorial: tutorial.md
+  - Babashka Builder: bb-env.md
 
 plugins:
   - search:

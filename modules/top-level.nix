@@ -7,30 +7,30 @@ let types = lib.types; in
       type = types.package;
       default = pkgs.jdk_headless;
       defaultText = lib.literalExpression "pkgs.jdk_headless";
-      description = lib.mdDoc "JDK used to build and run the application.";
+      description = "JDK used to build and run the application.";
     };
 
     projectSrc = lib.mkOption {
       type = types.path;
-      description = lib.mdDoc "Project source code.";
+      description = "Project source code.";
       example = lib.literalExpression "./.";
     };
 
     name = lib.mkOption {
       type = types.str;
-      description = lib.mdDoc "Name of the clojure project. Needs to include the namespace.";
+      description = "Name of the clojure project. Needs to include the namespace.";
       example = "myorg/project";
     };
 
     version = lib.mkOption {
       default = "DEV";
       type = types.str;
-      description = lib.mdDoc "Derivation and clojure project version";
+      description = "Derivation and clojure project version";
     };
 
     main-ns = lib.mkOption {
       type = types.str;
-      description = lib.mdDoc
+      description =
         ''
           Main clojure namespace. A `-main` function is expected here.
           `main-ns` file must include the :gen-class directive, e.g.: `(ns foo (:gen-class))`
@@ -40,54 +40,54 @@ let types = lib.types; in
     java-opts = lib.mkOption {
       type = types.listOf types.str;
       default = [ ];
-      description = lib.mdDoc "List of Java options to include in the application wrapper";
+      description = "List of Java options to include in the application wrapper";
     };
 
     buildCommand = lib.mkOption {
       default = null;
       type = types.nullOr types.str;
-      description = lib.mdDoc "Command to build the jar application. If not provided, a default builder is used";
+      description = "Command to build the jar application. If not provided, a default builder is used";
     };
 
     builder-extra-inputs = lib.mkOption {
       default = [ ];
       type = types.listOf types.package;
-      description = lib.mdDoc "Extra inputs to the default builder";
+      description = "Extra inputs to the default builder";
     };
 
     builder-java-opts = lib.mkOption {
       type = types.listOf types.str;
       default = [ ];
-      description = lib.mdDoc "List of Java options to include in default builder command";
+      description = "List of Java options to include in default builder command";
     };
 
     builder-preBuild = lib.mkOption {
       default = "";
       type = types.str;
-      description = lib.mdDoc "Pre build commands for the default builder";
+      description = "Pre build commands for the default builder";
     };
     builder-postBuild = lib.mkOption {
       default = "";
       type = types.str;
-      description = lib.mdDoc "Post build commands for the default builder";
+      description = "Post build commands for the default builder";
     };
 
 
     lockfile = lib.mkOption {
       default = null;
       type = types.nullOr types.path;
-      description = lib.mdDoc "The lock file";
+      description = "The lock file";
     };
 
     compileCljOpts = lib.mkOption {
       default = null;
-      description = lib.mdDoc "Override options passed to compile-clj";
+      description = "Override options passed to compile-clj";
       type = types.anything;
     };
 
     javacOpts = lib.mkOption {
       default = null;
-      description = lib.mdDoc "Options passed to javac. Needed if the projects contains java source files";
+      description = "Options passed to javac. Needed if the projects contains java source files";
       type = types.nullOr (
         (types.submodule {
           options.src-dirs = lib.mkOption {
@@ -103,7 +103,7 @@ let types = lib.types; in
 
     withLeiningen = lib.mkOption {
       default = false;
-      description = lib.mdDoc "Enable it to invoke leiningen during the build";
+      description = "Enable it to invoke leiningen during the build";
       type = types.bool;
     };
 
@@ -118,7 +118,7 @@ let types = lib.types; in
           enable = lib.mkOption {
             default = false;
             type = types.bool;
-            description = lib.mdDoc ''
+            description = ''
               Creates a custom JDK runtime with `jlink`.
             '';
           };
@@ -126,7 +126,7 @@ let types = lib.types; in
           jdkModules = lib.mkOption {
             default = null;
             type = types.nullOr types.str;
-            description = lib.mdDoc ''
+            description = ''
               Option passed to `jlink --add-modules`.
               If `null`, `jdeps` will be used to analyze the uberjar'';
           };
@@ -134,13 +134,13 @@ let types = lib.types; in
           extraJdkModules = lib.mkOption {
             default = [ ];
             type = types.listOf types.str;
-            description = lib.mdDoc "Extra JDK modules appended to `jdkModules`";
+            description = "Extra JDK modules appended to `jdkModules`";
           };
 
           locales = lib.mkOption {
             default = null;
             type = types.nullOr types.str;
-            description = lib.mdDoc "Option passed to `jlink --include-locales`";
+            description = "Option passed to `jlink --include-locales`";
           };
 
         };
@@ -158,26 +158,26 @@ let types = lib.types; in
           enable = lib.mkOption {
             default = false;
             type = types.bool;
-            description = lib.mdDoc "Generates a binary with GraalVM";
+            description = "Generates a binary with GraalVM";
           };
 
           graalvm = lib.mkOption {
             default = pkgs.graalvm-ce;
             defaultText = lib.literalExpression "pkgs.graalvm-ce";
             type = types.package;
-            description = lib.mdDoc "GraalVM used at build time";
+            description = "GraalVM used at build time";
           };
 
           extraNativeImageBuildArgs = lib.mkOption {
             default = [ ];
             type = types.listOf types.str;
-            description = lib.mdDoc "Extra arguments to be passed to the native-image command";
+            description = "Extra arguments to be passed to the native-image command";
           };
 
           graalvmXmx = lib.mkOption {
             default = "-J-Xmx6g";
             type = types.str;
-            description = lib.mdDoc "XMX size of GraalVM during build";
+            description = "XMX size of GraalVM during build";
           };
 
         };
