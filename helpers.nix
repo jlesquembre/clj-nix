@@ -87,11 +87,22 @@ in
         }
 
     else if cfg.nativeImage.enable then
-      pkgs'.mkGraalBin
-        {
-          inherit cljDrv;
-          inherit (cfg.nativeImage) graalvm extraNativeImageBuildArgs graalvmXmx;
-        }
+      pkgs'.mkGraalBin {
+        inherit cljDrv;
+
+        graalvm = if cfg.nativeImage.static then
+          pkgs'.graalvmPackages.graalvm-ce-musl
+        else
+          cfg.nativeImage.graalvm;
+
+        extraNativeImageBuildArgs = cfg.nativeImage.extraNativeImageBuildArgs
+          ++ (if cfg.nativeImage.static then [
+            "--static"
+            "--libc=musl"
+          ] else
+            [ ]);
+        inherit (cfg.nativeImage) graalvmXmx;
+      }
     else
       cljDrv;
 

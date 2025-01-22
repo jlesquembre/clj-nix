@@ -180,6 +180,12 @@ let types = lib.types; in
             description = "XMX size of GraalVM during build";
           };
 
+          static = lib.mkOption {
+            default = false;
+            type = types.bool;
+            description = "Build a static binary using musl libc";
+          };
+
         };
       };
     };
