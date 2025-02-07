@@ -16,7 +16,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Update babashka version
         run: "nix run .#babashka-unwrapped.updateScript"
