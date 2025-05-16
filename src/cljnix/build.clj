@@ -58,7 +58,7 @@
                          version)}))
 
 (defn uber
-  [{:keys [main-ns compile-clj-opts javac-opts] :as opts}]
+  [{:keys [main-ns compile-clj-opts javac-opts uber-opts] :as opts}]
   (let [{:keys [src-dirs basis output-jar]}
         (common-compile-options opts)]
     (b/copy-dir {:src-dirs src-dirs
@@ -73,10 +73,11 @@
                             :class-dir class-dir}
                      compile-clj-opts (merge (parse-compile-clj-opts compile-clj-opts))))
 
-    (b/uber {:class-dir class-dir
-             :uber-file output-jar
-             :basis basis
-             :main main-ns})))
+    (b/uber (cond-> {:class-dir class-dir
+                     :uber-file output-jar
+                     :basis basis
+                     :main main-ns}
+              uber-opts (merge uber-opts)))))
 
 (defn jar
   [{:keys [version] :as opts}]

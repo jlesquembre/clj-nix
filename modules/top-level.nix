@@ -101,6 +101,18 @@ let types = lib.types; in
       );
     };
 
+    uberOpts = lib.mkOption {
+      default = null;
+      description = "Options passed to uber.";
+      type = types.nullOr (
+        (types.submodule {
+          options.exclude = lib.mkOption {
+            type = types.listOf types.str;
+          };
+        })
+      );
+    };
+
     withLeiningen = lib.mkOption {
       default = false;
       description = "Enable it to invoke leiningen during the build";

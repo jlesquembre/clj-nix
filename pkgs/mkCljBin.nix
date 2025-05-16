@@ -29,6 +29,7 @@
 , lockfile ? null
 , compileCljOpts ? null
 , javacOpts ? null
+, uberOpts ? null
 , enableLeiningen ? false
 , builder-extra-inputs ? [ ]
 , builder-java-opts ? [ ]
@@ -55,6 +56,7 @@ let
     "nativeBuildInputs"
     "compileCljOpts"
     "javacOpts"
+    "uberOpts"
     "builder-extra-inputs"
     "builder-java-opts"
     "builder-preBuild"
@@ -150,7 +152,8 @@ stdenv.mkDerivation ({
         ''
           clj-builder uber "${fullId}" "${version}" "${main-ns}" \
             '${builtins.toJSON compileCljOpts}' \
-            '${builtins.toJSON javacOpts}'
+            '${builtins.toJSON javacOpts}' \
+            '${builtins.toJSON uberOpts}'
         ''
 
       # Don't check for :gen-class with custom build commands

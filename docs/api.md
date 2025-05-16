@@ -60,6 +60,10 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
   Needed if the projects contains java source files. Only 2 options are
   supoorted: `src-dirs` and `javac-opts`. (Default: `null`)
 
+- **uberOpts**: Options passed to
+  [`uber`](https://clojure.github.io/tools.build/clojure.tools.build.api.html#var-uber)
+  Only 1 option is supported: `exclude`. (Default: `null`)
+
 - **enableLeiningen**: Makes Leiningen accessible at build time (Default:
   `false`)
 
