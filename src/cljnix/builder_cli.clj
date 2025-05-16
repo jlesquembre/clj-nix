@@ -34,9 +34,10 @@
     (= cmd "uber")
     (do
       (check-main-class args)
-      (-> (zipmap [:lib-name :version :main-ns :compile-clj-opts :javac-opts] args)
+      (-> (zipmap [:lib-name :version :main-ns :compile-clj-opts :javac-opts :uber-opts] args)
           (update :compile-clj-opts str->json)
           (update :javac-opts str->json)
+          (update :uber-opts str->json)
           (build/uber)))
 
     (= cmd "check-main")
