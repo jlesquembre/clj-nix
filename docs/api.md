@@ -62,6 +62,7 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
 
 - **uberOpts**: Options passed to
   [`uber`](https://clojure.github.io/tools.build/clojure.tools.build.api.html#var-uber)
+  See [TBUILD-11](https://clojure.atlassian.net/browse/TBUILD-11) for when you might need it.
   Only 1 option is supported: `exclude`. (Default: `null`)
 
 - **enableLeiningen**: Makes Leiningen accessible at build time (Default:
