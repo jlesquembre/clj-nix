@@ -857,6 +857,12 @@ default are mandatory, extra attributes are passed to <strong>mkDerivation</stro
   supoorted: <code>src-dirs</code> and <code>javac-opts</code>. (Default: <code>null</code>)</p>
 </li>
 <li>
+<p><strong>uberOpts</strong>: Options passed to
+  <a href="https://clojure.github.io/tools.build/clojure.tools.build.api.html#var-uber"><code>uber</code></a>
+  See <a href="https://clojure.atlassian.net/browse/TBUILD-11">TBUILD-11</a> for when you might need it.
+  Only 1 option is supported: <code>exclude</code>. (Default: <code>null</code>)</p>
+</li>
+<li>
 <p><strong>enableLeiningen</strong>: Makes Leiningen accessible at build time (Default:
   <code>false</code>)</p>
 </li>
