@@ -79,7 +79,7 @@ buildGraalvmNativeImage ({
   meta.mainProgram = name;
 
   dontUnpack = true;
-  jar = lib.fileContents "${cljDrv}/nix-support/jar-path";
+  src = lib.fileContents "${cljDrv}/nix-support/jar-path";
 
   extraNativeImageBuildArgs = extraNativeImageBuildArgs ++
     [
