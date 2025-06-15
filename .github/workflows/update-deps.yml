@@ -29,6 +29,7 @@ jobs:
           title: Update clojure dependencies
           assignees: jlesquembre
           branch: update-clj-deps
+          token: ${{ secrets.GH_TOKEN_FOR_UPDATES }}
           labels: |
             dependencies
             automated

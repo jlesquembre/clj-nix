@@ -10,10 +10,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Install Determinate Nix
+        uses: DeterminateSystems/determinate-nix-action@v3
       - name: Update flake.lock
         uses: DeterminateSystems/update-flake-lock@main
         with:
+          token: ${{ secrets.GH_TOKEN_FOR_UPDATES }}
           pr-title: "Update flake.lock"
           pr-labels: |
             dependencies

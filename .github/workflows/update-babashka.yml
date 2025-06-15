@@ -23,6 +23,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ secrets.GH_TOKEN_FOR_UPDATES }}
           commit-message: Update
           title: Update babashka version
           assignees: jlesquembre
