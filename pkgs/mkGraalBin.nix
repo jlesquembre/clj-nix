@@ -76,6 +76,7 @@ buildGraalvmNativeImage ({
   inherit version;
   pname = name;
   graalvmDrv = graalvm;
+  meta.mainProgram = name;
 
   dontUnpack = true;
   jar = lib.fileContents "${cljDrv}/nix-support/jar-path";
