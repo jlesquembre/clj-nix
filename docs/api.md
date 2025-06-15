@@ -68,6 +68,10 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
 - **enableLeiningen**: Makes Leiningen accessible at build time (Default:
   `false`)
 
+- **symlinkDeps**: Symlink the Clojure dependencies to the directory where the
+  `buildCommand` is executed, providing compatibility with other commands that
+  might need a mutable `$HOME` (like `npm`). (Default: `false`)
+
 - **builder-extra-inputs**: Extra inputs to the default builder (Default: `[ ]`)
 
 - **builder-java-opts** List of Java options to include in default builder
