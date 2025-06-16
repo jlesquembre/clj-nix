@@ -72,8 +72,6 @@ let
   groupId = builtins.head (lib.strings.splitString "/" fullId);
   artifactId = builtins.elemAt (lib.strings.splitString "/" fullId) 1;
 
-  asCljVector = list: lib.concatMapStringsSep " " lib.strings.escapeNixString list;
-
   javaMain = builtins.replaceStrings [ "-" ] [ "_" ] main-ns;
 
 in
