@@ -81,6 +81,8 @@ stdenv.mkDerivation ({
   pname = lib.strings.sanitizeDerivationName artifactId;
   src = projectSrc;
 
+  meta.mainProgram = artifactId;
+
   # Build time deps
   nativeBuildInputs =
     attrs.nativeBuildInputs or [ ]
