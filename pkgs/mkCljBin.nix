@@ -31,6 +31,7 @@
 , javacOpts ? null
 , uberOpts ? null
 , enableLeiningen ? false
+, symlinkDeps ? false
 , builder-extra-inputs ? [ ]
 , builder-java-opts ? [ ]
 , builder-preBuild ? ""
@@ -135,8 +136,10 @@ stdenv.mkDerivation ({
     ''
       runHook preBuild
 
-      export HOME="${deps-cache}"
-      export JAVA_TOOL_OPTIONS="-Duser.home=${deps-cache}"
+      export HOME="${if symlinkDeps then "$(pwd)" else "${deps-cache}"}"
+      export JAVA_TOOL_OPTIONS="-Duser.home=$HOME"
+
+      ${lib.optionalString symlinkDeps "ln -s ${deps-cache}/.* $HOME"}
 
       export CLJ_CONFIG="$HOME/.clojure"
       export CLJ_CACHE="$TMP/cp_cache"
