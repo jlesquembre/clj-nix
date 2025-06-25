@@ -3,16 +3,6 @@
   "git-deps": [],
   "mvn-deps": [
     {
-      "mvn-path": "nrepl/nrepl/1.0.0/nrepl-1.0.0.jar",
-      "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-owuXNP8uY582Xw11U7SHcwbypUPPAh4pnRW/HqvWpbs="
-    },
-    {
-      "mvn-path": "nrepl/nrepl/1.0.0/nrepl-1.0.0.pom",
-      "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-dHN5LZGfjodYUES5nySqLqFVNCBgRI2opHhGvkXz2nI="
-    },
-    {
       "mvn-path": "org/clojure/clojure/1.10.3/clojure-1.10.3.jar",
       "mvn-repo": "https://repo.maven.apache.org/maven2/",
       "hash": "sha256-fxJHLa7Y9rUXSYqqKrE6ViR1w+31FHjkWBzHYemJeaM="
@@ -176,16 +166,6 @@
       "mvn-path": "org/clojure/tools.cli/0.3.5/tools.cli-0.3.5.pom",
       "mvn-repo": "https://repo1.maven.org/maven2/",
       "hash": "sha256-rDsX9Ufzdem8qH3P6mtiLQg6/s9LlVqU8Mk95gNCDkU="
-    },
-    {
-      "mvn-path": "org/nrepl/incomplete/0.1.0/incomplete-0.1.0.jar",
-      "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-beLz9UBjtMi6E63xC2IdP4muwTFwM2SPLSSzlRB3ouM="
-    },
-    {
-      "mvn-path": "org/nrepl/incomplete/0.1.0/incomplete-0.1.0.pom",
-      "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-1LvcRQ5FaR2KfmrAGBqOr5amU4spUZZWo/zO6JVNY0s="
     },
     {
       "mvn-path": "org/sonatype/oss/oss-parent/5/oss-parent-5.pom",
