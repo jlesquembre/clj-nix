@@ -28,6 +28,14 @@ setup_file() {
     cmp deps-lock.json deps-lock.json.bkp
 }
 
+@test "Generate lockfile for specific Leiningen profile only" {
+    cp deps-lock.json deps-lock.json.bkp
+    nix build "$cljnix_dir#deps-lock" --no-link --print-out-paths >> "$DERIVATIONS"
+    nix run "$cljnix_dir#deps-lock" -- --lein --lein-profiles foobar
+    cmp deps-lock.json deps-lock-foobar-profile.json
+    cp deps-lock.json.bkp deps-lock.json
+}
+
 @test "mkCljBin" {
     nix build .#mkCljBin-test --print-out-paths >> "$DERIVATIONS"
     run -0 ./result/bin/cljdemo
