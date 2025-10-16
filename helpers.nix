@@ -71,7 +71,7 @@ in
       cljDrv = pkgs'.mkCljBin {
         jdkRunner = cfg.jdk;
         inherit (cfg) projectSrc name version main-ns buildCommand
-          lockfile java-opts compileCljOpts javacOpts
+          lockfile java-opts compileCljOpts javacOpts uberOpts
           builder-extra-inputs builder-java-opts builder-preBuild builder-postBuild;
         enableLeiningen = cfg.withLeiningen;
       };
