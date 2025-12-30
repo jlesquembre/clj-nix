@@ -152,7 +152,7 @@ Takes the following attributes (those without a default are mandatory):
 
 - **cljDrv**: Derivation generated with `mkCljBin`.
 
-- **graalvm**: GraalVM used at build time. (Default: `nixpkgs.graalvm-ce`)
+- **graalvm**: GraalVM used at build time. (Default: `nixpkgs.graalvmPackages.graalvm-ce`)
 
 - **name**: Derivation name. (Default: `cljDrv.name`)
 
@@ -216,7 +216,7 @@ Takes the following attributes:
 
 - **bbLean**: Disable default Babashka features. (Default: `false`)
 
-- **graalvm**: GraalVM used at build time. (Default: `nixpkgs.graalvm-ce`)
+- **graalvm**: GraalVM used at build time. (Default: `nixpkgs.graalvmPackages.graalvm-ce`)
 
 - **wrap**: Create a wrapper with `rlwrap` (Default: `true`)
 
