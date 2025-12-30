@@ -3,7 +3,7 @@
 , fetchurl
 , glibcLocales
 , writeShellScript
-, graalvmCEPackages
+, graalvmPackages
 , writeText
 , buildGraalvmNativeImage
 }:
@@ -14,7 +14,7 @@
 
   # Options to buildGraalvmNativeImage (passed as provided)
   # TODO rename to graalvmDrv, align with buildGraalvmNativeImage on nixpkgs
-, graalvm ? graalvmCEPackages.graalvm-ce
+, graalvm ? graalvmPackages.graalvm-ce
 , meta ? { }
 
   # Options to buildGraalvmNativeImage
