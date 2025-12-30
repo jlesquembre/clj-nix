@@ -1,5 +1,13 @@
-{ config, options, lib, pkgs, ... }:
-let types = lib.types; in
+{
+  config,
+  options,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  types = lib.types;
+in
 {
   options = {
 
@@ -30,11 +38,10 @@ let types = lib.types; in
 
     main-ns = lib.mkOption {
       type = types.str;
-      description =
-        ''
-          Main clojure namespace. A `-main` function is expected here.
-          `main-ns` file must include the :gen-class directive, e.g.: `(ns foo (:gen-class))`
-        '';
+      description = ''
+        Main clojure namespace. A `-main` function is expected here.
+        `main-ns` file must include the :gen-class directive, e.g.: `(ns foo (:gen-class))`
+      '';
     };
 
     java-opts = lib.mkOption {
@@ -71,7 +78,6 @@ let types = lib.types; in
       type = types.str;
       description = "Post build commands for the default builder";
     };
-
 
     lockfile = lib.mkOption {
       default = null;
@@ -174,8 +180,8 @@ let types = lib.types; in
           };
 
           graalvm = lib.mkOption {
-            default = pkgs.graalvm-ce;
-            defaultText = lib.literalExpression "pkgs.graalvm-ce";
+            default = pkgs.graalvmPackages.graalvm-ce;
+            defaultText = lib.literalExpression "pkgs.graalvmPackages.graalvm-ce";
             type = types.package;
             description = "GraalVM used at build time";
           };
@@ -201,7 +207,6 @@ let types = lib.types; in
         };
       };
     };
-
 
   };
 }

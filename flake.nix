@@ -60,7 +60,7 @@
             packages = [
               pkgs.jq
               pkgs.clojure
-              pkgs.graalvm-ce
+              pkgs.graalvmPackages.graalvm-ce
               pkgs.bats
               pkgs.envsubst
               pkgs.mustache-go
