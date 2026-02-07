@@ -36,13 +36,13 @@ setup_file() {
     cp deps-lock.json.bkp deps-lock.json
 }
 
-@test "mkCljBin" {
+@test "mkCljBin (leiningen)" {
     nix build .#mkCljBin-test --print-out-paths >> "$DERIVATIONS"
     run -0 ./result/bin/cljdemo
     [ "$output" = "Hello, World!" ]
 }
 
-@test "mkCljBin with tests" {
+@test "mkCljBin with tests (leiningen)" {
     nix build .#mkCljBin-test-with-tests --print-out-paths >> "$DERIVATIONS"
     run -0 ./result/bin/cljdemo
     [ "$output" = "Hello, World!" ]
