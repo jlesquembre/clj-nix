@@ -1,5 +1,14 @@
 # vi: ft=sh
 
+# Use podman if available, otherwise docker
+container_runtime() {
+  if command -v podman &> /dev/null; then
+    echo "podman"
+  else
+    echo "docker"
+  fi
+}
+
 setup_file() {
 
   bats_require_minimum_version 1.5.0
@@ -26,8 +35,8 @@ setup_file() {
 }
 
 teardown_file() {
-    docker rmi jvm-container-test
-    docker rmi graal-container-test
+    $(container_runtime) rmi jvm-container-test
+    $(container_runtime) rmi graal-container-test
     rm -rf "$cljnix_dir_copy"
 }
 
@@ -67,16 +76,16 @@ teardown_file() {
 # bats test_tags=docker
 @test "nix build .#jvm-container-test" {
     nix build .#jvm-container-test --print-out-paths >> "$DERIVATIONS"
-    docker load -i result
-    run -0 docker run --rm jvm-container-test:latest
+    $(container_runtime) load -i result
+    run -0 "$(container_runtime)" run --rm jvm-container-test:latest
     [ "$output" = "Hello from CLOJURE!!!" ]
 }
 
 # bats test_tags=docker,graal
 @test "nix build .#graal-container-test" {
     nix build .#graal-container-test --print-out-paths >> "$DERIVATIONS"
-    docker load -i result
-    run -0 docker run --rm graal-container-test:latest
+    $(container_runtime) load -i result
+    run -0 "$(container_runtime)" run --rm graal-container-test:latest
     [ "$output" = "Hello from CLOJURE!!!" ]
 }
 

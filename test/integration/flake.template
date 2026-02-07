@@ -54,7 +54,7 @@
               name = "graal-container-test";
               tag = "latest";
               config = {
-                Cmd = "${graalDrv}/bin/${graalDrv.pname}";
+                Cmd = [ "${graalDrv}/bin/${graalDrv.pname}" ];
               };
             };
 
