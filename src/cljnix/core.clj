@@ -531,7 +531,7 @@
 ; We need all clojure versions in nixpkgs, in case the flake consumer wants to
 ; use a different nixpkgs version
 ; Minimum supported version is 1.10.3
-(def clojure-versions ["1.10.3" "1.11.0" "1.11.1" "1.11.2" "1.11.3" "1.11.4" "1.12.0"])
+(def clojure-versions ["1.10.3" "1.11.0" "1.11.1" "1.11.2" "1.11.3" "1.11.4" "1.12.0" "1.12.1" "1.12.2" "1.12.3" "1.12.4"])
 
 (defn clojure-deps
   []
