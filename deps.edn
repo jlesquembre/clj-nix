@@ -1,24 +1,24 @@
-{:deps {org.clojure/clojure {:mvn/version "1.12.0"}
-        org.clojure/tools.deps {:mvn/version "0.21.1449"}
-        org.clojure/tools.deps.cli {:mvn/version "0.11.72"}
-        org.clojure/data.json {:mvn/version "2.5.0"}
-        org.babashka/cli {:mvn/version "0.8.60"}
-        babashka/fs {:mvn/version "0.5.22"}
-        org.babashka/http-client {:mvn/version "0.4.21"}
+{:deps {org.clojure/clojure {:mvn/version "1.12.4"}
+        org.clojure/tools.deps {:mvn/version "0.28.1578"}
+        org.clojure/tools.deps.cli {:mvn/version "0.15.131"}
+        org.clojure/data.json {:mvn/version "2.5.2"}
+        org.babashka/cli {:mvn/version "0.8.67"}
+        babashka/fs {:mvn/version "0.5.31"}
+        org.babashka/http-client {:mvn/version "0.4.23"}
         org.clj-commons/byte-streams {:mvn/version "0.3.4"}
         version-clj/version-clj {:mvn/version "2.0.3"}
-        borkdude/rewrite-edn {:mvn/version "0.4.8"}
-        dev.weavejester/medley {:mvn/version "1.8.1"}
-        io.github.clojure/tools.build {:git/tag "v0.10.5"
-                                       :git/sha "2a21b7acb544d3d69de9b674adf99769b8687403"}}
+        borkdude/rewrite-edn {:mvn/version "0.5.9"}
+        dev.weavejester/medley {:mvn/version "1.9.0"}
+        io.github.clojure/tools.build {:git/tag "v0.10.12"
+                                       :git/sha "97c5562933a7f26b406650f955cd6358554a07f1"}}
 
  :paths ["src"]
  :aliases
  {:main {:main-opts ["-m" "core"]}
   :test {:extra-paths ["test" "pkgs"]
          :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
-                      nubank/matcher-combinators {:mvn/version "3.9.1"}
+                      nubank/matcher-combinators {:mvn/version "3.10.0"}
 
                       ;; for fake-git tests
-                      babashka/process {:mvn/version "0.5.22"}
-                      cheshire/cheshire {:mvn/version "5.13.0"}}}}}
+                      babashka/process {:mvn/version "0.6.25"}
+                      cheshire/cheshire {:mvn/version "6.1.0"}}}}}
