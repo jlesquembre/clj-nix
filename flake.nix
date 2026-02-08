@@ -60,6 +60,7 @@
             packages = [
               pkgs.jq
               pkgs.clojure
+              pkgs.babashka
               pkgs.graalvmPackages.graalvm-ce
               pkgs.bats
               pkgs.envsubst
@@ -72,6 +73,7 @@
                 help = "Update builder-lock.json and clojure-deps.edn";
                 command =
                   ''
+                    bb ./scripts/newer_clojure_versions.bb
                     clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -m antq.core --upgrade --force
                     clj -X cljnix.bootstrap/as-json :deps-path '"deps.edn"' | jq . > pkgs/builder-lock.json
                     clj -X cljnix.core/clojure-deps-str > src/clojure-deps.edn
