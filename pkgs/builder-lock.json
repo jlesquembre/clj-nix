@@ -241,12 +241,16 @@
     "hash": "sha256-nC9sSrC8Hsgebu0A9DCzJcAvDGE67Kz2gx/urbR55yk="
   },
   {
-    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps.cli/0.15.131/tools.deps.cli-0.15.131.jar",
-    "hash": "sha256-9qArWIBM+KF0iFXp4O8vPHv74apPJwRAEQidQ84IzEA="
+    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps.cli/0.15.139/tools.deps.cli-0.15.139.jar",
+    "hash": "sha256-2Ev7d9DPa1/JghkeEonHFbqBigbctuU+XXfc5WsX99o="
   },
   {
-    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps/0.28.1578/tools.deps-0.28.1578.jar",
-    "hash": "sha256-blL9jO0KQPOlkW9Ew/nx50QJ2f/rh8gQdizkJx+pozk="
+    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps.edn/0.9.22/tools.deps.edn-0.9.22.jar",
+    "hash": "sha256-vSTaveBhBYDtsORuyw925UCHNIrl0zRsEOPF7QvWnOk="
+  },
+  {
+    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps/0.29.1593/tools.deps-0.29.1593.jar",
+    "hash": "sha256-sIq77YrFddzHrOvjC0Ka2sUmPWOUnOkwyHh9nVx9I7Y="
   },
   {
     "url": "https://repo1.maven.org/maven2/org/clojure/tools.gitlibs/2.6.212/tools.gitlibs-2.6.212.jar",
