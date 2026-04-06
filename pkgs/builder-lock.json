@@ -1,16 +1,16 @@
 [
   {
     "url": "https://github.com/clojure/tools.build.git",
-    "rev": "97c5562933a7f26b406650f955cd6358554a07f1",
+    "rev": "ae52edfedef4ca72e699e9c86abfe0940e97dc26",
     "paths": [
       "src/main/clojure",
       "src/main/resources"
     ],
-    "hash": "sha256-wXlB3mKPblN7+4ViZ1Yl7U6BK1hsBGKMlvO/4rQHC34="
+    "hash": "sha256-Bz9MjXZqQh/Gt+Zgsa0ISLzcW3vOpmOt3Ls/v4aRLtk="
   },
   {
-    "url": "https://repo.clojars.org/babashka/fs/0.5.31/fs-0.5.31.jar",
-    "hash": "sha256-ZwYfHumyox9uoLs1W3ToGil5ng6jOwGJ4cGMJXFMKQk="
+    "url": "https://repo.clojars.org/babashka/fs/0.5.32/fs-0.5.32.jar",
+    "hash": "sha256-6q4zZIyolPvqwhAXtsYMNUmIwFtvZlxJeCZVlsJI4Qw="
   },
   {
     "url": "https://repo.clojars.org/borkdude/rewrite-edn/0.5.9/rewrite-edn-0.5.9.jar",
@@ -21,8 +21,8 @@
     "hash": "sha256-WNv3Pai8403EmN5sNH+HLvmPMBo6KdyVeX1k+A5ra0c="
   },
   {
-    "url": "https://repo.clojars.org/dev/weavejester/medley/1.9.0/medley-1.9.0.jar",
-    "hash": "sha256-eNlZjNbuxGelTEZLL7gCC8xRIK1ISqeV9/CqezsYPhM="
+    "url": "https://repo.clojars.org/dev/weavejester/medley/1.10.0/medley-1.10.0.jar",
+    "hash": "sha256-FVAABSn3ANFPlRhFHYEeE3FK3xlYtExpFRhbbwpB60A="
   },
   {
     "url": "https://repo.clojars.org/manifold/manifold/0.3.0/manifold-0.3.0.jar",
