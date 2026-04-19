@@ -26,9 +26,8 @@ jobs:
           publish_dir: ./result
 
       - name: Publish to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: clj-nix
-          directory: result
+          command: pages deploy result --project-name=clj-nix
