@@ -1,9 +1,16 @@
-## Tutorial
+# Tutorial
 
 Source code for this tutorial can be found here:
 https://github.com/jlesquembre/clj-demo-project
 
-### Init
+!!! note
+
+    This tutorial demonstrates the lower-level API functions (`mkCljBin`,
+    `customJdk`, `mkGraalBin`). For new projects, consider using the
+    higher-level `mkCljApp` function with the [Nix module system](./nix-module.md),
+    which provides a more streamlined configuration experience.
+
+## Init
 
 There is a template to help you start your new project:
 
@@ -31,7 +38,7 @@ git add deps-lock.json
     flakes, it's possible to point to the remote git repository. E.g.: We can
     replace `nix run .#foo` with `nix run github:/jlesquembre/clj-demo-project#foo`
 
-### Create a binary from a Clojure application
+## Create a binary from a Clojure application
 
 First, we create a new package in our flake:
 
@@ -81,7 +88,7 @@ nix path-info -sSh .#clj-tuto
 Good, now the size is `703.9M`. It's an improvement, but still big. To reduce
 the size, we can use the `customJdk` helper.
 
-### Create custom JDK for a Clojure application
+## Create custom JDK for a Clojure application
 
 We add a package to our flake, to build a customized JDK for our Clojure
 application:
@@ -101,7 +108,7 @@ nix path-info -sSh .#jdk-tuto
 Not bad! We reduced the size to `96.3M`. That's something we can put in a
 container. Let's create a container with our application.
 
-### Create a container
+## Create a container
 
 Again, we add a new package to our flake, in this case it will create a
 container:
@@ -142,10 +149,10 @@ docker images
 
 Docker reports an image size of `99.2MB`
 
-### Create a native image with GraalVM
+## Create a native image with GraalVM
 
 If we want to continue reducing the size of our derivation, we can compile the
-application with GraalVM. Keep in mind that size it's not the only factor to
+application with GraalVM. Keep in mind that size is not the only factor to
 consider. There is a nice slide from the GraalVM team, illustrating what
 technology to use for which use case:
 
@@ -194,5 +201,5 @@ docker load < result
 docker run -it --rm clj-graal-nix
 ```
 
-In this case, the container image size is `45.3MB`, aproximately half the size
+In this case, the container image size is `45.3MB`, approximately half the size
 of the custom JDK image.

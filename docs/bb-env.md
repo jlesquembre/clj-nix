@@ -1,14 +1,14 @@
-## Nix Babashka builder
+# Nix Babashka Builder
 
-This a very experimental [Nix][] builder that uses [Babashka][] as an
-alternative builder for [Nix][] ([Nixpkgs][] is build on top of
-`stdenv.mkDerivation`, which is developed with [Bash][])
+This is a very experimental [Nix][] builder that uses [Babashka][] as an
+alternative builder for [Nix][]. ([Nixpkgs][] is built on top of
+`stdenv.mkDerivation`, which is developed with [Bash][].)
 
 All the examples in this document can be found here:
 
 https://github.com/jlesquembre/bb-pkgs
 
-### Installation
+## Installation
 
 Add the following to your `flake.nix` inputs:
 
@@ -87,7 +87,7 @@ To create a derivation, the `package.clj` must:
     should be a valid derivation name on
     [nixpkgs](https://search.nixos.org/packages)
 
-  - `:build-deps`: Similar to `:deps`, but for dependecies only needed at build
+  - `:build-deps`: Similar to `:deps`, but for dependencies only needed at build
     time.
 
   - `:src`: The source to build the derivation, similar to the src attribute of
@@ -115,7 +115,7 @@ most important ones:
 - `out`: The path to the Nix store where you can copy files. A derivation must,
   at a minimum, create this directory.
 
-#### Dependecies
+#### Dependencies
 
 If you want to add a dependency created with `mkBabashkaDerivation` (instead of
 a Nixpkgs dependency), namespace your dependency with `:bb`, e.g.:
@@ -151,7 +151,7 @@ outputs = { self, nixpkgs, clj-nix, ... }@inputs:
 
 #### Overrides
 
-It is also posible to override a derivation. To do that, the
+It is also possible to override a derivation. To do that, the
 `mkBabashkaDerivation` accepts a second argument, `override`:
 
 ```nix
@@ -180,7 +180,7 @@ it. E.g.:
       (assoc-in [:src :hash] "sha256-MeBmE3qWJnbon2nRtlOC3pWn732RS4y5VvQepy4PUWs=")))
 ```
 
-### Similar project
+## Similar Projects
 
 A non-exhaustive list of projects providing alternative Nix builders:
 

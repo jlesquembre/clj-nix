@@ -58,7 +58,7 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
 - **javacOpts**: Options passed to
   [`javac`](https://clojure.github.io/tools.build/clojure.tools.build.api.html#var-javac).
   Needed if the projects contains java source files. Only 2 options are
-  supoorted: `src-dirs` and `javac-opts`. (Default: `null`)
+  supported: `src-dirs` and `javac-opts`. (Default: `null`)
 
 - **uberOpts**: Options passed to
   [`uber`](https://clojure.github.io/tools.build/clojure.tools.build.api.html#var-uber)
@@ -77,6 +77,13 @@ default are mandatory, extra attributes are passed to **mkDerivation**):
   `""`)
 - **builder-postBuild** Post build commands for the default builder (Default:
   `""`)
+
+!!! note
+
+    The `builder-*` options (`builder-extra-inputs`, `builder-java-opts`,
+    `builder-preBuild`, `builder-postBuild`) are incompatible with the
+    `buildCommand` option. Use either the default builder with `builder-*`
+    options or provide a custom `buildCommand`, but not both.
 
 **Example**:
 
@@ -242,15 +249,16 @@ mkBabashka {
 
 ### mkCljCli
 
-Returns a string with the command to launch an application created with
-`customJdk`. Takes the following attributes (those without a default are
-mandatory):
+Returns a list containing the command and arguments to launch an application
+created with `customJdk`. This is useful for container configurations where you
+need the command as a list rather than a bash script. Takes the following
+attributes (those without a default are mandatory):
 
 **jdkDrv**: Derivation generated with `customJdk`
 
 **java-opts**: Extra arguments for the Java command (Default: `[]`)
 
-**extra-args**: Extra arguments for the Clojure application (Default: `""`)
+**extra-args**: Extra arguments for the Clojure application (Default: `[]`)
 
 **Example**:
 
@@ -258,7 +266,7 @@ mandatory):
 mkCljCli {
   jdkDrv = self.packages."${system}".jdk-tuto;
   java-opts = [ "-Dclojure.compiler.direct-linking=true" ];
-  extra-args = [ "--foo bar" ];
+  extra-args = [ "--foo" "bar" ];
 }
 ```
 
