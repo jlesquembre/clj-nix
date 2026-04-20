@@ -539,6 +539,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -581,6 +583,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -589,18 +593,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#tutorial" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tutorial
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Tutorial">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#init" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -610,8 +602,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#create-a-binary-from-a-clojure-application" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -621,8 +613,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#create-custom-jdk-for-a-clojure-application" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -632,8 +624,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#create-a-container" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -643,8 +635,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#create-a-native-image-with-graalvm" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -652,11 +644,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -712,6 +699,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -720,18 +709,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#tutorial" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tutorial
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Tutorial">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#init" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -741,8 +718,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#create-a-binary-from-a-clojure-application" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -752,8 +729,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#create-custom-jdk-for-a-clojure-application" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -763,8 +740,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#create-a-container" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -774,8 +751,8 @@
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#create-a-native-image-with-graalvm" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -783,11 +760,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -816,12 +788,17 @@
   
 
 
-  <h1>Tutorial</h1>
-
-<h2 id="tutorial">Tutorial</h2>
+<h1 id="tutorial">Tutorial</h1>
 <p>Source code for this tutorial can be found here:
 https://github.com/jlesquembre/clj-demo-project</p>
-<h3 id="init">Init</h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This tutorial demonstrates the lower-level API functions (<code>mkCljBin</code>,
+<code>customJdk</code>, <code>mkGraalBin</code>). For new projects, consider using the
+higher-level <code>mkCljApp</code> function with the <a href="../nix-module/">Nix module system</a>,
+which provides a more streamlined configuration experience.</p>
+</div>
+<h2 id="init">Init</h2>
 <p>There is a template to help you start your new project:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>nix<span class="w"> </span>flake<span class="w"> </span>new<span class="w"> </span>--template<span class="w"> </span>github:jlesquembre/clj-nix<span class="w"> </span>./my-new-project
 </code></pre></div>
@@ -839,7 +816,7 @@ you are executing the commands from the root of the repository. But with Nix
 flakes, it's possible to point to the remote git repository. E.g.: We can
 replace <code>nix run .#foo</code> with <code>nix run github:/jlesquembre/clj-demo-project#foo</code></p>
 </div>
-<h3 id="create-a-binary-from-a-clojure-application">Create a binary from a Clojure application</h3>
+<h2 id="create-a-binary-from-a-clojure-application">Create a binary from a Clojure application</h2>
 <p>First, we create a new package in our flake:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="ss">clj-tuto</span> <span class="o">=</span> cljpkgs<span class="o">.</span>mkCljBin <span class="p">{</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  <span class="ss">projectSrc</span> <span class="o">=</span> <span class="l">./.</span><span class="p">;</span>
@@ -873,7 +850,7 @@ container. We can use a headless JDK to reduce the size, let's try that:</p>
 </code></pre></div>
 <p>Good, now the size is <code>703.9M</code>. It's an improvement, but still big. To reduce
 the size, we can use the <code>customJdk</code> helper.</p>
-<h3 id="create-custom-jdk-for-a-clojure-application">Create custom JDK for a Clojure application</h3>
+<h2 id="create-custom-jdk-for-a-clojure-application">Create custom JDK for a Clojure application</h2>
 <p>We add a package to our flake, to build a customized JDK for our Clojure
 application:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="ss">jdk-tuto</span> <span class="o">=</span> cljpkgs<span class="o">.</span>customJdk <span class="p">{</span>
@@ -886,7 +863,7 @@ application:</p>
 </code></pre></div>
 <p>Not bad! We reduced the size to <code>96.3M</code>. That's something we can put in a
 container. Let's create a container with our application.</p>
-<h3 id="create-a-container">Create a container</h3>
+<h2 id="create-a-container">Create a container</h2>
 <p>Again, we add a new package to our flake, in this case it will create a
 container:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="ss">clj-container</span> <span class="o">=</span>
@@ -914,9 +891,9 @@ and we can reduce the size by removing <code>bash</code></p>
 <a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>docker<span class="w"> </span>images
 </code></pre></div>
 <p>Docker reports an image size of <code>99.2MB</code></p>
-<h3 id="create-a-native-image-with-graalvm">Create a native image with GraalVM</h3>
+<h2 id="create-a-native-image-with-graalvm">Create a native image with GraalVM</h2>
 <p>If we want to continue reducing the size of our derivation, we can compile the
-application with GraalVM. Keep in mind that size it's not the only factor to
+application with GraalVM. Keep in mind that size is not the only factor to
 consider. There is a nice slide from the GraalVM team, illustrating what
 technology to use for which use case:</p>
 <p><img alt="GraalVM performance" src="../graal-performance.jpeg" /></p>
@@ -950,7 +927,7 @@ technology to use for which use case:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>docker<span class="w"> </span>load<span class="w"> </span>&lt;<span class="w"> </span>result
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>clj-graal-nix
 </code></pre></div>
-<p>In this case, the container image size is <code>45.3MB</code>, aproximately half the size
+<p>In this case, the container image size is <code>45.3MB</code>, approximately half the size
 of the custom JDK image.</p>
 
 

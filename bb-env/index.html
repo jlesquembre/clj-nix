@@ -564,6 +564,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -606,6 +608,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -614,18 +618,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#nix-babashka-builder" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nix Babashka builder
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Nix Babashka builder">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -634,7 +626,8 @@
     </span>
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#structure" class="md-nav__link">
@@ -682,10 +675,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dependecies" class="md-nav__link">
+  <a href="#dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dependecies
+        Dependencies
       
     </span>
   </a>
@@ -708,19 +701,19 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#similar-project" class="md-nav__link">
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#similar-projects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Similar project
+        Similar Projects
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -749,6 +742,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -757,18 +752,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#nix-babashka-builder" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nix Babashka builder
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Nix Babashka builder">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -777,7 +760,8 @@
     </span>
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#structure" class="md-nav__link">
@@ -825,10 +809,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dependecies" class="md-nav__link">
+  <a href="#dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dependecies
+        Dependencies
       
     </span>
   </a>
@@ -851,19 +835,19 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#similar-project" class="md-nav__link">
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#similar-projects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Similar project
+        Similar Projects
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -892,15 +876,13 @@
   
 
 
-  <h1>Babashka Builder</h1>
-
-<h2 id="nix-babashka-builder">Nix Babashka builder</h2>
-<p>This a very experimental <a href="https://nixos.org/">Nix</a> builder that uses <a href="https://babashka.org/">Babashka</a> as an
-alternative builder for <a href="https://nixos.org/">Nix</a> (<a href="https://nixos.org/manual/nixpkgs/stable/">Nixpkgs</a> is build on top of
-<code>stdenv.mkDerivation</code>, which is developed with <a href="https://www.gnu.org/software/bash/">Bash</a>)</p>
+<h1 id="nix-babashka-builder">Nix Babashka Builder</h1>
+<p>This is a very experimental <a href="https://nixos.org/">Nix</a> builder that uses <a href="https://babashka.org/">Babashka</a> as an
+alternative builder for <a href="https://nixos.org/">Nix</a>. (<a href="https://nixos.org/manual/nixpkgs/stable/">Nixpkgs</a> is built on top of
+<code>stdenv.mkDerivation</code>, which is developed with <a href="https://www.gnu.org/software/bash/">Bash</a>.)</p>
 <p>All the examples in this document can be found here:</p>
 <p>https://github.com/jlesquembre/bb-pkgs</p>
-<h3 id="installation">Installation</h3>
+<h2 id="installation">Installation</h2>
 <p>Add the following to your <code>flake.nix</code> inputs:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>clj-nix.url = &quot;github:jlesquembre/clj-nix&quot;;
 </code></pre></div>
@@ -966,7 +948,7 @@ any other files required by the derivation.</p>
     <a href="https://search.nixos.org/packages">nixpkgs</a></p>
 </li>
 <li>
-<p><code>:build-deps</code>: Similar to <code>:deps</code>, but for dependecies only needed at build
+<p><code>:build-deps</code>: Similar to <code>:deps</code>, but for dependencies only needed at build
     time.</p>
 </li>
 <li>
@@ -994,7 +976,7 @@ most important ones:</p>
 <li><code>out</code>: The path to the Nix store where you can copy files. A derivation must,
   at a minimum, create this directory.</li>
 </ul>
-<h4 id="dependecies">Dependecies</h4>
+<h4 id="dependencies">Dependencies</h4>
 <p>If you want to add a dependency created with <code>mkBabashkaDerivation</code> (instead of
 a Nixpkgs dependency), namespace your dependency with <code>:bb</code>, e.g.:
 <code>[:bash :bb/my-pkg]</code>. Here, <code>bash</code> is provided by <a href="https://nixos.org/manual/nixpkgs/stable/">Nixpkgs</a>, while <code>bb/my-pkg</code>
@@ -1025,7 +1007,7 @@ to define the <code>bb-pkgs</code> argument to <code>babashkaEnv</code>, e.g.:</
 <a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>  <span class="p">};</span>
 </code></pre></div>
 <h4 id="overrides">Overrides</h4>
-<p>It is also posible to override a derivation. To do that, the
+<p>It is also possible to override a derivation. To do that, the
 <code>mkBabashkaDerivation</code> accepts a second argument, <code>override</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>mkBabashkaDerivation <span class="p">{</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  <span class="ss">pkg</span> <span class="o">=</span> <span class="l">./pkgs/hello</span><span class="p">;</span>
@@ -1048,7 +1030,7 @@ it. E.g.:</p>
 <a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">      </span><span class="p">(</span><span class="nf">assoc-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:src</span><span class="w"> </span><span class="ss">:url</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nf">hello/version-url</span><span class="w"> </span><span class="nv">version</span><span class="p">))</span>
 <a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">      </span><span class="p">(</span><span class="nf">assoc-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:src</span><span class="w"> </span><span class="ss">:hash</span><span class="p">]</span><span class="w"> </span><span class="s">&quot;sha256-MeBmE3qWJnbon2nRtlOC3pWn732RS4y5VvQepy4PUWs=&quot;</span><span class="p">)))</span>
 </code></pre></div>
-<h3 id="similar-project">Similar project</h3>
+<h2 id="similar-projects">Similar Projects</h2>
 <p>A non-exhaustive list of projects providing alternative Nix builders:</p>
 <ul>
 <li><a href="https://github.com/DeterminateSystems/nuenv">nuenv: A Nushell environment for Nix</a></li>

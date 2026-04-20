@@ -990,7 +990,7 @@ default are mandatory, extra attributes are passed to <strong>mkDerivation</stro
 <p><strong>javacOpts</strong>: Options passed to
   <a href="https://clojure.github.io/tools.build/clojure.tools.build.api.html#var-javac"><code>javac</code></a>.
   Needed if the projects contains java source files. Only 2 options are
-  supoorted: <code>src-dirs</code> and <code>javac-opts</code>. (Default: <code>null</code>)</p>
+  supported: <code>src-dirs</code> and <code>javac-opts</code>. (Default: <code>null</code>)</p>
 </li>
 <li>
 <p><strong>uberOpts</strong>: Options passed to
@@ -1016,6 +1016,13 @@ default are mandatory, extra attributes are passed to <strong>mkDerivation</stro
 <li><strong>builder-postBuild</strong> Post build commands for the default builder (Default:
   <code>""</code>)</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code>builder-*</code> options (<code>builder-extra-inputs</code>, <code>builder-java-opts</code>,
+<code>builder-preBuild</code>, <code>builder-postBuild</code>) are incompatible with the
+<code>buildCommand</code> option. Use either the default builder with <code>builder-*</code>
+options or provide a custom <code>buildCommand</code>, but not both.</p>
+</div>
 <p><strong>Example</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mkCljBin <span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  <span class="ss">jdkRunner</span> <span class="o">=</span> pkgs<span class="o">.</span>jdk17_headless<span class="p">;</span>
@@ -1184,17 +1191,18 @@ insensitive and we can omit the <code>BABASHKA_FEATURE_</code> prefix.</p>
   to to have access to the cache in a nix derivation.</li>
 </ul>
 <h3 id="mkcljcli">mkCljCli</h3>
-<p>Returns a string with the command to launch an application created with
-<code>customJdk</code>. Takes the following attributes (those without a default are
-mandatory):</p>
+<p>Returns a list containing the command and arguments to launch an application
+created with <code>customJdk</code>. This is useful for container configurations where you
+need the command as a list rather than a bash script. Takes the following
+attributes (those without a default are mandatory):</p>
 <p><strong>jdkDrv</strong>: Derivation generated with <code>customJdk</code></p>
 <p><strong>java-opts</strong>: Extra arguments for the Java command (Default: <code>[]</code>)</p>
-<p><strong>extra-args</strong>: Extra arguments for the Clojure application (Default: <code>""</code>)</p>
+<p><strong>extra-args</strong>: Extra arguments for the Clojure application (Default: <code>[]</code>)</p>
 <p><strong>Example</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>mkCljCli <span class="p">{</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  <span class="ss">jdkDrv</span> <span class="o">=</span> self<span class="o">.</span>packages<span class="o">.</span><span class="s2">&quot;</span><span class="si">${</span>system<span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span>jdk-tuto<span class="p">;</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  <span class="ss">java-opts</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;-Dclojure.compiler.direct-linking=true&quot;</span> <span class="p">];</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  <span class="ss">extra-args</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;--foo bar&quot;</span> <span class="p">];</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  <span class="ss">extra-args</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;--foo&quot;</span> <span class="s2">&quot;bar&quot;</span> <span class="p">];</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="bbtasksfromfile">bbTasksFromFile</h3>

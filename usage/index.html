@@ -338,6 +338,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -380,6 +382,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -388,18 +392,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Usage
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Usage">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#new-project-template" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -409,9 +401,15 @@
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
   
 </li>
       
@@ -668,6 +666,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -676,18 +676,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Usage
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Usage">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#new-project-template" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -697,9 +685,15 @@
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
   
 </li>
       
@@ -728,11 +722,9 @@
   
 
 
-  <h1>Quickstart</h1>
-
-<h2 id="usage">Usage</h2>
+<h1 id="usage">Usage</h1>
 <p>This project requires <a href="https://nixos.wiki/wiki/Flakes">Nix Flakes</a></p>
-<h3 id="new-project-template">New project template</h3>
+<h2 id="new-project-template">New project template</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>nix<span class="w"> </span>flake<span class="w"> </span>new<span class="w"> </span>--template<span class="w"> </span>github:jlesquembre/clj-nix<span class="w"> </span>./my-new-project
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>./my-new-project
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>git<span class="w"> </span>init
@@ -744,8 +736,15 @@
 </code></pre></div>
 <p>Remember that with flakes, only the files tracked by git are recognized by Nix.</p>
 <p>Templates are for new projects. If you want to add <code>clj-nix</code> to an existing
-project, I suggest just copy the parts you need from the template (located here:
-<a href="https://github.com/jlesquembre/clj-nix/tree/main/templates/default">clj-nix/templates/default</a>)</p>
+project, copy the parts you need from the template (located at:
+<a href="https://github.com/jlesquembre/clj-nix/tree/main/templates/default">clj-nix/templates/default</a>).</p>
+<h2 id="next-steps">Next Steps</h2>
+<p>After creating your project:</p>
+<ol>
+<li>Generate a lock file: See <a href="../lock-file/">Lock File documentation</a></li>
+<li>Customize your build: See <a href="../api/">API documentation</a> or <a href="../nix-module/">Nix Module documentation</a></li>
+<li>Follow the <a href="../tutorial/">Tutorial</a> for advanced configurations</li>
+</ol>
 
 
 
