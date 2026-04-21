@@ -1,3 +1,16 @@
+/* mkCljLib - Build a Clojure JVM library (JAR)
+
+This builder creates library JARs from Clojure projects.
+
+EXTENSIBILITY:
+The build system is designed to support custom build processes:
+- Default: Uses `clj-builder jar` for standard JVM library builds
+- Custom: Use the `buildCommand` parameter to override with your own build script
+
+The dependency cache (mk-deps-cache) handles all Clojure dependency types and is
+independent of the compilation step, which is JVM-specific in the default build.
+*/
+
 { stdenv
 , lib
 , clojure
@@ -15,7 +28,7 @@
   projectSrc
 , name
 , version ? "DEV"
-, buildCommand ? null
+, buildCommand ? null  # Override default build with custom build script
 , maven-extra ? [ ]
 , ...
 }@attrs:

@@ -1,95 +1,39 @@
 (ns cljnix.build
+  "Backward compatibility shim for JVM build functions.
+
+  This namespace maintains backward compatibility with existing code.
+  New code should use cljnix.build.jvm or cljnix.build.core directly.
+
+  All functions delegate to cljnix.build.jvm."
   (:require
-    [clojure.java.io :as io]
-    [clojure.string :as string]
-    [clojure.tools.deps :as deps]
-    [clojure.tools.build.api :as b]))
+    [cljnix.build.jvm :as jvm]))
+
+;; Re-export JVM build functions for backward compatibility
+
+(def class-dir
+  "Target directory for compiled classes."
+  jvm/class-dir)
 
 (defn remove-timestamp!
+  "Remove timestamp from Maven pom.properties for reproducible builds.
+  DEPRECATED: Use cljnix.build.jvm/remove-timestamp! directly."
   [root-dir lib-name]
-  (let [f (io/file root-dir "META-INF/maven" (str lib-name) "pom.properties")]
-    (->> (slurp f)
-        string/split-lines
-        (remove #(string/starts-with? % "#"))
-        (string/join "\n")
-        (spit f))))
-
-(defn- get-paths
-  "Get paths from deps.edn file"
-  [deps]
-  (-> deps
-      io/file
-      deps/slurp-deps
-      :paths
-      (or ["src"])))
-
-(defn- parse-compile-clj-opts
-  "Transform JSON string to the exptect Clojure data type (keywords, symbols, ...)"
-  [opts]
-  (cond-> opts
-    (:ns-compile opts)
-    (update :ns-compile #(mapv symbol %))
-
-    (:sort opts)
-    (update :sort keyword)
-
-    (get-in opts [:compile-opts :elide-meta])
-    (update-in [:compile-opts :elide-meta] #(mapv keyword %))
-
-    (:filter-nses opts)
-    (update :filter-nses #(mapv symbol %))
-
-    (:use-cp-file opts)
-    (update :use-cp-file keyword)))
-
-
-(def class-dir "target/classes")
+  (jvm/remove-timestamp! root-dir lib-name))
 
 (defn common-compile-options
-  [{:keys [lib-name version]}]
-  (let [lib-name (if (qualified-symbol? (symbol lib-name))
-                   (symbol lib-name)
-                   (symbol lib-name lib-name))]
-    {:src-dirs (get-paths "deps.edn")
-     :basis (b/create-basis {:project "deps.edn"})
-     :lib-name lib-name
-     :output-jar (format "target/%s-%s.jar"
-                         (name lib-name)
-                         version)}))
+  "Build common options for compilation.
+  DEPRECATED: Use cljnix.build.jvm/common-compile-options directly."
+  [opts]
+  (jvm/common-compile-options opts))
 
 (defn uber
-  [{:keys [main-ns compile-clj-opts javac-opts uber-opts] :as opts}]
-  (let [{:keys [src-dirs basis output-jar]}
-        (common-compile-options opts)]
-    (b/copy-dir {:src-dirs src-dirs
-                 :target-dir class-dir})
-    (when javac-opts
-      (b/javac (merge
-                 javac-opts
-                 {:basis basis
-                  :class-dir class-dir})))
-    (b/compile-clj (cond-> {:basis basis
-                            :src-dirs src-dirs
-                            :class-dir class-dir}
-                     compile-clj-opts (merge (parse-compile-clj-opts compile-clj-opts))))
-
-    (b/uber (cond-> {:class-dir class-dir
-                     :uber-file output-jar
-                     :basis basis
-                     :main main-ns}
-              uber-opts (merge uber-opts)))))
+  "Build an uberjar.
+  DEPRECATED: Use cljnix.build.jvm/uber directly."
+  [opts]
+  (jvm/uber opts))
 
 (defn jar
-  [{:keys [version] :as opts}]
-  (let [{:keys [src-dirs basis lib-name output-jar]}
-        (common-compile-options opts)]
-    (b/write-pom {:class-dir class-dir
-                  :lib lib-name
-                  :version version
-                  :basis basis
-                  :src-dirs src-dirs})
-    (b/copy-dir {:src-dirs src-dirs
-                 :target-dir class-dir})
-    (remove-timestamp! class-dir lib-name)
-    (b/jar {:class-dir class-dir
-            :jar-file output-jar})))
+  "Build a library JAR.
+  DEPRECATED: Use cljnix.build.jvm/jar directly."
+  [opts]
+  (jvm/jar opts))

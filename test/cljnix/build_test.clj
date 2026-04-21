@@ -3,7 +3,8 @@
     [clojure.test :refer [deftest is testing]]
     [babashka.fs :as fs]
     [cljnix.test-helpers :as h]
-    [cljnix.build :as build]))
+    [cljnix.build :as build]
+    [cljnix.build.jvm :as jvm]))
 
 ;; Phase 1 Tests: Build system modularity
 ;; These tests ensure build functions can work with different source types
@@ -14,7 +15,7 @@
       (let [spit-helper (h/make-spit-helper project-dir)
             deps-file (str (fs/path project-dir "deps.edn"))]
         (spit-helper "deps.edn" {:paths ["src" "resources"]})
-        (let [paths (#'build/get-paths deps-file)]
+        (let [paths (#'jvm/get-paths deps-file)]
           (is (vector? paths)
               "Paths should be a vector")
           (is (= ["src" "resources"] paths)
@@ -26,7 +27,7 @@
       (let [spit-helper (h/make-spit-helper project-dir)
             deps-file (str (fs/path project-dir "deps.edn"))]
         (spit-helper "deps.edn" {})
-        (let [paths (#'build/get-paths deps-file)]
+        (let [paths (#'jvm/get-paths deps-file)]
           (is (= ["src"] paths)
               "Should default to [\"src\"]"))))))
 
@@ -37,7 +38,7 @@
                 :compile-opts {:elide-meta ["doc" "file"]}
                 :filter-nses ["foo.*"]
                 :use-cp-file "file"}
-          parsed (#'build/parse-compile-clj-opts opts)]
+          parsed (#'jvm/parse-compile-clj-opts opts)]
       (is (every? symbol? (:ns-compile parsed))
           "ns-compile should be converted to symbols")
       (is (keyword? (:sort parsed))
@@ -94,7 +95,7 @@
 
 (deftest parse-compile-opts-handles-empty
   (testing "parse-compile-clj-opts handles empty options"
-    (let [parsed (#'build/parse-compile-clj-opts {})]
+    (let [parsed (#'jvm/parse-compile-clj-opts {})]
       (is (map? parsed)
           "Should return a map for empty options"))))
 
@@ -102,7 +103,7 @@
   (testing "parse-compile-clj-opts preserves unknown keys"
     (let [opts {:unknown-key "value"
                 :ns-compile ["foo.core"]}
-          parsed (#'build/parse-compile-clj-opts opts)]
+          parsed (#'jvm/parse-compile-clj-opts opts)]
       (is (contains? parsed :unknown-key)
           "Should preserve unknown keys")
       (is (= "value" (:unknown-key parsed))

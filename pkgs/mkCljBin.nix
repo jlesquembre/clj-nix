@@ -1,3 +1,23 @@
+/* mkCljBin - Build a Clojure JVM binary (uberjar)
+
+This builder creates executable JVM binaries from Clojure projects.
+
+EXTENSIBILITY:
+The build system is designed to support custom build processes:
+- Default: Uses `clj-builder uber` for standard JVM compilation
+- Custom: Use the `buildCommand` parameter to override with your own build script
+
+The dependency cache (mk-deps-cache) handles all Clojure dependency types and is
+independent of the compilation step, which is JVM-specific in the default build.
+
+Example custom build:
+  buildCommand = ''
+    # Your custom build logic here
+    # Dependencies are already available via $HOME/.m2 and $HOME/.gitlibs
+    clojure -T:build uber
+  '';
+*/
+
 { stdenv
 , lib
 , runtimeShell
@@ -25,7 +45,7 @@
 , version ? "DEV"
 , main-ns
 , java-opts ? [ ]
-, buildCommand ? null
+, buildCommand ? null  # Override default build with custom build script
 , lockfile ? null
 , compileCljOpts ? null
 , javacOpts ? null
