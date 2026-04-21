@@ -28,11 +28,7 @@
     (h/basis deps-map)
     mvn/standard-repos))
 
-(defn deps-cache-fixture [f]
-  (h/prep-deps all-deps)
-  (f))
-
-(use-fixtures :once deps-cache-fixture)
+(use-fixtures :once (h/deps-cache-fixture all-deps))
 
 (defn- missing-git-deps
   [deps deps-in-cache]
@@ -107,46 +103,47 @@
                 (aliases-combinations ["deps.edn" [:test :build :foo]])))))
 
 (deftest maven-deps-test
+  (testing "Specific SNAPSHOT timestamp version"
+    (let [mvn-deps (maven-deps {:deps {'cider/piggieback {:mvn/version "0.4.1-20190222.154954-1"}}})]
+      (is (match?
+            {:hash "sha256-PvlYv5KwGYHd1MCIQiMNRoVAJRmWLF7FuEM9OMh0FOk=",
+             :lib 'cider/piggieback,
+             :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.jar",
+             :mvn-repo "https://repo.clojars.org/",
+             :snapshot "piggieback-0.4.1-SNAPSHOT.jar",}
+            (h/find-dep 'cider/piggieback mvn-deps)))
+      (is (match?
+            (m/embeds [{:hash "sha256-PvlYv5KwGYHd1MCIQiMNRoVAJRmWLF7FuEM9OMh0FOk=",
+                        :lib 'cider/piggieback,
+                        :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.jar",
+                        :mvn-repo "https://repo.clojars.org/",
+                        :snapshot "piggieback-0.4.1-SNAPSHOT.jar",}
+                       {:hash "sha256-rEsytjVma2/KsuMh2s/dPJzhDJ8XqLkaQmIUFEnWIjU=",
+                        :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.pom",
+                        :mvn-repo "https://repo.clojars.org/",
+                        :snapshot "piggieback-0.4.1-SNAPSHOT.pom",}])
+            mvn-deps))))
 
-  (let [mvn-deps (maven-deps {:deps {'cider/piggieback {:mvn/version "0.4.1-20190222.154954-1"}}})]
-    (is (match?
-          {:hash "sha256-PvlYv5KwGYHd1MCIQiMNRoVAJRmWLF7FuEM9OMh0FOk=",
-           :lib 'cider/piggieback,
-           :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.jar",
-           :mvn-repo "https://repo.clojars.org/",
-           :snapshot "piggieback-0.4.1-SNAPSHOT.jar",}
-          (first (filter #(= 'cider/piggieback (:lib %)) mvn-deps))))
-    (is (match?
-          (m/embeds [{:hash "sha256-PvlYv5KwGYHd1MCIQiMNRoVAJRmWLF7FuEM9OMh0FOk=",
-                      :lib 'cider/piggieback,
-                      :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.jar",
-                      :mvn-repo "https://repo.clojars.org/",
-                      :snapshot "piggieback-0.4.1-SNAPSHOT.jar",}
-                     {:hash "sha256-rEsytjVma2/KsuMh2s/dPJzhDJ8XqLkaQmIUFEnWIjU=",
-                      :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.pom",
-                      :mvn-repo "https://repo.clojars.org/",
-                      :snapshot "piggieback-0.4.1-SNAPSHOT.pom",}])
-          mvn-deps)))
-
-  (let [mvn-deps (maven-deps {:deps {'cider/piggieback {:mvn/version "0.4.1-SNAPSHOT"}}})]
-    (is (match?
-          {:hash "sha256-PvlYv5KwGYHd1MCIQiMNRoVAJRmWLF7FuEM9OMh0FOk=",
-           :lib 'cider/piggieback,
-           :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.jar",
-           :mvn-repo "https://repo.clojars.org/",
-           :snapshot "piggieback-0.4.1-SNAPSHOT.jar",}
-          (first (filter #(= 'cider/piggieback (:lib %)) mvn-deps))))
-    (is (match?
-          (m/embeds [{:hash "sha256-PvlYv5KwGYHd1MCIQiMNRoVAJRmWLF7FuEM9OMh0FOk=",
-                      :lib 'cider/piggieback,
-                      :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.jar",
-                      :mvn-repo "https://repo.clojars.org/",
-                      :snapshot "piggieback-0.4.1-SNAPSHOT.jar",}
-                     {:hash "sha256-rEsytjVma2/KsuMh2s/dPJzhDJ8XqLkaQmIUFEnWIjU=",
-                      :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.pom",
-                      :mvn-repo "https://repo.clojars.org/",
-                      :snapshot "piggieback-0.4.1-SNAPSHOT.pom",}])
-          mvn-deps)))
+  (testing "SNAPSHOT version resolves to latest timestamp"
+    (let [mvn-deps (maven-deps {:deps {'cider/piggieback {:mvn/version "0.4.1-SNAPSHOT"}}})]
+      (is (match?
+            {:hash "sha256-PvlYv5KwGYHd1MCIQiMNRoVAJRmWLF7FuEM9OMh0FOk=",
+             :lib 'cider/piggieback,
+             :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.jar",
+             :mvn-repo "https://repo.clojars.org/",
+             :snapshot "piggieback-0.4.1-SNAPSHOT.jar",}
+            (h/find-dep 'cider/piggieback mvn-deps)))
+      (is (match?
+            (m/embeds [{:hash "sha256-PvlYv5KwGYHd1MCIQiMNRoVAJRmWLF7FuEM9OMh0FOk=",
+                        :lib 'cider/piggieback,
+                        :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.jar",
+                        :mvn-repo "https://repo.clojars.org/",
+                        :snapshot "piggieback-0.4.1-SNAPSHOT.jar",}
+                       {:hash "sha256-rEsytjVma2/KsuMh2s/dPJzhDJ8XqLkaQmIUFEnWIjU=",
+                        :mvn-path "cider/piggieback/0.4.1-SNAPSHOT/piggieback-0.4.1-20190222.154954-1.pom",
+                        :mvn-repo "https://repo.clojars.org/",
+                        :snapshot "piggieback-0.4.1-SNAPSHOT.pom",}])
+            mvn-deps))))
 
 
   (testing "Latest SNAPSHOT version is used"
@@ -156,14 +153,12 @@
             {:mvn-path (str "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-" snapshot-resolved-version ".jar",)
              :mvn-repo "https://repo.clojars.org/",
              :snapshot "clj-kondo-2022.04.26-SNAPSHOT.jar",}
-            (first (filter #(= 'clj-kondo/clj-kondo (:lib %)) mvn-deps))))
+            (h/find-dep 'clj-kondo/clj-kondo mvn-deps)))
       (is (match?
             {:mvn-path (str "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-" snapshot-resolved-version ".pom")
              :mvn-repo "https://repo.clojars.org/",
              :snapshot "clj-kondo-2022.04.26-SNAPSHOT.pom",}
-            (first (filter (every-pred #(string/starts-with? (:mvn-path %) "clj-kondo/clj-kondo")
-                                       #(string/ends-with? (:mvn-path %) ".pom"))
-                           mvn-deps))))
+            (h/find-pom "clj-kondo/clj-kondo" mvn-deps)))
       (is (match?
             (m/embeds [{:mvn-path (str "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-" snapshot-resolved-version ".jar",)
                         :mvn-repo "https://repo.clojars.org/",
@@ -180,14 +175,12 @@
              :mvn-repo "https://repo.clojars.org/",
              :version "2022.04.26-20220502.201054-5"
              :snapshot "clj-kondo-2022.04.26-SNAPSHOT.jar",}
-            (first (filter #(= 'clj-kondo/clj-kondo (:lib %)) mvn-deps))))
+            (h/find-dep 'clj-kondo/clj-kondo mvn-deps)))
       (is (match?
             {:mvn-path "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.pom",
              :mvn-repo "https://repo.clojars.org/",
              :snapshot "clj-kondo-2022.04.26-SNAPSHOT.pom",}
-            (first (filter (every-pred #(string/starts-with? (:mvn-path %) "clj-kondo/clj-kondo")
-                                       #(string/ends-with? (:mvn-path %) ".pom"))
-                           mvn-deps))))
+            (h/find-pom "clj-kondo/clj-kondo" mvn-deps)))
       (is (match?
             (m/embeds [{:mvn-path "clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar",
                         :mvn-repo "https://repo.clojars.org/",

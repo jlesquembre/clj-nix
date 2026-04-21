@@ -1,20 +1,6 @@
 # vi: ft=sh
 
-# Use podman if available, otherwise docker
-container_runtime() {
-  if command -v podman &> /dev/null; then
-    echo "podman"
-  else
-    echo "docker"
-  fi
-}
-
-# Skip container tests on macOS unless remote builders are configured
-skip_if_darwin_without_remote_builders() {
-  if [[ "$OSTYPE" == "darwin"* ]] && ! nix show-config | grep -q "builders.*ssh"; then
-    skip "Container tests require Linux remote builders on macOS (see: https://nixos.org/manual/nix/stable/advanced-topics/distributed-builds.html)"
-  fi
-}
+load helpers
 
 setup_file() {
 
@@ -23,22 +9,14 @@ setup_file() {
   # For debugging
   # project_dir="/tmp/_clj-nix_project"
 
-  project_dir="$BATS_FILE_TMPDIR/clj-nix_project"
-  export project_dir
-  cljnix_dir=$(dirname "$BATS_TEST_DIRNAME")
-  export cljnix_dir
+  setup_temp_project_vars "clj-nix_project"
 
   cljnix_dir_copy="/tmp/_clj-nix_copy"
   export cljnix_dir_copy
   cp -r "$cljnix_dir" "$cljnix_dir_copy"
 
-  nix flake new --template . "$project_dir"
-  echo "cljnixUrl: $cljnix_dir_copy" | mustache "$cljnix_dir/test/integration/flake.template" > "$project_dir/flake.nix"
-
-  cd "$project_dir" || exit
-  nix flake lock
-  git init
-  git add .
+  create_project_from_template
+  init_git_and_lock
 }
 
 teardown_file() {
@@ -48,10 +26,9 @@ teardown_file() {
 }
 
 @test "Generate deps-lock.json" {
-    cp deps-lock.json deps-lock.json.bkp
-    nix build "$cljnix_dir#deps-lock" --no-link --print-out-paths >> "$DERIVATIONS"
-    nix run "$cljnix_dir#deps-lock"
-    cmp deps-lock.json deps-lock.json.bkp
+    backup_file deps-lock.json
+    nix_run_and_log "$cljnix_dir#deps-lock"
+    compare_with_backup deps-lock.json
 }
 
 @test "New lock files are added to git" {
@@ -62,52 +39,52 @@ teardown_file() {
 
 
 @test "nix build .#mkCljBin-test" {
-    nix build .#mkCljBin-test --print-out-paths >> "$DERIVATIONS"
+    nix_build_with_result .#mkCljBin-test
     run -0 ./result/bin/cljdemo
-    [ "$output" = "Hello from CLOJURE!!!" ]
+    assert_output_equals "Hello from CLOJURE!!!"
 }
 
 @test "nix build .#customJdk-test" {
-    nix build .#customJdk-test --print-out-paths >> "$DERIVATIONS"
+    nix_build_with_result .#customJdk-test
     run -0 ./result/bin/cljdemo
-    [ "$output" = "Hello from CLOJURE!!!" ]
+    assert_output_equals "Hello from CLOJURE!!!"
 }
 
 # bats test_tags=graal
 @test "nix build .#mkGraalBin-test" {
-    nix build .#mkGraalBin-test --print-out-paths >> "$DERIVATIONS"
+    nix_build_with_result .#mkGraalBin-test
     run -0 ./result/bin/cljdemo
-    [ "$output" = "Hello from CLOJURE!!!" ]
+    assert_output_equals "Hello from CLOJURE!!!"
 }
 
 # bats test_tags=docker
 @test "nix build .#jvm-container-test" {
     skip_if_darwin_without_remote_builders
-    nix build .#jvm-container-test --print-out-paths >> "$DERIVATIONS"
+    nix_build_with_result .#jvm-container-test
     $(container_runtime) load -i result
     run -0 "$(container_runtime)" run --rm jvm-container-test:latest
-    [ "$output" = "Hello from CLOJURE!!!" ]
+    assert_output_equals "Hello from CLOJURE!!!"
 }
 
 # bats test_tags=docker,graal
 @test "nix build .#graal-container-test" {
     skip_if_darwin_without_remote_builders
-    nix build .#graal-container-test --print-out-paths >> "$DERIVATIONS"
+    nix_build_with_result .#graal-container-test
     $(container_runtime) load -i result
     run -0 "$(container_runtime)" run --rm graal-container-test:latest
-    [ "$output" = "Hello from CLOJURE!!!" ]
+    assert_output_equals "Hello from CLOJURE!!!"
 }
 
 # bats test_tags=babashka
 @test "nix build .#babashka-test" {
-    nix build .#babashka-test --print-out-paths >> "$DERIVATIONS"
+    nix_build_with_result .#babashka-test
     run -0 ./result/bin/bb -e "(inc 101)"
-    [ "$output" = "102" ]
+    assert_output_equals "102"
     run ! ./result/bin/bb -e "(require '[next.jdbc])"
 }
 
 # bats test_tags=babashka
 @test "nix build .#babashka-with-features-test" {
-    nix build .#babashka-with-features-test --print-out-paths >> "$DERIVATIONS"
+    nix_build_with_result .#babashka-with-features-test
     ./result/bin/bb -e "(require '[next.jdbc])"
 }

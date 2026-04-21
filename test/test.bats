@@ -1,9 +1,11 @@
 # vi: ft=sh
 
+load helpers
+
 @test "nix build .#clj-builder" {
-    nix build .#clj-builder --no-link --print-out-paths >> "$DERIVATIONS"
+    nix_build_and_log .#clj-builder
 }
 
 @test "nix build .#deps-lock" {
-    nix build .#deps-lock --no-link --print-out-paths >> "$DERIVATIONS"
+    nix_build_and_log .#deps-lock
 }

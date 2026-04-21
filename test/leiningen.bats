@@ -1,18 +1,17 @@
 # vi: ft=sh
 
+load helpers
+
 setup_file() {
   bats_require_minimum_version 1.5.0
 
   # For debugging
   # project_dir="/tmp/_clj-nix_project"
 
-  project_dir="$BATS_FILE_TMPDIR/clj-nix_project"
-  export project_dir
-  cljnix_dir=$(dirname "$BATS_TEST_DIRNAME")
-  export cljnix_dir
+  setup_temp_project_vars "clj-nix_project"
 
   leiningen_project_path="$cljnix_dir/test/leiningen-example-project"
-  cp -r "$leiningen_project_path/." "$project_dir"
+  copy_and_init_project "$leiningen_project_path"
   echo "cljnixUrl: $cljnix_dir" | mustache "$project_dir/flake.template" > "$project_dir/flake.nix"
 
   cd "$project_dir" || exit
@@ -23,33 +22,31 @@ setup_file() {
 
 # bats test_tags=lein
 @test "Generate lockfile (leiningen)" {
-    cp deps-lock.json deps-lock.json.bkp
-    nix build "$cljnix_dir#deps-lock" --no-link --print-out-paths >> "$DERIVATIONS"
-    nix run "$cljnix_dir#deps-lock" -- --lein
-    cmp deps-lock.json deps-lock.json.bkp
+    backup_file deps-lock.json
+    nix_run_and_log "$cljnix_dir#deps-lock" --lein
+    compare_with_backup deps-lock.json
 }
 
 # bats test_tags=lein
 @test "Generate lockfile for specific Leiningen profile only (leiningen)" {
-    cp deps-lock.json deps-lock.json.bkp
-    nix build "$cljnix_dir#deps-lock" --no-link --print-out-paths >> "$DERIVATIONS"
-    nix run "$cljnix_dir#deps-lock" -- --lein --lein-profiles foobar
+    backup_file deps-lock.json
+    nix_run_and_log "$cljnix_dir#deps-lock" --lein --lein-profiles foobar
     cmp deps-lock.json deps-lock-foobar-profile.json
-    cp deps-lock.json.bkp deps-lock.json
+    restore_from_backup deps-lock.json
 }
 
 # bats test_tags=lein
 @test "mkCljBin (leiningen)" {
     skip
-    nix build .#mkCljBin-test --print-out-paths >> "$DERIVATIONS"
+    nix_build_with_result .#mkCljBin-test
     run -0 ./result/bin/cljdemo
-    [ "$output" = "Hello, World!" ]
+    assert_output_equals "Hello, World!"
 }
 
 # bats test_tags=lein
 @test "mkCljBin with tests (leiningen)" {
     skip
-    nix build .#mkCljBin-test-with-tests --print-out-paths >> "$DERIVATIONS"
+    nix_build_with_result .#mkCljBin-test-with-tests
     run -0 ./result/bin/cljdemo
-    [ "$output" = "Hello, World!" ]
+    assert_output_equals "Hello, World!"
 }
