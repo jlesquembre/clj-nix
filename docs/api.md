@@ -2,13 +2,14 @@
 
 ## Derivations
 
-- [mkCljBin](#mkcljbin): Creates a clojure application
+- [mkCljBin](#mkcljbin): Creates a Clojure JVM application
+- [mkCljLib](#mkcljlib): Creates a Clojure library jar
+- [mkCljsApp](#mkcljsapp): Creates a ClojureScript application for Node.js or browsers
 - [customJdk](#customjdk): Creates a custom JDK with jlink. Optionally takes a
   derivation created with `mkCljBin`. The intended use case is to create a
   minimal JDK you can deploy in a container (e.g: a Docker image)
 - [mkGraalBin](#mkgraalbin): Creates a binary with GraalVM from a derivation
   created with `mkCljBin`
-- [mkCljLib](#mkcljlib): Creates a clojure library jar
 - [mkBabashka](#mkBabashka): Builds custom
   [babashka](https://github.com/babashka/babashka)
 
@@ -206,6 +207,79 @@ mkCljLib {
   projectSrc = ./.;
   name = "me.lafuente/my-lib";
   buildCommand = "clj -T:build jar";
+}
+```
+
+### mkCljsApp
+
+Creates a ClojureScript application compiled to JavaScript. Supports both
+Node.js and browser targets using shadow-cljs. Takes the following attributes
+(those without a default are mandatory, extra attributes are passed to
+**mkDerivation**):
+
+- **projectSrc**: Project source code.
+
+- **name**: Derivation and ClojureScript project name. It's recommended to use a
+  namespaced name. If not, a namespace is added automatically. E.g. `foo` will
+  be transformed to `foo/foo`
+
+- **version**: Derivation and ClojureScript project version. (Default: `DEV`)
+
+- **buildTarget**: Target platform: `"browser"` or `"node"`. (Default: `"browser"`)
+
+- **buildId**: Shadow-cljs build ID from your `shadow-cljs.edn` config. (Default: `"app"`)
+
+- **buildCommand**: Command to build the ClojureScript application. If not provided,
+  a default builder using shadow-cljs is used. The default command is:
+  `clj-builder cljs-compile <name> <version> <buildId> <buildTarget>`
+
+- **lockfile**: The lock file. (Default: `${projectSrc}/deps-lock.json`)
+
+- **shadow-cljs-opts**: Options to pass to shadow-cljs. (Default: `null`)
+
+- **nodejs-package**: Node.js package to use for building and (if target is node) running.
+  (Default: `pkgs.nodejs`)
+
+!!! note
+
+    ClojureScript builds require a `shadow-cljs.edn` configuration file in your
+    project root. See [shadow-cljs documentation](https://shadow-cljs.github.io/docs/UsersGuide.html)
+    for configuration details.
+
+**Browser target example**:
+
+```nix
+mkCljsApp {
+  projectSrc = ./.;
+  name = "me.lafuente/my-spa";
+  version = "1.0.0";
+  buildTarget = "browser";
+  buildId = "app";
+}
+```
+
+**Node.js target example**:
+
+```nix
+mkCljsApp {
+  projectSrc = ./.;
+  name = "me.lafuente/my-node-app";
+  version = "1.0.0";
+  buildTarget = "node";
+  buildId = "server";
+  nodejs-package = pkgs.nodejs_20;
+}
+```
+
+**Custom build command example**:
+
+```nix
+mkCljsApp {
+  projectSrc = ./.;
+  name = "me.lafuente/custom-build";
+  buildCommand = ''
+    npx shadow-cljs release app --config-merge '{:compiler-options {:optimizations :advanced}}'
+  '';
 }
 ```
 

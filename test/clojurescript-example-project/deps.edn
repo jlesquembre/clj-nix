@@ -1,0 +1,3 @@
+{:paths ["src"]
+ :deps {org.clojure/clojurescript {:mvn/version "1.12.134"}
+        thheller/shadow-cljs      {:mvn/version "3.4.4"}}}

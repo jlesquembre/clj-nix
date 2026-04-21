@@ -2,10 +2,11 @@
   "CLI entry point for build commands.
 
   This namespace dispatches build commands to appropriate builders.
-  Currently supports JVM builds."
+  Supports JVM and ClojureScript builds."
   (:require
     [cljnix.utils :as utils]
     [cljnix.build :as build]
+    [cljnix.build.cljs :as cljs]
     [cljnix.check :as check]
     [clojure.data.json :as json]))
 
@@ -69,11 +70,29 @@
   [args]
   (check-main-class args))
 
+(defn- handle-cljs-compile
+  "Handler for cljs-compile command (ClojureScript compilation)."
+  [args]
+  (-> (zipmap [:lib-name :version :build-id :target] args)
+      (update :build-id keyword)
+      (update :target keyword)
+      (cljs/compile-cljs)))
+
+(defn- handle-cljs-package
+  "Handler for cljs-package command (ClojureScript packaging)."
+  [args]
+  (-> (zipmap [:lib-name :version :build-id :target] args)
+      (update :build-id keyword)
+      (update :target keyword)
+      (cljs/package-cljs)))
+
 ;; Register built-in commands
 (register-command! "patch-git-sha" handle-patch-git-sha)
 (register-command! "jar" handle-jar)
 (register-command! "uber" handle-uber)
 (register-command! "check-main" handle-check-main)
+(register-command! "cljs-compile" handle-cljs-compile)
+(register-command! "cljs-package" handle-cljs-package)
 
 ;; Main CLI entry point
 
@@ -83,11 +102,17 @@
   Usage:
     clj-builder <command> <args...>
 
-  Commands:
-    patch-git-sha <project-dir>  - Expand partial git SHAs to full SHAs
+  JVM Commands:
     jar <lib-name> <version>     - Build a library JAR
     uber <lib-name> <version> <main-ns> <compile-opts> <javac-opts> <uber-opts> - Build uberjar
     check-main <lib-name> <version> <main-ns> - Check if main-ns has :gen-class
+
+  ClojureScript Commands:
+    cljs-compile <lib-name> <version> <build-id> <target> - Compile ClojureScript
+    cljs-package <lib-name> <version> <build-id> <target> - Package ClojureScript output
+
+  Utility Commands:
+    patch-git-sha <project-dir>  - Expand partial git SHAs to full SHAs
 
   Additional commands can be registered using register-command!"
 
