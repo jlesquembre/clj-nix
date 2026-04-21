@@ -14,13 +14,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
 
       - name: Update clj dependencies
-        run:
-          nix develop --command clojure -Sdeps '{:deps {com.github.liquidz/antq
-          {:mvn/version "RELEASE"}}}' -M -m antq.core -d . --upgrade --force
-          --skip=github-action
+        run: nix develop --command update-clojure-deps
 
       - name: Update clojure lock files
-        run: "nix develop --command update-deps"
+        run: nix develop --command update-lock-files
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8

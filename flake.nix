@@ -69,37 +69,42 @@
             ];
             commands = [
               {
-                name = "update-deps";
-                help = "Update builder-lock.json and clojure-deps.edn";
-                command =
-                  ''
-                    bb ./scripts/newer_clojure_versions.bb
-                    clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -m antq.core --upgrade --force
-                    clj -X cljnix.bootstrap/as-json :deps-path '"deps.edn"' | jq . > pkgs/builder-lock.json
-                    clj -X cljnix.core/clojure-deps-str > src/clojure-deps.edn
-                    (cd ./templates/default && nix run ../..#deps-lock)
-                    (cd ./test/leiningen-example-project && nix run ../..#deps-lock -- --lein --lein-profiles foobar && mv deps-lock.json deps-lock-foobar-profile.json)
-                    (cd ./test/leiningen-example-project && nix run ../..#deps-lock -- --lein)
-                  '';
+                name = "update-clojure-deps";
+                category = "Dependencies";
+                help = "Update Clojure dependency versions in deps.edn";
+                command = ''
+                  clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M \
+                    -m antq.core \
+                    -d . \
+                    --upgrade \
+                    --force \
+                    --skip=github-action
+                '';
               }
               {
-                name = "kaocha";
-                help = "Run tests with kaocha";
-                command =
-                  ''
-                    clojure -M:test -m kaocha.runner "$@"
-                  '';
-              }
-              {
-                name = "tests";
-                help = "Run tests with bats";
-                command =
-                  ''
-                    bats --timing test
-                  '';
+                name = "update-lock-files";
+                category = "Dependencies";
+                help = "Regenerate all builder-lock.json and deps-lock.json files";
+                command = ''
+                  bb ./scripts/newer_clojure_versions.bb
+                  clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' \
+                    -M \
+                    -m antq.core \
+                    --upgrade \
+                    --force
+                  clj -X cljnix.bootstrap/as-json :deps-path '"deps.edn"' | jq . > pkgs/builder-lock.json
+                  clj -X cljnix.core/clojure-deps-str > src/clojure-deps.edn
+                  (cd ./templates/default && nix run ../..#deps-lock)
+                  (cd ./test/leiningen-example-project && \
+                    nix run ../..#deps-lock -- --lein --lein-profiles foobar && \
+                    mv deps-lock.json deps-lock-foobar-profile.json)
+                  (cd ./test/leiningen-example-project && \
+                    nix run ../..#deps-lock -- --lein)
+                '';
               }
               {
                 name = "dummy-project";
+                category = "Scaffolding";
                 help = "Creates a dummy clj-nix project";
                 command =
                   ''
@@ -108,6 +113,24 @@
                     nix flake new --template ${self} "$project_dir"
                     echo 'cljnixUrl: ${self}' | mustache "${self}/test/integration/flake.template" > "$project_dir/flake.nix"
                     echo "New dummy project: $project_dir"
+                  '';
+              }
+              {
+                name = "tests-bats";
+                category = "Testing";
+                help = "Run tests with bats (use --filter <pattern> to filter tests)";
+                command =
+                  ''
+                    bats --timing "$@" test
+                  '';
+              }
+              {
+                name = "tests-clojure";
+                category = "Testing";
+                help = "Run Clojure tests with kaocha";
+                command =
+                  ''
+                    clojure -M:test -m kaocha.runner "$@"
                   '';
               }
             ];

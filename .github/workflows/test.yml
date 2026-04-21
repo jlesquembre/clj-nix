@@ -25,10 +25,10 @@ jobs:
 
       - name: Clojure tests
         run: |
-          nix develop --command kaocha
+          nix develop --command tests-clojure
 
       - name: Integration tests
         run: |
-          nix develop --command bats --timing test
+          nix develop --command tests-bats
           echo "Derivations:"
           cat "/tmp/.cljnix-derivations"

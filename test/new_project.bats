@@ -9,6 +9,13 @@ container_runtime() {
   fi
 }
 
+# Skip container tests on macOS unless remote builders are configured
+skip_if_darwin_without_remote_builders() {
+  if [[ "$OSTYPE" == "darwin"* ]] && ! nix show-config | grep -q "builders.*ssh"; then
+    skip "Container tests require Linux remote builders on macOS (see: https://nixos.org/manual/nix/stable/advanced-topics/distributed-builds.html)"
+  fi
+}
+
 setup_file() {
 
   bats_require_minimum_version 1.5.0
@@ -75,6 +82,7 @@ teardown_file() {
 
 # bats test_tags=docker
 @test "nix build .#jvm-container-test" {
+    skip_if_darwin_without_remote_builders
     nix build .#jvm-container-test --print-out-paths >> "$DERIVATIONS"
     $(container_runtime) load -i result
     run -0 "$(container_runtime)" run --rm jvm-container-test:latest
@@ -83,6 +91,7 @@ teardown_file() {
 
 # bats test_tags=docker,graal
 @test "nix build .#graal-container-test" {
+    skip_if_darwin_without_remote_builders
     nix build .#graal-container-test --print-out-paths >> "$DERIVATIONS"
     $(container_runtime) load -i result
     run -0 "$(container_runtime)" run --rm graal-container-test:latest
