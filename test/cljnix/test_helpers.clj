@@ -81,6 +81,25 @@
          ~@body))))
 
 ;; Helper functions for snapshot assertions
+(defn normalize-git-url
+  "Normalize git URL by removing .git suffix if present.
+   Git URLs with and without .git are equivalent, but tools.deps may
+   normalize them differently across environments (Linux vs macOS, different versions)."
+  [url]
+  (when url
+    (clojure.string/replace url #"\.git$" "")))
+
+(defn normalize-git-dep-urls
+  "Normalize :url field in git dependency maps for comparison.
+   Useful for test assertions where URL format may vary between environments."
+  [deps]
+  (mapv #(update % :url normalize-git-url) deps))
+
+(defn normalize-lock-file-git-urls
+  "Normalize :url fields in a lock file's :git-deps for comparison."
+  [lock-file]
+  (update lock-file :git-deps normalize-git-dep-urls))
+
 (defn find-dep
   "Find a dependency by lib name in a collection of deps."
   [lib deps]
