@@ -69,37 +69,42 @@
             ];
             commands = [
               {
-                name = "update-deps";
-                help = "Update builder-lock.json and clojure-deps.edn";
-                command =
-                  ''
-                    bb ./scripts/newer_clojure_versions.bb
-                    clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -m antq.core --upgrade --force
-                    clj -X cljnix.bootstrap/as-json :deps-path '"deps.edn"' | jq . > pkgs/builder-lock.json
-                    clj -X cljnix.core/clojure-deps-str > src/clojure-deps.edn
-                    (cd ./templates/default && nix run ../..#deps-lock)
-                    (cd ./test/leiningen-example-project && nix run ../..#deps-lock -- --lein --lein-profiles foobar && mv deps-lock.json deps-lock-foobar-profile.json)
-                    (cd ./test/leiningen-example-project && nix run ../..#deps-lock -- --lein)
-                  '';
+                name = "update-clojure-deps";
+                category = "dependencies";
+                help = "Update Clojure dependency versions in deps.edn";
+                command = ''
+                  clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M \
+                    -m antq.core \
+                    -d . \
+                    --upgrade \
+                    --force \
+                    --skip=github-action
+                '';
               }
               {
-                name = "kaocha";
-                help = "Run tests with kaocha";
-                command =
-                  ''
-                    clojure -M:test -m kaocha.runner "$@"
-                  '';
-              }
-              {
-                name = "tests";
-                help = "Run tests with bats";
-                command =
-                  ''
-                    bats --timing test
-                  '';
+                name = "update-lock-files";
+                category = "dependencies";
+                help = "Regenerate all builder-lock.json and deps-lock.json files";
+                command = ''
+                  bb ./scripts/newer_clojure_versions.bb
+                  clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' \
+                    -M \
+                    -m antq.core \
+                    --upgrade \
+                    --force
+                  clj -X cljnix.bootstrap/as-json :deps-path '"deps.edn"' | jq . > pkgs/builder-lock.json
+                  clj -X cljnix.core/clojure-deps-str > src/clojure-deps.edn
+                  (cd ./templates/default && nix run ../..#deps-lock)
+                  (cd ./test/leiningen-example-project && \
+                    nix run ../..#deps-lock -- --lein --lein-profiles foobar && \
+                    mv deps-lock.json deps-lock-foobar-profile.json)
+                  (cd ./test/leiningen-example-project && \
+                    nix run ../..#deps-lock -- --lein)
+                '';
               }
               {
                 name = "dummy-project";
+                category = "scaffolding";
                 help = "Creates a dummy clj-nix project";
                 command =
                   ''
@@ -109,6 +114,67 @@
                     echo 'cljnixUrl: ${self}' | mustache "${self}/test/integration/flake.template" > "$project_dir/flake.nix"
                     echo "New dummy project: $project_dir"
                   '';
+              }
+              {
+                name = "tests-unit";
+                category = "test categories";
+                help = "Run Clojure unit tests";
+                command = ''
+                  clojure -M:test -m kaocha.runner :unit "$@"
+                '';
+              }
+              {
+                name = "tests-integration";
+                category = "test categories";
+                help = "Run Clojure integration tests";
+                command = ''
+                  clojure -M:test -m kaocha.runner :integration "$@"
+                '';
+              }
+              {
+                name = "tests-e2e";
+                category = "test categories";
+                help = "Run end-to-end tests with bats";
+                command = ''
+                  bats --timing test
+                '';
+              }
+              {
+                name = "tests-all";
+                category = "test categories";
+                help = "Run all tests (Clojure and bats)";
+                command = ''
+                  echo "Running Clojure unit tests..."
+                  clojure -M:test -m kaocha.runner :unit
+                  echo "Running Clojure integration tests..."
+                  clojure -M:test -m kaocha.runner :integration
+                  echo "Running bats end-to-end tests..."
+                  bats --timing test
+                '';
+              }
+              {
+                name = "tests-bats";
+                category = "test runners";
+                help = "Run bats test runner (defaults to test directory if no args provided)";
+                command = ''
+                  if [ $# -eq 0 ]; then
+                    bats --timing test
+                  else
+                    bats "$@"
+                  fi
+                '';
+              }
+              {
+                name = "tests-kaocha";
+                category = "test runners";
+                help = "Run kaocha test runner with optional parameters";
+                command = ''
+                  if [ $# -eq 0 ]; then
+                    clojure -M:test -m kaocha.runner
+                  else
+                    clojure -M:test -m kaocha.runner "$@"
+                  fi
+                '';
               }
             ];
           };

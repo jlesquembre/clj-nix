@@ -23,12 +23,20 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@main
 
-      - name: Clojure tests
+      - name: Warm Nix devShell
         run: |
-          nix develop --command kaocha
+          nix develop --command echo
 
-      - name: Integration tests
+      - name: "Tests: Unit"
         run: |
-          nix develop --command bats --timing test
+          nix develop --command tests-unit
+
+      - name: "Tests: Integration"
+        run: |
+          nix develop --command tests-integration
+
+      - name: "Tests: End-to-end"
+        run: |
+          nix develop --command tests-e2e
           echo "Derivations:"
           cat "/tmp/.cljnix-derivations"

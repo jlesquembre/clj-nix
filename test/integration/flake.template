@@ -16,17 +16,39 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         cljpkgs = clj-nix.packages."${system}";
+
+        # Detect if we're on macOS and need to use Linux packages for containers
+        isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+        linuxSystem = if pkgs.stdenv.hostPlatform.isAarch64 then "aarch64-linux" else "x86_64-linux";
+
+        # Use native Linux packages for containers (requires remote builders on macOS)
+        containerPkgs = if isDarwin then nixpkgs.legacyPackages.${linuxSystem} else pkgs;
+        containerCljpkgs = if isDarwin then clj-nix.packages.${linuxSystem} else cljpkgs;
+
+        # Common function to build a Clojure binary (reusable for containers)
+        mkCljBinFor = pkgsSet: cljpkgsSet:
+          cljpkgsSet.mkCljBin {
+            projectSrc = ./.;
+            name = "me.lafuente/cljdemo";
+            main-ns = "hello.core";
+            jdkRunner = pkgsSet.jdk17_headless;
+          };
+
+        # Container-specific builds (Linux on macOS, native on Linux)
+        containerCljBin = mkCljBinFor containerPkgs containerCljpkgs;
+        containerCustomJdk = containerCljpkgs.customJdk {
+          cljDrv = containerCljBin;
+          locales = "en,es";
+        };
+        containerGraalBin = containerCljpkgs.mkGraalBin {
+          cljDrv = containerCljBin;
+        };
       in
 
       {
         packages = {
 
-          mkCljBin-test = cljpkgs.mkCljBin {
-            projectSrc = ./.;
-            name = "me.lafuente/cljdemo";
-            main-ns = "hello.core";
-            jdkRunner = pkgs.jdk17_headless;
-          };
+          mkCljBin-test = mkCljBinFor pkgs cljpkgs;
 
           customJdk-test = cljpkgs.customJdk {
             cljDrv = self.packages."${system}".mkCljBin-test;
@@ -37,26 +59,22 @@
             cljDrv = self.packages."${system}".mkCljBin-test;
           };
 
-          jvm-container-test =
-            pkgs.dockerTools.buildLayeredImage {
-              name = "jvm-container-test";
-              tag = "latest";
-              config = {
-                Cmd = clj-nix.lib.mkCljCli { jdkDrv = self.packages."${system}".customJdk-test; };
-              };
+          # Build Linux containers for Docker, even on macOS
+          jvm-container-test = containerPkgs.dockerTools.buildLayeredImage {
+            name = "jvm-container-test";
+            tag = "latest";
+            config = {
+              Cmd = clj-nix.lib.mkCljCli { jdkDrv = containerCustomJdk; };
             };
+          };
 
-          graal-container-test =
-            let
-              graalDrv = self.packages."${system}".mkGraalBin-test;
-            in
-            pkgs.dockerTools.buildLayeredImage {
-              name = "graal-container-test";
-              tag = "latest";
-              config = {
-                Cmd = [ "${graalDrv}/bin/${graalDrv.pname}" ];
-              };
+          graal-container-test = containerPkgs.dockerTools.buildLayeredImage {
+            name = "graal-container-test";
+            tag = "latest";
+            config = {
+              Cmd = [ "${containerGraalBin}/bin/${containerGraalBin.pname}" ];
             };
+          };
 
           babashka-test = cljpkgs.mkBabashka { };
 
