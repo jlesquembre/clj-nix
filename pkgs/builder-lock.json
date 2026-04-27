@@ -9,8 +9,8 @@
     "hash": "sha256-Bz9MjXZqQh/Gt+Zgsa0ISLzcW3vOpmOt3Ls/v4aRLtk="
   },
   {
-    "url": "https://repo.clojars.org/babashka/fs/0.5.32/fs-0.5.32.jar",
-    "hash": "sha256-6q4zZIyolPvqwhAXtsYMNUmIwFtvZlxJeCZVlsJI4Qw="
+    "url": "https://repo.clojars.org/babashka/fs/0.5.33/fs-0.5.33.jar",
+    "hash": "sha256-F80LiZeJtYdygJgz2a9tQ0SfEwdhx5geaO3DqLYvWuM="
   },
   {
     "url": "https://repo.clojars.org/borkdude/rewrite-edn/0.5.9/rewrite-edn-0.5.9.jar",
