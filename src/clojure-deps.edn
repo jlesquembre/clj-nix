@@ -64,6 +64,12 @@
  {:mvn-path "org/clojure/clojure/1.12.4/clojure-1.12.4.pom",
   :mvn-repo "https://repo1.maven.org/maven2/",
   :hash "sha256-xRh5Bi5B/58hr6DkCbGZ/+nyo8aucizf7F/Z26BeQXI="}
+ {:mvn-path "org/clojure/clojure/1.12.5/clojure-1.12.5.jar",
+  :mvn-repo "https://repo1.maven.org/maven2/",
+  :hash "sha256-397hMUYCFqhP7yLlN7sNBXmWX49wM410gyPf8m+OWos="}
+ {:mvn-path "org/clojure/clojure/1.12.5/clojure-1.12.5.pom",
+  :mvn-repo "https://repo1.maven.org/maven2/",
+  :hash "sha256-J4xR2XfBloST2NTLDFxg4sslUNYEhcOBPPFh5Wr2iFg="}
  {:mvn-path
   "org/clojure/core.specs.alpha/0.2.56/core.specs.alpha-0.2.56.jar",
   :mvn-repo "https://repo1.maven.org/maven2/",
