@@ -54,6 +54,7 @@ teardown_file() {
 }
 
 
+# bats test_tags=mkCljBin
 @test "nix build .#mkCljBin-test" {
     nix build .#mkCljBin-test --print-out-paths >> "$DERIVATIONS"
     run -0 ./result/bin/cljdemo

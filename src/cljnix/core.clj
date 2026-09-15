@@ -9,6 +9,7 @@
     [clojure.tools.deps.util.maven :as mvn]
     [clojure.tools.deps.cli.api :as tools]
     [clojure.tools.deps :as deps]
+    [clojure.tools.deps.edn :as deps.edn]
     [clojure.tools.gitlibs.config :as gitlibs-config]
     [clojure.tools.gitlibs.impl :as gitlibs-impl]
     [clojure.data.json :as json]
@@ -21,7 +22,7 @@
     [medley.core :as medley]))
 
 
-(def LOCK-VERSION 4)
+(def LOCK-VERSION 5)
 
 (def add-to-nix-store?
   (and
@@ -66,6 +67,26 @@
         (:libs basis)))
 
 
+(defn- git-archive-hash
+  [{:keys [git-dir rev local-path]}]
+  (let [repo-path (fs/path (:gitlibs/dir @gitlibs-config/CONFIG) "_repos" git-dir)]
+    (if-not (fs/exists? repo-path)
+      (nix-hash local-path)
+      (fs/with-temp-dir [tmp-dir {:prefix "cljnix-git-hash"}]
+        (let [archive-tar (str (fs/path tmp-dir "repo.tar"))
+              extract-dir (str (fs/create-dirs (fs/path tmp-dir "src")))]
+          (sh/sh "git" (str "--git-dir=" repo-path) "archive" "--format=tar" (str "--output=" archive-tar) rev)
+          (sh/sh "tar" "-xf" archive-tar "-C" extract-dir)
+          (nix-hash extract-dir))))))
+
+(defn- deps-prep-lib
+  [deps-file]
+  (when (fs/exists? deps-file)
+    (-> deps-file
+        fs/file
+        deps.edn/read-deps
+        :deps/prep-lib)))
+
 (defn git-deps
   [basis]
   (into []
@@ -76,7 +97,12 @@
                        ;; we need the root repository, even when a :deps/root sub directory has been specified
                        (-> (string/split root (re-pattern sha))
                            first
-                           (str sha "/"))]
+                           (str sha "/"))
+                       git-dir (utils/git-dir url)
+                       deps-file (if root
+                                   (fs/path local-path root "deps.edn")
+                                   (fs/path local-path "deps.edn"))
+                       needs-prep (boolean (deps-prep-lib deps-file))]
                    (when-not (contains? #{nil :pkgs.fetchgit :builtins.fetchTree}
                                         (:clj-nix.git/fetch desc))
                      (printerrln "WARNING: No :clj-nix.git/fetch" (pr-str (:clj-nix.git/fetch desc))))
@@ -84,8 +110,12 @@
                         :rev sha
                         :url url
                         :tag tag
-                        :git-dir (utils/git-dir url)
-                        :hash (nix-hash local-path)
+                        :git-dir git-dir
+                        :deps-root root
+                        :needs-prep needs-prep
+                        :hash (git-archive-hash {:git-dir git-dir
+                                                 :rev sha
+                                                 :local-path local-path})
                         :local-path local-path}
                        (cond-> (contains? desc :clj-nix.git/fetch)
                          (assoc :fetch (:clj-nix.git/fetch desc))))))))
@@ -224,6 +254,23 @@
           (git-deps-seq cache-dir))))
 
 
+(defn- find-prep-alias
+  [deps-file]
+  (-> deps-file deps-prep-lib :alias))
+
+(defn- prep-git-deps!
+  [git-deps cache-dir]
+  (doseq [{:keys [lib rev deps-root]} git-deps
+          :let [deps-file (cond-> (fs/path cache-dir git-cache-subdir "libs" (str lib) rev)
+                            deps-root (fs/path deps-root)
+                            true      (fs/path "deps.edn"))
+                prep-alias (find-prep-alias deps-file)]
+          :when prep-alias]
+    (make-cache! {:cache-dir cache-dir
+                  :prep-options {:user nil
+                                 :project (str deps-file)
+                                 :aliases [prep-alias]}})))
+
 (defn get-deps!
   "Given a deps.edn file, a cache dir, and optionally, some aliases, return a
    list of git and maven dependecies.
@@ -249,7 +296,8 @@
              _ (make-cache! {:mvn-deps mvn-deps
                              :git-deps git-deps
                              :cache-dir cache-dir
-                             :prep-options options})]
+                             :prep-options options})
+             _ (prep-git-deps! git-deps cache-dir)]
 
          {:mvn mvn-deps
           :mvn-repos mvn-repos
@@ -276,6 +324,7 @@
 
            :hash 20
            :fetch 30
+           :needs-prep 31
 
            :lock-version 100
            :clojure-version 101
@@ -334,7 +383,7 @@
     (fs/file f)
     (-> f
         fs/file
-        deps/slurp-deps
+        deps.edn/read-deps
         :aliases
         keys
         (->> (remove (set alias-exclude)))
@@ -408,11 +457,11 @@
                             (map #(update % :lib str))
                             (sort-by :lib)
                             (map #(cond-> %
-                                    (nil? (:tag %))
-                                    (dissoc :tag)))
+                                    (nil? (:tag %)) (dissoc :tag)
+                                    (not (:needs-prep %)) (dissoc :needs-prep)))
                             (map add-to-nix-store!)
                             (map #(into (sorted-map-by map-comparator)
-                                        (select-keys % [:tag :lib :rev :url :git-dir :hash :fetch])))
+                                        (select-keys % [:tag :lib :rev :url :git-dir :hash :fetch :needs-prep])))
                             (distinct)
                             (reduce (fn [acc v]
                                       (if (same-git-dep? (peek acc) v)
