@@ -66,6 +66,34 @@
         (:libs basis)))
 
 
+(defn- git-archive-hash
+  [{:keys [git-dir rev local-path]}]
+  (let [repo-path (fs/path (:gitlibs/dir @gitlibs-config/CONFIG) "_repos" git-dir)]
+    (if-not (fs/exists? repo-path)
+      (nix-hash local-path)
+      (fs/with-temp-dir [tmp-dir {:prefix "cljnix-git-hash"}]
+        (let [archive-tar (str (fs/path tmp-dir "repo.tar"))
+              archive-cmd (sh/sh "git"
+                                 (str "--git-dir=" repo-path)
+                                 "archive"
+                                 "--format=tar"
+                                 (str "--output=" archive-tar)
+                                 rev)
+              _ (when-not (zero? (:exit archive-cmd))
+                  (throw+ "Couldn't archive git dep"
+                          {:repo repo-path
+                           :rev rev
+                           :err (:err archive-cmd)}))
+              extract-dir (str (fs/path tmp-dir "src"))
+              _ (fs/create-dirs extract-dir)
+              untar-cmd (sh/sh "tar" "-xf" archive-tar "-C" extract-dir)]
+          (when-not (zero? (:exit untar-cmd))
+            (throw+ "Couldn't extract git dep archive"
+                    {:repo repo-path
+                     :rev rev
+                     :err (:err untar-cmd)}))
+          (nix-hash extract-dir))))))
+
 (defn git-deps
   [basis]
   (into []
@@ -76,7 +104,8 @@
                        ;; we need the root repository, even when a :deps/root sub directory has been specified
                        (-> (string/split root (re-pattern sha))
                            first
-                           (str sha "/"))]
+                           (str sha "/"))
+                       git-dir (utils/git-dir url)]
                    (when-not (contains? #{nil :pkgs.fetchgit :builtins.fetchTree}
                                         (:clj-nix.git/fetch desc))
                      (printerrln "WARNING: No :clj-nix.git/fetch" (pr-str (:clj-nix.git/fetch desc))))
@@ -84,8 +113,11 @@
                         :rev sha
                         :url url
                         :tag tag
-                        :git-dir (utils/git-dir url)
-                        :hash (nix-hash local-path)
+                        :git-dir git-dir
+                        :deps-root root
+                        :hash (git-archive-hash {:git-dir git-dir
+                                                 :rev sha
+                                                 :local-path local-path})
                         :local-path local-path}
                        (cond-> (contains? desc :clj-nix.git/fetch)
                          (assoc :fetch (:clj-nix.git/fetch desc))))))))
@@ -224,6 +256,21 @@
           (git-deps-seq cache-dir))))
 
 
+(defn- prep-git-deps!
+  [git-deps cache-dir]
+  (doseq [{:keys [lib rev deps-root]} git-deps
+          :let [git-project-dir (cond-> (fs/path cache-dir git-cache-subdir "libs" (str lib) rev)
+                                  deps-root
+                                  (fs/path deps-root))
+                deps-file (fs/path git-project-dir "deps.edn")]
+          :when (fs/exists? deps-file)
+          :let [prep-alias (some-> deps-file fs/file deps/slurp-deps :deps/prep-lib :alias)]
+          :when prep-alias]
+    (make-cache! {:cache-dir cache-dir
+                  :prep-options {:user nil
+                                 :project (str deps-file)
+                                 :aliases [prep-alias]}})))
+
 (defn get-deps!
   "Given a deps.edn file, a cache dir, and optionally, some aliases, return a
    list of git and maven dependecies.
@@ -249,7 +296,8 @@
              _ (make-cache! {:mvn-deps mvn-deps
                              :git-deps git-deps
                              :cache-dir cache-dir
-                             :prep-options options})]
+                             :prep-options options})
+             _ (prep-git-deps! git-deps cache-dir)]
 
          {:mvn mvn-deps
           :mvn-repos mvn-repos

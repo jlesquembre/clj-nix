@@ -71,8 +71,15 @@ stdenv.mkDerivation ({
     ''
       runHook preBuild
 
-      export HOME="${deps-cache}"
-      export JAVA_TOOL_OPTIONS="-Duser.home=${deps-cache}"
+      export HOME="$TMP/clj-home"
+      mkdir -p "$HOME"
+      cp -rL "${deps-cache}/." "$HOME/"
+      chmod -R u+w "$HOME"
+
+      export JAVA_TOOL_OPTIONS="-Duser.home=$HOME"
+      export CLJ_CONFIG="$HOME/.clojure"
+      export CLJ_CACHE="$TMP/cp_cache"
+      export GITLIBS="$HOME/.gitlibs"
     ''
     +
     (

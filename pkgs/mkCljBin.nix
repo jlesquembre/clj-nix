@@ -135,15 +135,19 @@ stdenv.mkDerivation ({
     ''
       runHook preBuild
 
-      export HOME="${deps-cache}"
-      export JAVA_TOOL_OPTIONS="-Duser.home=${deps-cache}"
+      export HOME="$TMP/clj-home"
+      mkdir -p "$HOME"
+      cp -rL "${deps-cache}/." "$HOME/"
+      chmod -R u+w "$HOME"
+
+      export JAVA_TOOL_OPTIONS="-Duser.home=$HOME"
 
       export CLJ_CONFIG="$HOME/.clojure"
       export CLJ_CACHE="$TMP/cp_cache"
       export GITLIBS="$HOME/.gitlibs"
 
       export LEIN_OFFLINE=true
-      export LEIN_JVM_OPTS="-Dmaven.repo.local=${deps-cache}/.m2 -Duser.home=${deps-cache}"
+      export LEIN_JVM_OPTS="-Dmaven.repo.local=$HOME/.m2 -Duser.home=$HOME"
       export LEIN_HOME=.lein
     ''
     +
