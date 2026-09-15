@@ -78,7 +78,7 @@
                         (assoc-in [:aliases :build :replace-deps 'io.github.clojure/tools.build :sha] "7d40500863818c6f9a6e077b18db305d02149384")
                         (update-in [:aliases :build :replace-deps 'io.github.clojure/tools.build] #(dissoc % :tag))))
 
-(def lock-data {"lock-version" 3,
+(def lock-data {"lock-version" 5,
                 "git-deps" [{"lib" "io.github.babashka/fs",
                              "url" "https://github.com/babashka/fs.git",
                              "rev" "dc73460e63ff10c701c353227f2689b3d7c33a43",

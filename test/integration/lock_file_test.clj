@@ -70,12 +70,13 @@
                      {:git/url "https://github.com/clj-commons/clj-yaml"
                       :git/sha "8e181bc650ebb94485e74cb7be7ad4e89497ba7e"}}})
       (let [clj-yaml-dep (some #(when (= "clj-commons/clj-yaml" (:lib %)) %) (:git-deps (c/lock-file project-dir)))
-            dep-info (select-keys clj-yaml-dep [:lib :url :rev :git-dir :hash])]
+            dep-info (select-keys clj-yaml-dep [:lib :url :rev :git-dir :hash :needs-prep])]
         (is (= {:lib "clj-commons/clj-yaml"
                 :url "https://github.com/clj-commons/clj-yaml"
                 :rev "8e181bc650ebb94485e74cb7be7ad4e89497ba7e"
                 :git-dir "https/github.com/clj-commons/clj-yaml"
-                :hash "sha256-jsBvbVd104AX40om6k64He/PIMRGa04hVQ8q+PDiSVY="}
+                :hash "sha256-jsBvbVd104AX40om6k64He/PIMRGa04hVQ8q+PDiSVY="
+                :needs-prep true}
                dep-info))))))
 
 (deftest metrics-test
