@@ -89,7 +89,23 @@ let
           bash script/uberjar
 
           export GRAALVM_HOME="${graalvm}"
-          bash script/compile
+
+          # Babashka < 1.13 depends on graal-build-time 0.1.0, whose
+          # InitAtBuildTimeFeature is registered only through the
+          # @AutomaticFeature annotation. GraalVM 25.1 removed @AutomaticFeature
+          # (oracle/graal GR-73556), so the feature silently stops running, the
+          # Clojure classes are no longer initialized at build time, and the
+          # resulting binary fails at startup with "Could not locate
+          # clojure/core__init.class". Enable the feature explicitly when the
+          # uberjar still ships it. Newer babashka versions use
+          # graal-build-time >= 1.0.5, which is enabled through
+          # native-image.properties instead.
+          compile_args=()
+          BABASHKA_JAR="target/babashka-$(cat resources/BABASHKA_VERSION)-standalone.jar"
+          if "${graalvm}/bin/jar" tf "$BABASHKA_JAR" | grep -qx 'InitAtBuildTimeFeature.class'; then
+            compile_args+=("--features=InitAtBuildTimeFeature")
+          fi
+          bash script/compile "''${compile_args[@]}"
         '';
 
       outputs = [ "out" ];
