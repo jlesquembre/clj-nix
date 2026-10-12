@@ -39,6 +39,7 @@ let
     "version"
     "extraNativeImageBuildArgs"
     "graalvm"
+    "meta"
   ];
 
   # Remove only if empty
@@ -50,7 +51,7 @@ let
 
   extra-attrs' =
     lib.filterAttrs
-      (k: v: (builtins.elem k other-attrs) && (is-empty v))
+      (k: v: !((builtins.elem k other-attrs) && (is-empty v)))
       extra-attrs;
 
   graal-build-time =
@@ -76,7 +77,7 @@ buildGraalvmNativeImage ({
   inherit version;
   pname = name;
   graalvmDrv = graalvm;
-  meta.mainProgram = name;
+  meta = { mainProgram = name; } // meta;
 
   dontUnpack = true;
   src = lib.fileContents "${cljDrv}/nix-support/jar-path";
