@@ -74,7 +74,7 @@
                 command =
                   ''
                     bb ./scripts/newer_clojure_versions.bb
-                    clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -m antq.core --upgrade --force
+                    clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -m antq.core --upgrade --force --skip=github-action
                     clj -X cljnix.bootstrap/as-json :deps-path '"deps.edn"' | jq . > pkgs/builder-lock.json
                     clj -X cljnix.core/clojure-deps-str > src/clojure-deps.edn
                     (cd ./templates/default && nix run ../..#deps-lock)
