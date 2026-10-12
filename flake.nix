@@ -62,7 +62,6 @@
               pkgs.clojure
               pkgs.babashka
               pkgs.graalvmPackages.graalvm-ce
-              pkgs.bats
               pkgs.envsubst
               pkgs.mustache-go
               pkgs.diffutils
@@ -70,6 +69,7 @@
             commands = [
               {
                 name = "update-deps";
+                category = "dependencies";
                 help = "Update builder-lock.json and clojure-deps.edn";
                 command =
                   ''
@@ -84,6 +84,7 @@
               }
               {
                 name = "kaocha";
+                category = "test runners";
                 help = "Run tests with kaocha";
                 command =
                   ''
@@ -91,15 +92,57 @@
                   '';
               }
               {
-                name = "tests";
-                help = "Run tests with bats";
+                name = "bats";
+                category = "test runners";
+                help = "Run tests with bats (default: bats --timing test)";
                 command =
                   ''
-                    bats --timing test
+                    if [ $# -eq 0 ]; then
+                      exec ${pkgs.bats}/bin/bats --timing test
+                    else
+                      exec ${pkgs.bats}/bin/bats "$@"
+                    fi
+                  '';
+              }
+              {
+                name = "tests-unit";
+                category = "tests";
+                help = "Run Clojure unit tests";
+                command =
+                  ''
+                    kaocha :unit "$@"
+                  '';
+              }
+              {
+                name = "tests-integration";
+                category = "tests";
+                help = "Run Clojure integration tests";
+                command =
+                  ''
+                    kaocha :integration "$@"
+                  '';
+              }
+              {
+                name = "tests-e2e";
+                category = "tests";
+                help = "Run end-to-end tests with bats";
+                command =
+                  ''
+                    exec ${pkgs.bats}/bin/bats --timing test "$@"
+                  '';
+              }
+              {
+                name = "tests-all";
+                category = "tests";
+                help = "Run unit, integration and end-to-end tests";
+                command =
+                  ''
+                    tests-unit && tests-integration && tests-e2e
                   '';
               }
               {
                 name = "dummy-project";
+                category = "scaffolding";
                 help = "Creates a dummy clj-nix project";
                 command =
                   ''
