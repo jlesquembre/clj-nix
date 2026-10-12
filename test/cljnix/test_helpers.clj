@@ -1,6 +1,7 @@
 (ns cljnix.test-helpers
   (:require
     [clojure.pprint :as pp]
+    [clojure.string :as str]
     [clojure.data.json :as json]
     [clojure.tools.deps.cli.api :as tools]
     [clojure.tools.deps :as deps]
@@ -38,3 +39,20 @@
                 :escape-unicode false
                 :escape-js-separators false)
               (with-out-str (pp/pprint content)))))))
+
+(defn deps-cache-fixture
+  "Returns a :once fixture that preps `deps` (downloads them to the local cache)."
+  [deps]
+  (fn [f]
+    (prep-deps deps)
+    (f)))
+
+(defn find-dep
+  [lib deps]
+  (first (filter #(= lib (:lib %)) deps)))
+
+(defn find-pom
+  [lib-prefix deps]
+  (first (filter #(and (str/starts-with? (:mvn-path %) lib-prefix)
+                       (str/ends-with? (:mvn-path %) ".pom"))
+                 deps)))
