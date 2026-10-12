@@ -99,7 +99,7 @@ stdenv.mkDerivation ({
           postBuild = builder-postBuild;
         })
       ]
-      ++ (lib.lists.optional enableLeiningen leiningen);
+      ++ (lib.lists.optional enableLeiningen (leiningen.override { jdk = jdkRunner; }));
 
   outputs = [ "out" "lib" ];
 
