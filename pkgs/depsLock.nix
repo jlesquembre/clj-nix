@@ -13,4 +13,5 @@ common.writeCljApplication {
   java-opts = [ ];
   preBuild = "";
   postBuild = "";
+  meta.description = "Generates a deps-lock.json file for Clojure projects";
 }

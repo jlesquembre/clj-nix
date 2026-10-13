@@ -72,6 +72,12 @@ let
 
   projectInfo = srcFromJson ./src.json;
 
+  meta = {
+    description = "Native, fast starting Clojure interpreter for scripting";
+    homepage = "https://github.com/babashka/babashka";
+    license = lib.licenses.epl10;
+  };
+
   babashka-unwrapped =
     mkCljBin {
       inherit (projectInfo) version;
@@ -91,6 +97,9 @@ let
           export GRAALVM_HOME="${graalvm}"
           bash script/compile
         '';
+
+      # The binary is `bb`, not the artifactId `babashka`
+      meta = meta // { mainProgram = "bb"; };
 
       outputs = [ "out" ];
       installPhase =
@@ -124,6 +133,7 @@ if wrap then
   writeShellApplication
   {
     name = "bb";
+    inherit meta;
     runtimeInputs = [ babashka-unwrapped rlwrap ];
     text = ''
       rlwrap bb "$@"

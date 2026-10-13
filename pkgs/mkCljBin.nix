@@ -61,6 +61,7 @@ let
     "builder-java-opts"
     "builder-preBuild"
     "builder-postBuild"
+    "meta"
   ];
 
   deps-cache = mk-deps-cache {
@@ -81,7 +82,8 @@ stdenv.mkDerivation ({
   pname = lib.strings.sanitizeDerivationName artifactId;
   src = projectSrc;
 
-  meta.mainProgram = artifactId;
+  # User meta wins, but keep mainProgram unless it's overridden
+  meta = { mainProgram = artifactId; } // (attrs.meta or { });
 
   # Build time deps
   nativeBuildInputs =
