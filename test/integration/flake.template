@@ -4,23 +4,28 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
     clj-nix = {
       url = "{{cljnixUrl}}";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
-  outputs = { self, nixpkgs, flake-utils, clj-nix }:
+  outputs = { self, nixpkgs, clj-nix }:
 
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        cljpkgs = clj-nix.packages."${system}";
-      in
-
-      {
-        packages = {
-
+    let
+      supportedSystems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "x86_64-linux"
+      ];
+    in
+    {
+      packages = nixpkgs.lib.genAttrs supportedSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          cljpkgs = clj-nix.packages."${system}";
+        in
+        {
           mkCljBin-test = cljpkgs.mkCljBin {
             projectSrc = ./.;
             name = "me.lafuente/cljdemo";
@@ -64,8 +69,7 @@
             withFeatures = [ "jdbc" "sqlite" ];
           };
 
-
-        };
-      });
+        });
+    };
 
 }
