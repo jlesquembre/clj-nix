@@ -21,7 +21,9 @@ setup_file() {
   cljnix_dir=$(dirname "$BATS_TEST_DIRNAME")
   export cljnix_dir
 
-  cljnix_dir_copy="/tmp/_clj-nix_copy"
+  # Nix rejects path inputs that go through a symlink, and /tmp is one on
+  # macOS, so use the physical path of the per-file temp dir.
+  cljnix_dir_copy="$(cd "$BATS_FILE_TMPDIR" && pwd -P)/clj-nix_copy"
   export cljnix_dir_copy
   cp -r "$cljnix_dir" "$cljnix_dir_copy"
 
