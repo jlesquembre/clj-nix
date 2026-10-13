@@ -35,10 +35,14 @@ in
     builtins.concatStringsSep ":" deps;
 
   writeCljApplication =
-    { name, runtimeInputs, clj-main, classpath, java-opts, preBuild, postBuild }:
+    { name, runtimeInputs, clj-main, classpath, java-opts, preBuild, postBuild, meta ? { } }:
 
     writeShellApplication {
       inherit name runtimeInputs;
+      meta = {
+        homepage = "https://github.com/jlesquembre/clj-nix";
+        license = lib.licenses.epl20;
+      } // meta;
       text =
         preBuild +
         ''

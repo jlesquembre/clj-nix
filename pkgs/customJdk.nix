@@ -25,6 +25,7 @@ let
     "version"
     "cljDrv"
     "java-opts"
+    "meta"
   ];
 
   jarPath = lib.fileContents "${cljDrv}/nix-support/jar-path";
@@ -50,6 +51,10 @@ stdenv.mkDerivation ({
       [ "out" "jdk" ];
 
   dontUnpack = true;
+
+  # The install hook writes bin/<pname> for a cljDrv, else a bare JDK
+  meta = { mainProgram = if cljDrv == null then "java" else cljDrv.pname; }
+    // (attrs.meta or { });
 
   passthru = if cljDrv == null then { } else
   {
