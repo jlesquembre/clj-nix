@@ -1,11 +1,11 @@
 { stdenv
 , lib
 , runtimeShell
-, jdk17_headless
+, jdk_headless
 , cljHooks
 }:
 
-{ jdkBase ? jdk17_headless
+{ jdkBase ? jdk_headless
 , name ? "customJDK"
 , version ? "DEV"
 , cljDrv ? null
@@ -32,7 +32,7 @@ let
 in
 stdenv.mkDerivation ({
   inherit jarPath;
-  name = if cljDrv == null then name else cljDrv.pname;
+  pname = if cljDrv == null then name else cljDrv.pname;
   version = if cljDrv == null then version else cljDrv.version;
 
   stripDebugFlags = [ "--strip-unneeded" ];

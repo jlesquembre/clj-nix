@@ -76,7 +76,7 @@ clj-tuto = cljpkgs.mkCljBin {
   projectSrc = ./.;
   name = "me.lafuente/cljdemo";
   main-ns = "demo.core";
-  jdkRunner = pkgs.jdk17_headless;
+  jdkRunner = pkgs.jdk_headless;
 };
 ```
 

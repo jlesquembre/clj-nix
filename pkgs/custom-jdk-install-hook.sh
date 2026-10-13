@@ -72,7 +72,7 @@ customJdkInstallHook() {
   # JDK generated from a JAR file, create a wrapper script
   if [ -n "${jarPath-}" ]; then
     mkdir -p "$out/bin"
-    binaryPath="$out/bin/${name-customJdk}"
+    binaryPath="$out/bin/${pname:-${name-customJdk}}"
 
     substitute @binaryTemplate@ "$binaryPath" \
       --subst-var-by jar "$jarPath" \
