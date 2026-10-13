@@ -21,10 +21,9 @@
        :out
        (->> (rev-data git-dir)
             (eduction
-             (map :tag)
+             (keep :tag)
              (map str/trim)
-             (remove str/blank?)
-             (remove nil?))
+             (remove str/blank?))
             vec)}
 
       (= (first rest-args) "rev-parse")
