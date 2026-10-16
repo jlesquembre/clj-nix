@@ -14,4 +14,5 @@ common.writeCljApplication {
   classpath = "${../src}:${common.internal-deps-classpath}";
   inherit preBuild postBuild;
   java-opts = [ "-Dclojure.main.report=stderr" ] ++ java-opts;
+  meta.description = "Builds Clojure projects for clj-nix's builders";
 }

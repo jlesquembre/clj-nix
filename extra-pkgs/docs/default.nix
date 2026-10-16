@@ -45,4 +45,10 @@ stdenv.mkDerivation {
   installPhase = ''
     mv site $out
   '';
+
+  meta = {
+    description = "clj-nix documentation site";
+    homepage = "https://jlesquembre.github.io/clj-nix/";
+    license = lib.licenses.epl20;
+  };
 }
