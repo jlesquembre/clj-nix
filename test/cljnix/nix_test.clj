@@ -11,11 +11,7 @@
                        io.github.weavejester/medley {:git/sha "0044c6aacc0b23eafa3b58091f49c794f5a1f5aa"}
                        io.github.teknql/systemic {:git/sha "2c0be3a90884f998a61f2a8174cff3c5a15a30bf"}}})
 
-(defn deps-cache-fixture [f]
-  (h/prep-deps all-deps)
-  (f))
-
-(use-fixtures :once deps-cache-fixture)
+(use-fixtures :once (h/deps-cache-fixture all-deps))
 
 (deftest nix-hash-test
   (is (= "sha256-I4G26UI6tGUVFFWUSQPROlYkPWAGuRlK/Bv0+HEMtN4="
