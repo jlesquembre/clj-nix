@@ -66,6 +66,15 @@ teardown_file() {
     [ "$output" = "Hello from CLOJURE!!!" ]
 }
 
+@test "mkGraalBin passes extra arguments through" {
+    run -0 --separate-stderr nix eval --raw .#mkGraalBin-test.nativeImageArgs --apply 'builtins.concatStringsSep " "'
+    [[ " $output " == *" -J-Xmx5g "* ]]
+    run -0 --separate-stderr nix eval --raw .#mkGraalBin-test.meta.description
+    [ "$output" = "mkGraalBin test" ]
+    run -0 --separate-stderr nix eval --raw .#mkGraalBin-test.meta.mainProgram
+    [ "$output" = "cljdemo" ]
+}
+
 # bats test_tags=graal
 @test "nix build .#mkGraalBin-test" {
     nix build .#mkGraalBin-test --print-out-paths >> "$DERIVATIONS"

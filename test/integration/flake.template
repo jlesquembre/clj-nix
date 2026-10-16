@@ -35,6 +35,8 @@
 
           mkGraalBin-test = cljpkgs.mkGraalBin {
             cljDrv = self.packages."${system}".mkCljBin-test;
+            graalvmXmx = "-J-Xmx5g";
+            meta.description = "mkGraalBin test";
           };
 
           jvm-container-test =
