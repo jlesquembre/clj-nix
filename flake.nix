@@ -45,7 +45,6 @@
             mkBabashka bbTasksFromFile;
 
           babashka = pkgs.mkBabashka { };
-          babashka-unwrapped = pkgs.mkBabashka { wrap = false; };
 
           docs = pkgs.callPackage ./extra-pkgs/docs { inherit pkgs; };
 
