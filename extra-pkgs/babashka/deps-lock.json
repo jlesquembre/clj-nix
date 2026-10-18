@@ -3894,6 +3894,11 @@
       "hash": "sha256-5o8zND2DI5jzyKp4r82AjVa3wQIN5NOtjOR5CQle6QQ="
     },
     {
+      "mvn-path": "junit/junit/4.13.2/junit-4.13.2.pom",
+      "mvn-repo": "https://repo1.maven.org/maven2/",
+      "hash": "sha256-Vptpd+5GA8llwcRsMFj6bpaSkbAWDraWTdCSzYnq3ZQ="
+    },
+    {
       "mvn-path": "karma-reporter/karma-reporter/3.1.0/karma-reporter-3.1.0.jar",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-Bo6mp84I2TBNe2yCH7v/0bGb5NK0hJKeg15b13YO6WQ="
@@ -5909,6 +5914,11 @@
       "hash": "sha256-xRh5Bi5B/58hr6DkCbGZ/+nyo8aucizf7F/Z26BeQXI="
     },
     {
+      "mvn-path": "org/clojure/clojure/1.12.5/clojure-1.12.5.jar",
+      "mvn-repo": "https://repo1.maven.org/maven2/",
+      "hash": "sha256-397hMUYCFqhP7yLlN7sNBXmWX49wM410gyPf8m+OWos="
+    },
+    {
       "mvn-path": "org/clojure/clojure/1.12.5/clojure-1.12.5.pom",
       "mvn-repo": "https://repo1.maven.org/maven2/",
       "hash": "sha256-J4xR2XfBloST2NTLDFxg4sslUNYEhcOBPPFh5Wr2iFg="
@@ -7867,6 +7877,11 @@
       "mvn-path": "org/graalvm/truffle/truffle-compiler/25.0.2/truffle-compiler-25.0.2.pom",
       "mvn-repo": "https://repo1.maven.org/maven2/",
       "hash": "sha256-+jEe0MDLYu+1DCNQOKQSSUln6GxCElPsK80/udk+0r8="
+    },
+    {
+      "mvn-path": "org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.pom",
+      "mvn-repo": "https://repo1.maven.org/maven2/",
+      "hash": "sha256-/eOGp5BRc6GxA95quCBydYS1DQ4yKC4nl3h8IKZP+pM="
     },
     {
       "mvn-path": "org/hsqldb/hsqldb/2.5.1/hsqldb-2.5.1.jar",

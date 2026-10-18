@@ -477,10 +477,9 @@
 
 (def cli-spec
   (let [deps-validate
-        {:pred (partial every? fs/exists?)
+        {:pred fs/exists?
          :ex-msg (fn [{:keys [value]}]
-                   (str "Non-existent files: "
-                      (filterv (complement fs/exists?) value)))}]
+                   (str "Non-existent file: " value))}]
     {:help
      {:desc "Print help and exit."
       :validate {:pred boolean?}}
