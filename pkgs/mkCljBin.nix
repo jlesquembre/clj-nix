@@ -1,45 +1,46 @@
-{ stdenv
-, lib
-, runtimeShell
-, clojure
-, leiningen
-, writeText
+{
+  stdenv,
+  lib,
+  runtimeShell,
+  clojure,
+  leiningen,
+  writeText,
 
   # Default JDK.
   # Needed by clj tools.build to compile the code
-, jdk
+  jdk,
 
   # Custom utils
-, clj-builder
-, mk-deps-cache
-, common
-, fake-git
+  clj-builder,
+  mk-deps-cache,
+  common,
+  fake-git,
 
 }:
 
 {
   # User options
-  jdkRunner ? jdk # Runtime jdk
-, projectSrc
-, name
-, version ? "DEV"
-, main-ns
-, java-opts ? [ ]
-, buildCommand ? null
-, lockfile ? null
-, compileCljOpts ? null
-, javacOpts ? null
-, uberOpts ? null
-, enableLeiningen ? false
-, builder-extra-inputs ? [ ]
-, builder-java-opts ? [ ]
-, builder-preBuild ? ""
-, builder-postBuild ? ""
+  jdkRunner ? jdk, # Runtime jdk
+  projectSrc,
+  name,
+  version ? "DEV",
+  main-ns,
+  java-opts ? [ ],
+  buildCommand ? null,
+  lockfile ? null,
+  compileCljOpts ? null,
+  javacOpts ? null,
+  uberOpts ? null,
+  enableLeiningen ? false,
+  builder-extra-inputs ? [ ],
+  builder-java-opts ? [ ],
+  builder-preBuild ? "",
+  builder-postBuild ? "",
 
   # Needed for version ranges
   # TODO maybe we can find a better solution?
-, maven-extra ? [ ]
-, ...
+  maven-extra ? [ ],
+  ...
 }@attrs:
 
 let
@@ -76,20 +77,23 @@ let
   javaMain = builtins.replaceStrings [ "-" ] [ "_" ] main-ns;
 
 in
-stdenv.mkDerivation ({
-  inherit version;
+stdenv.mkDerivation (
+  {
+    inherit version;
 
-  pname = lib.strings.sanitizeDerivationName artifactId;
-  src = projectSrc;
+    pname = lib.strings.sanitizeDerivationName artifactId;
+    src = projectSrc;
 
-  # User meta wins, but keep mainProgram unless it's overridden
-  meta = { mainProgram = artifactId; } // (attrs.meta or { });
+    # User meta wins, but keep mainProgram unless it's overridden
+    meta = {
+      mainProgram = artifactId;
+    }
+    // (attrs.meta or { });
 
-  # Build time deps
-  nativeBuildInputs =
-    attrs.nativeBuildInputs or [ ]
-      ++
-      [
+    # Build time deps
+    nativeBuildInputs =
+      attrs.nativeBuildInputs or [ ]
+      ++ [
         fake-git
         jdkRunner
         (clojure.override { jdk = jdkRunner; })
@@ -103,38 +107,45 @@ stdenv.mkDerivation ({
       ]
       ++ (lib.lists.optional enableLeiningen (leiningen.override { jdk = jdkRunner; }));
 
-  outputs = [ "out" "lib" ];
+    outputs = [
+      "out"
+      "lib"
+    ];
 
-  javaOpts = lib.escapeShellArgs java-opts;
+    javaOpts = lib.escapeShellArgs java-opts;
 
-  passthru = {
-    inherit deps-cache main-ns fullId groupId artifactId javaMain;
-  };
+    passthru = {
+      inherit
+        deps-cache
+        main-ns
+        fullId
+        groupId
+        artifactId
+        javaMain
+        ;
+    };
 
-  preBuildPhases = [ "preBuildPhase" ];
-  preBuildPhase =
-    (lib.strings.optionalString (! isNull lockfile)
-      ''
+    preBuildPhases = [ "preBuildPhase" ];
+    preBuildPhase =
+      (lib.strings.optionalString (!isNull lockfile) ''
         cp "${lockfile}" deps-lock.json
-      ''
-    ) +
-    ''
-      clj-builder patch-git-sha "$(pwd)"
-    '';
+      '')
+      + ''
+        clj-builder patch-git-sha "$(pwd)"
+      '';
 
-  # Clojure environment variables:
-  # https://clojure.org/reference/deps_and_cli#_clojure_cli_usage
+    # Clojure environment variables:
+    # https://clojure.org/reference/deps_and_cli#_clojure_cli_usage
 
-  # CLJ_CONFIG:
-  # https://github.com/clojure/tools.deps/blob/be30a1ae275eabfd1eba571080e039451c122c69/src/main/clojure/clojure/tools/deps.clj#L107-L117
+    # CLJ_CONFIG:
+    # https://github.com/clojure/tools.deps/blob/be30a1ae275eabfd1eba571080e039451c122c69/src/main/clojure/clojure/tools/deps.clj#L107-L117
 
-  # GITLIBS:
-  # https://github.com/clojure/tools.gitlibs/blob/f6544f4dab32c5d5f1610d6c2a5a256d23226821/src/main/clojure/clojure/tools/gitlibs/config.clj#L30-L35
+    # GITLIBS:
+    # https://github.com/clojure/tools.gitlibs/blob/f6544f4dab32c5d5f1610d6c2a5a256d23226821/src/main/clojure/clojure/tools/gitlibs/config.clj#L30-L35
 
-  # CLJ_CACHE
-  # https://github.com/clojure/brew-install/blob/271c2c5dd45ed87eccf7e7844b079355297d0974/src/main/resources/clojure/install/clojure#L295-L301
-  buildPhase =
-    ''
+    # CLJ_CACHE
+    # https://github.com/clojure/brew-install/blob/271c2c5dd45ed87eccf7e7844b079355297d0974/src/main/resources/clojure/install/clojure#L295-L301
+    buildPhase = ''
       runHook preBuild
 
       export HOME="${deps-cache}"
@@ -148,8 +159,7 @@ stdenv.mkDerivation ({
       export LEIN_JVM_OPTS="-Dmaven.repo.local=${deps-cache}/.m2 -Duser.home=${deps-cache}"
       export LEIN_HOME=.lein
     ''
-    +
-    (
+    + (
       if builtins.isNull buildCommand then
         ''
           clj-builder uber "${fullId}" "${version}" "${main-ns}" \
@@ -167,13 +177,11 @@ stdenv.mkDerivation ({
           ${buildCommand}
         ''
     )
-    +
-    ''
+    + ''
       runHook postBuild
     '';
 
-  installPhase =
-    ''
+    installPhase = ''
       runHook preInstall
 
       mkdir -p $lib
@@ -200,4 +208,6 @@ stdenv.mkDerivation ({
 
       runHook postInstall
     '';
-} // extra-attrs)
+  }
+  // extra-attrs
+)

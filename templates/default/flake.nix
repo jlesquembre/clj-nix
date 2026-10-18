@@ -7,7 +7,13 @@
     clj-nix.url = "github:jlesquembre/clj-nix";
   };
 
-  outputs = { self, nixpkgs, flake-utils, clj-nix }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      clj-nix,
+    }:
 
     flake-utils.lib.eachDefaultSystem (system: {
 

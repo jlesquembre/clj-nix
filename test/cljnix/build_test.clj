@@ -1,9 +1,9 @@
 (ns cljnix.build-test
   (:require
-    [clojure.test :refer [deftest is testing]]
-    [clojure.string :as str]
-    [babashka.fs :as fs]
-    [cljnix.build :as build]))
+   [clojure.test :refer [deftest is testing]]
+   [clojure.string :as str]
+   [babashka.fs :as fs]
+   [cljnix.build :as build]))
 
 (deftest remove-timestamp-test
   (testing "remove-timestamp! drops the comment lines Maven writes into pom.properties"

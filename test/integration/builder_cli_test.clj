@@ -4,13 +4,13 @@
 
   The CLI runs in a subprocess, because `-main` calls `shutdown-agents`."
   (:require
-    [clojure.test :refer [deftest is testing]]
-    [clojure.string :as str]
-    [babashka.fs :as fs]
-    [babashka.process :as ps]
-    [cljnix.test-helpers :as h])
+   [clojure.test :refer [deftest is testing]]
+   [clojure.string :as str]
+   [babashka.fs :as fs]
+   [babashka.process :as ps]
+   [cljnix.test-helpers :as h])
   (:import
-    (java.util.jar JarFile)))
+   (java.util.jar JarFile)))
 
 (defn- write-project!
   [project-dir]
@@ -106,7 +106,7 @@
     ;; compileCljOpts arrives as JSON, so :ns-compile holds strings that
     ;; cljnix.build has to turn into symbols for tools.build.
     (when (clj-builder! project-dir "uber" "demo/demo" "1.0.0" "demo.core"
-                          "{\"ns-compile\":[\"demo.core\"]}" "null" "null")
+                        "{\"ns-compile\":[\"demo.core\"]}" "null" "null")
       (let [jar-path (fs/path project-dir "target" "demo-1.0.0.jar")
             entries (jar-entries jar-path)]
         (testing ":ns-compile limits AOT compilation to the listed namespaces"

@@ -33,9 +33,9 @@
      :tag "v0.0.1"}
     {:rev "rev2"
      :tag "v0.0.2"}]
-    "tag --sort=v:refname"
-    #{"v0.0.1"
-      "v0.0.2"}
+   "tag --sort=v:refname"
+   #{"v0.0.1"
+     "v0.0.2"}
    #(-> % :out set)))
 
 (deftest fake-git-rev-parse-tag-test
@@ -44,7 +44,7 @@
      :tag "v0.0.1"}
     {:rev "rev2"
      :tag "v0.0.2"}]
-    "rev-parse v0.0.1^{commit}"
+   "rev-parse v0.0.1^{commit}"
    ["rev1"]
    #(-> % :out)))
 
@@ -54,7 +54,7 @@
      :tag "v0.0.1"}
     {:rev "rev2abc"
      :tag "v0.0.2"}]
-    "rev-parse rev2^{commit}"
+   "rev-parse rev2^{commit}"
    ["rev2abc"]
    #(-> % :out)))
 
@@ -64,7 +64,7 @@
      :tag "v0.0.1"}
     {:rev "rev2abc"
      :tag "v0.0.2"}]
-    "rev-parse rev2abc^{commit}"
+   "rev-parse rev2abc^{commit}"
    ["rev2abc"]
    #(-> % :out)))
 
@@ -75,7 +75,7 @@
      :ancestor? {"rev2abc" true}}
     {:rev "rev2abc"
      :tag "v0.0.2"}]
-    "merge-base --is-ancestor rev1abc rev2abc"
+   "merge-base --is-ancestor rev1abc rev2abc"
    0
    #(-> % :exit)))
 
@@ -86,6 +86,6 @@
      :ancestor? {"rev2abc" false}}
     {:rev "rev2abc"
      :tag "v0.0.2"}]
-    "merge-base --is-ancestor rev1abc rev2abc"
+   "merge-base --is-ancestor rev1abc rev2abc"
    1
    #(-> % :exit)))

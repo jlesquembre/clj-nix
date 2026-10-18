@@ -1,18 +1,18 @@
 (ns cljnix.build
   (:require
-    [clojure.java.io :as io]
-    [clojure.string :as string]
-    [clojure.tools.deps :as deps]
-    [clojure.tools.build.api :as b]))
+   [clojure.java.io :as io]
+   [clojure.string :as string]
+   [clojure.tools.deps :as deps]
+   [clojure.tools.build.api :as b]))
 
 (defn remove-timestamp!
   [root-dir lib-name]
   (let [f (io/file root-dir "META-INF/maven" (str lib-name) "pom.properties")]
     (->> (slurp f)
-        string/split-lines
-        (remove #(string/starts-with? % "#"))
-        (string/join "\n")
-        (spit f))))
+         string/split-lines
+         (remove #(string/starts-with? % "#"))
+         (string/join "\n")
+         (spit f))))
 
 (defn- get-paths
   "Get paths from deps.edn file"
@@ -42,7 +42,6 @@
     (:use-cp-file opts)
     (update :use-cp-file keyword)))
 
-
 (def class-dir "target/classes")
 
 (defn common-compile-options
@@ -65,9 +64,9 @@
                  :target-dir class-dir})
     (when javac-opts
       (b/javac (merge
-                 javac-opts
-                 {:basis basis
-                  :class-dir class-dir})))
+                javac-opts
+                {:basis basis
+                 :class-dir class-dir})))
     (b/compile-clj (cond-> {:basis basis
                             :src-dirs src-dirs
                             :class-dir class-dir}
