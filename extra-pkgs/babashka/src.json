@@ -5,6 +5,7 @@
     "owner" : "babashka",
     "repo" : "babashka",
     "hash" : "sha256-CfgvTwbLPmGb3XwZ8mOH3hMNXXaglxiDG5ZEH8y4CgU=",
-    "fetchSubmodules" : "v1.13.226"
+    "rev" : "v1.13.226",
+    "fetchSubmodules" : true
   }
 }
