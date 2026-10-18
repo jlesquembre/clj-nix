@@ -94,7 +94,7 @@ let
         # https://github.com/babashka/babashka/commit/25cf3c9607a8cde13bf5ba61b523b7a79ccca44e
         (fetchpatch {
           url = "https://github.com/babashka/babashka/commit/25cf3c9607a8cde13bf5ba61b523b7a79ccca44e.patch";
-          hash = "sha256-ZTuAfssmLlr6Uu0LSWQKyvjt57mRkW3530r+AHI6/DY=";
+          hash = "sha256-ZEomsrb0jqE0FImxaaKaFb8FvykHq93cyaYCg4ks244=";
         })
       ];
       buildCommand =
