@@ -399,6 +399,45 @@
   (if (standard-repos mvn-repo)
     0 1))
 
+(defn- warn-on-maven-version-ranges!
+  [mvn-deps cache-dir]
+  (let [ranges (->> mvn-deps
+                    (map :mvn-path)
+                    (filter #(string/ends-with? % ".pom"))
+                    (map #(fs/path cache-dir mvn-cache-subdir %))
+                    (distinct)
+                    (mapcat utils/pom-version-ranges)
+                    (vec))]
+    (when (seq ranges)
+      (printerrln "\n"
+                  "##################################################################\n"
+                  "#                                                                #\n"
+                  "#   !!!   WARNING: DYNAMIC MAVEN VERSION RANGES DETECTED   !!!   #\n"
+                  "#                                                                #\n"
+                  "##################################################################\n\n"
+                  "Maven's architecture treats reproducibility as an afterthought: by permitting\n"
+                  "version ranges without native lockfiles, it guarantees that dependency\n"
+                  "resolution will diverge unpredictably over time.\n\n"
+                  "Even if your project pins every direct dependency, arbitrary transitive\n"
+                  "libraries can inject ranges that silently mutate your build without warning.\n\n"
+                  "This is a systemic failure of Maven's design that clj-nix cannot compensate for.\n"
+                  "We cannot guarantee deterministic locking while unpinned ranges pollute the graph.\n\n"
+                  "You are entirely on your own here: either locate and manually override every\n"
+                  "transitive range in your dependency tree, or accept that your Nix builds will\n"
+                  "break non-deterministically.\n\n"
+                  "Do not file bug reports with clj-nix for build instability caused by ranges.\n"
+                  "Complain directly to the Maven maintainers: demand first-class lockfile support,\n"
+                  "or insist that they actually enforce what they prescribe as \"best practices\" by\n"
+                  "banning dynamic version ranges out of the box:\n"
+                  "  Open an issue: https://github.com/apache/maven/issues\n\n"
+                  "Context & reading:\n"
+                  "  https://maveniverse.eu/blog/2025/12/06/lockfiles/\n"
+                  "  https://maveniverse.eu/blog/2026/04/17/taming-maven-version-ranges/\n")
+      (doseq [{:keys [pom lib version parent?]} ranges]
+        (printerrln (str "  - " lib " " version
+                         (when parent? " (parent)")
+                         " in " pom))))))
+
 (defn calc-ancestors [{:keys [cache-dir]} git-libs]
   (let [gits (group-by :lib git-libs)]
     (->> git-libs
@@ -429,29 +468,32 @@
                  :as opts}]
    (fs/with-temp-dir [cache-dir {:prefix "clj-cache"}]
      (transduce
-       (comp
-         (map #(deps-file->deps+alias % opts))
-         (mapcat aliases-combinations)
-         (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
-       (completing
-         (fn [acc {:keys [mvn git mvn-repos]}]
-           (-> acc
+      (comp
+       (map #(deps-file->deps+alias % opts))
+       (mapcat aliases-combinations)
+       (map (fn [[deps-path aliases]] (get-deps! deps-path cache-dir aliases))))
+      (completing
+       (fn [acc {:keys [mvn git mvn-repos]}]
+         (-> acc
              (update :mvn into mvn)
              (update :mvn-repos into mvn-repos)
              (update :git into git)))
-         (fn [{:keys [mvn git mvn-repos]}]
-           (when lein?
-             (download-lein-deps cache-dir lein-profiles))
+       (fn [{:keys [mvn git mvn-repos]}]
+         (when lein?
+           (download-lein-deps cache-dir lein-profiles))
+         (let [all-mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir mvn-repos))
+                                 (sort-by (juxt :mvn-path is-standard-repo :mvn-repo))
+                                 (medley/dedupe-by :mvn-path)
+                                 (map add-to-nix-store!)
+                                 (distinct)
+                                 (into []))]
+           (warn-on-maven-version-ranges! all-mvn-deps cache-dir)
            (sorted-map-by
              map-comparator
              :lock-version LOCK-VERSION
-             :mvn-deps (->> (concat mvn (missing-mvn-deps mvn cache-dir mvn-repos))
-                            (sort-by (juxt :mvn-path is-standard-repo :mvn-repo))
-                            (medley/dedupe-by :mvn-path)
-                            (map add-to-nix-store!)
+             :mvn-deps (->> all-mvn-deps
                             (map #(into (sorted-map-by map-comparator)
                                         (select-keys % [:mvn-repo :mvn-path :hash :snapshot])))
-                            (distinct)
                             (into []))
              :git-deps (->> (concat git (missing-git-deps git cache-dir))
                             (map #(update % :lib str))
@@ -468,12 +510,12 @@
                                         (conj (pop acc) (merge v (peek acc)))
                                         (conj acc v)))
                                     [])
-                            (calc-ancestors {:cache-dir cache-dir})))))
+                            (calc-ancestors {:cache-dir cache-dir}))))))
 
-       {:mvn extra-mvn
-        :mvn-repos mvn/standard-repos
-        :git extra-git}
-       (utils/get-deps-files project-dir opts)))))
+      {:mvn extra-mvn
+       :mvn-repos mvn/standard-repos
+       :git extra-git}
+      (utils/get-deps-files project-dir opts)))))
 
 (def cli-spec
   (let [deps-validate
