@@ -3,6 +3,7 @@
 , mkGraalBin
 , fetchFromGitHub
 , fetchurl
+, fetchpatch
 , rlwrap
 , makeWrapper
 , writeShellApplication
@@ -88,6 +89,14 @@ let
       name = "babashka/babashka";
       main-ns = "babashka.main";
       jdkRunner = graalvm;
+      patches = [
+        # TODO: Drop after next babashka version bump includes
+        # https://github.com/babashka/babashka/commit/25cf3c9607a8cde13bf5ba61b523b7a79ccca44e
+        (fetchpatch {
+          url = "https://github.com/babashka/babashka/commit/25cf3c9607a8cde13bf5ba61b523b7a79ccca44e.patch";
+          hash = "sha256-ZTuAfssmLlr6Uu0LSWQKyvjt57mRkW3530r+AHI6/DY=";
+        })
+      ];
       buildCommand =
         ''
           ${if bbLean then "export BABASHKA_LEAN=true" else ""}
