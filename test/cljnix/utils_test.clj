@@ -1,11 +1,11 @@
 (ns cljnix.utils-test
   (:require
-    [clojure.test :refer [deftest is use-fixtures testing]]
-    [cljnix.utils :as utils]
-    [cljnix.test-helpers :as h]
-    [clojure.tools.deps.util.maven :as mvn]
-    [babashka.fs :as fs]
-    [clojure.tools.deps :as deps]))
+   [clojure.test :refer [deftest is use-fixtures testing]]
+   [cljnix.utils :as utils]
+   [cljnix.test-helpers :as h]
+   [clojure.tools.deps.util.maven :as mvn]
+   [babashka.fs :as fs]
+   [clojure.tools.deps :as deps]))
 
 (def my-deps '{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
                       babashka/fs {:mvn/version "0.1.5"}
@@ -22,19 +22,19 @@
           :mvn-repo "https://repo1.maven.org/maven2/"
           :url "https://repo1.maven.org/maven2/org/clojure/clojure/1.11.1/clojure-1.11.1.jar"}
          (utils/mvn-repo-info
-           (fs/path @mvn/cached-local-repo "org/clojure/clojure/1.11.1/clojure-1.11.1.jar"))))
+          (fs/path @mvn/cached-local-repo "org/clojure/clojure/1.11.1/clojure-1.11.1.jar"))))
 
   (is (= {:mvn-path "org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"
           :mvn-repo "https://repo1.maven.org/maven2/"
           :url "https://repo1.maven.org/maven2/org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"}
          (utils/mvn-repo-info
-           (fs/path @mvn/cached-local-repo "org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"))))
+          (fs/path @mvn/cached-local-repo "org/clojure/pom.contrib/1.1.0/pom.contrib-1.1.0.pom"))))
 
   (is (= {:mvn-path "babashka/fs/0.1.5/fs-0.1.5.jar"
           :mvn-repo "https://repo.clojars.org/"
           :url "https://repo.clojars.org/babashka/fs/0.1.5/fs-0.1.5.jar"}
          (utils/mvn-repo-info
-           (fs/path @mvn/cached-local-repo "babashka/fs/0.1.5/fs-0.1.5.jar")))))
+          (fs/path @mvn/cached-local-repo "babashka/fs/0.1.5/fs-0.1.5.jar")))))
 
   ;; TODO fix flaky tests or remove SNAPSHOT support
 
@@ -92,7 +92,6 @@
                              "hash" "sha256-nuPBuNQ4su6IAh7rB9kX/Iwv5LsV+FOl/uHro6VcL7c="}]
                 "mvn-deps" []})
 
-
 (deftest paths-to-gitdeps-test
   (is (= [[:deps 'io.github.clojure/tools.build]
           [:aliases :pod-test :replace-deps 'cognitect/test-runner]
@@ -100,13 +99,11 @@
           [:aliases :build :replace-deps 'io.github.clojure/tools.build]]
          (utils/paths-to-gitdeps deps-data))))
 
-
 (deftest partial-sha-test
   (is (= false (utils/full-sha? (get-in deps-data [:deps 'io.github.clojure/tools.build]))))
   (is (= true (utils/full-sha? (get-in deps-data [:aliases :pod-test :replace-deps 'cognitect/test-runner]))))
   (is (= true (utils/full-sha? (get-in deps-data [:aliases :pod-test :replace-deps 'babashka/babashka.pods]))))
   (is (= false (utils/full-sha? (get-in deps-data [:aliases :build :replace-deps 'io.github.clojure/tools.build])))))
-
 
 (deftest expand-sha-tests
   (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]

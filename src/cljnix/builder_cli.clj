@@ -1,9 +1,9 @@
 (ns cljnix.builder-cli
   (:require
-    [cljnix.utils :as utils]
-    [cljnix.build :as build]
-    [cljnix.check :as check]
-    [clojure.data.json :as json]))
+   [cljnix.utils :as utils]
+   [cljnix.build :as build]
+   [cljnix.check :as check]
+   [clojure.data.json :as json]))
 
 (defn- check-main-class
   [args]
@@ -27,9 +27,9 @@
 
     (= cmd "jar")
     (build/jar
-      (interleave
-        [:lib-name :version]
-        args))
+     (interleave
+      [:lib-name :version]
+      args))
 
     (= cmd "uber")
     (do

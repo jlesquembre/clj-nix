@@ -1,23 +1,24 @@
-{ stdenv
-, lib
-, clojure
+{
+  stdenv,
+  lib,
+  clojure,
 
   # Used by clj tools.build to compile the code
-, jdk
+  jdk,
 
   # Custom utils
-, clj-builder
-, mk-deps-cache
+  clj-builder,
+  mk-deps-cache,
 }:
 
 {
   # User options
-  projectSrc
-, name
-, version ? "DEV"
-, buildCommand ? null
-, maven-extra ? [ ]
-, ...
+  projectSrc,
+  name,
+  version ? "DEV",
+  buildCommand ? null,
+  maven-extra ? [ ],
+  ...
 }@attrs:
 
 let
@@ -41,41 +42,41 @@ let
   artifactId = builtins.elemAt (lib.strings.splitString "/" fullId) 1;
 
 in
-stdenv.mkDerivation ({
-  inherit version;
+stdenv.mkDerivation (
+  {
+    inherit version;
 
-  pname = lib.strings.sanitizeDerivationName artifactId;
-  src = projectSrc;
+    pname = lib.strings.sanitizeDerivationName artifactId;
+    src = projectSrc;
 
-  # Build time deps
-  nativeBuildInputs =
-    attrs.nativeBuildInputs or [ ]
-      ++
-      [
-        jdk
-        clojure
-      ];
+    # Build time deps
+    nativeBuildInputs = attrs.nativeBuildInputs or [ ] ++ [
+      jdk
+      clojure
+    ];
 
-  passthru = {
-    inherit deps-cache fullId groupId artifactId;
-  };
+    passthru = {
+      inherit
+        deps-cache
+        fullId
+        groupId
+        artifactId
+        ;
+    };
 
-  patchPhase =
-    ''
+    patchPhase = ''
       runHook prePatch
       ${clj-builder}/bin/clj-builder patch-git-sha "$(pwd)"
       runHook postPatch
     '';
 
-  buildPhase =
-    ''
+    buildPhase = ''
       runHook preBuild
 
       export HOME="${deps-cache}"
       export JAVA_TOOL_OPTIONS="-Duser.home=${deps-cache}"
     ''
-    +
-    (
+    + (
       if builtins.isNull buildCommand then
         ''
           ${clj-builder}/bin/clj-builder jar "${fullId}" "${version}"
@@ -85,13 +86,11 @@ stdenv.mkDerivation ({
           ${buildCommand}
         ''
     )
-    +
-    ''
+    + ''
       runHook postBuild
     '';
 
-  installPhase =
-    ''
+    installPhase = ''
       runHook preInstall
 
       mkdir -p $out
@@ -101,4 +100,6 @@ stdenv.mkDerivation ({
 
       runHook postInstall
     '';
-} // extra-attrs)
+  }
+  // extra-attrs
+)

@@ -1,36 +1,42 @@
-{ lib
-, stdenv
-, fetchurl
-, glibcLocales
-, writeShellScript
-, graalvmPackages
-, writeText
-, buildGraalvmNativeImage
+{
+  lib,
+  stdenv,
+  fetchurl,
+  glibcLocales,
+  writeShellScript,
+  graalvmPackages,
+  writeText,
+  buildGraalvmNativeImage,
 }:
 
-{ cljDrv
-, name ? cljDrv.pname
-, version ? cljDrv.version
+{
+  cljDrv,
+  name ? cljDrv.pname,
+  version ? cljDrv.version,
 
   # Options to buildGraalvmNativeImage (passed as provided)
   # TODO rename to graalvmDrv, align with buildGraalvmNativeImage on nixpkgs
-, graalvm ? graalvmPackages.graalvm-ce
-, meta ? { }
+  graalvm ? graalvmPackages.graalvm-ce,
+  meta ? { },
 
   # Options to buildGraalvmNativeImage
   # If empty, we don't pass those, defaults from buildGraalvmNativeImage are used
-, nativeBuildInputs ? [ ]
-, nativeImageBuildArgs ? [ ]
-, extraNativeImageBuildArgs ? [ ]
-, graalvmXmx ? ""
-, ...
+  nativeBuildInputs ? [ ],
+  nativeImageBuildArgs ? [ ],
+  extraNativeImageBuildArgs ? [ ],
+  graalvmXmx ? "",
+  ...
 }@attrs:
 
 let
-  is-empty = element:
-    if builtins.isList element then element == [ ]
-    else if builtins.isString element then element == ""
-    else false;
+  is-empty =
+    element:
+    if builtins.isList element then
+      element == [ ]
+    else if builtins.isString element then
+      element == ""
+    else
+      false;
 
   # Always remove
   extra-attrs = builtins.removeAttrs attrs [
@@ -49,16 +55,19 @@ let
     "graalvmXmx"
   ];
 
-  extra-attrs' = lib.filterAttrs (k: v:
+  extra-attrs' = lib.filterAttrs (
+    k: v:
     let
       inOtherAttrs = builtins.elem k other-attrs;
     in
-      # Keep the attribute unless it's listed in other-attrs AND is empty
-      !inOtherAttrs || !(is-empty v)
+    # Keep the attribute unless it's listed in other-attrs AND is empty
+    !inOtherAttrs || !(is-empty v)
   ) extra-attrs;
 
   graal-build-time =
-    let version = "1.0.6"; in
+    let
+      version = "1.0.6";
+    in
     fetchurl {
       url = "https://repo.clojars.org/com/github/clj-easy/graal-build-time/${version}/graal-build-time-${version}.jar";
       hash = "sha256-IQTd330QP1zB40sI2CsbYhcWjudengHSYd22B4ZueLw=";
@@ -66,29 +75,31 @@ let
 
 in
 
-assert
-(
-  lib.assertMsg
-    (lib.strings.hasInfix "." cljDrv.main-ns)
-    ''
-      Single segment namespaces not supported: ${cljDrv.main-ns}
-    ''
+assert (
+  lib.assertMsg (lib.strings.hasInfix "." cljDrv.main-ns) ''
+    Single segment namespaces not supported: ${cljDrv.main-ns}
+  ''
 );
 
-buildGraalvmNativeImage ({
+buildGraalvmNativeImage (
+  {
 
-  inherit version;
-  pname = name;
-  graalvmDrv = graalvm;
-  meta = { mainProgram = name; } // meta;
+    inherit version;
+    pname = name;
+    graalvmDrv = graalvm;
+    meta = {
+      mainProgram = name;
+    }
+    // meta;
 
-  dontUnpack = true;
-  src = lib.fileContents "${cljDrv}/nix-support/jar-path";
+    dontUnpack = true;
+    src = lib.fileContents "${cljDrv}/nix-support/jar-path";
 
-  extraNativeImageBuildArgs = extraNativeImageBuildArgs ++
-    [
+    extraNativeImageBuildArgs = extraNativeImageBuildArgs ++ [
       "-classpath"
       "${graal-build-time}"
       "--features=clj_easy.graal_build_time.InitClojureClasses"
     ];
-} // extra-attrs')
+  }
+  // extra-attrs'
+)

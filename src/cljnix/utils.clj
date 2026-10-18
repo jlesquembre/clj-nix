@@ -1,25 +1,25 @@
 (ns cljnix.utils
   (:require
-    [clojure.java.shell :as sh]
-    [clojure.string :as string]
-    [clojure.java.io :as io]
-    [clojure.edn :as edn]
-    [clojure.data.json :as json]
-    [clojure.tools.deps.util.maven :as mvn]
-    [clojure.tools.gitlibs.config :as gitlibs-config]
-    [clojure.tools.gitlibs.impl :as gli]
-    [clojure.tools.deps :as deps]
-    [babashka.fs :as fs]
-    [babashka.http-client :as http]
-    [version-clj.core :as version]
-    [clojure.zip :as zip]
-    [borkdude.rewrite-edn :as r]
-    [clojure.tools.deps.util.io :refer [printerrln]]
-    [clojure.tools.deps.extensions.pom :refer [read-model-file]])
+   [clojure.java.shell :as sh]
+   [clojure.string :as string]
+   [clojure.java.io :as io]
+   [clojure.edn :as edn]
+   [clojure.data.json :as json]
+   [clojure.tools.deps.util.maven :as mvn]
+   [clojure.tools.gitlibs.config :as gitlibs-config]
+   [clojure.tools.gitlibs.impl :as gli]
+   [clojure.tools.deps :as deps]
+   [babashka.fs :as fs]
+   [babashka.http-client :as http]
+   [version-clj.core :as version]
+   [clojure.zip :as zip]
+   [borkdude.rewrite-edn :as r]
+   [clojure.tools.deps.util.io :refer [printerrln]]
+   [clojure.tools.deps.extensions.pom :refer [read-model-file]])
   (:import
-    [org.apache.maven.model.io.xpp3 MavenXpp3Reader]
-    [org.apache.maven.model Model Repository Dependency]
-    [java.net URI]))
+   [org.apache.maven.model.io.xpp3 MavenXpp3Reader]
+   [org.apache.maven.model Model Repository Dependency]
+   [java.net URI]))
 
 (defn throw+
   [msg data]
@@ -33,7 +33,6 @@
       str
       (string/lower-case)
       (string/includes? "snapshot")))
-
 
 ; https://maven.apache.org/ref/3.9.6/maven-model/apidocs/index.html
 (defn- pom
@@ -69,15 +68,15 @@
         (-> (str (fs/strip-ext path) ".pom")
             (pom)
             ((juxt
-               (memfn ^Model getGroupId)
-               (memfn ^Model getArtifactId)
-               (memfn ^Model getVersion))))]
+              (memfn ^Model getGroupId)
+              (memfn ^Model getArtifactId)
+              (memfn ^Model getVersion))))]
     {:artifact-id artifact-id
      :group-id group-id
      :snapshot-version snapshot-version
      :version (subs
-                (fs/file-name (fs/strip-ext path))
-                (inc (count artifact-id)))}))
+               (fs/file-name (fs/strip-ext path))
+               (inc (count artifact-id)))}))
 
 (defn- latest-snapshot
   [path]
@@ -94,15 +93,15 @@
     (let [ext (fs/extension path)
           {:keys [artifact-id version snapshot-version]} (snapshot-info path)]
       {:resolved-path
-        (if-not (version/snapshot? version) ; Maybe not needed, but who knows with maven...
-          path
-          (str (fs/path (fs/parent path) (str artifact-id
-                                              "-"
-                                              (if (version/snapshot? version)
-                                                (latest-snapshot path)
-                                                version)
-                                              "."
-                                              ext))))
+       (if-not (version/snapshot? version) ; Maybe not needed, but who knows with maven...
+         path
+         (str (fs/path (fs/parent path) (str artifact-id
+                                             "-"
+                                             (if (version/snapshot? version)
+                                               (latest-snapshot path)
+                                               version)
+                                             "."
+                                             ext))))
        :snapshot (str artifact-id "-" snapshot-version "." ext)})))
 
 ; deps/create-basis returns '~/.../foo-1.0-SNAPSHOT.jar' as path,
@@ -113,16 +112,15 @@
   Path must be a SNAPSHOT, and version a fixed version, if not, does nothing"
   [path fixed-version]
   (if-not (and
-            (snapshot? path)
-            (not (string/includes? fixed-version "SNAPSHOT")))
+           (snapshot? path)
+           (not (string/includes? fixed-version "SNAPSHOT")))
     path
     ;; fixed-version is 1.0-20220502.201054-5
     ;; path is ~/.../my-lib-1.0-SNAPSHOT.jar
     (let [{:keys [version]} (snapshot-info path)]
       (fs/path
-        (fs/parent path)
-        (string/replace (fs/file-name path) version fixed-version)))))
-
+       (fs/parent path)
+       (string/replace (fs/file-name path) version fixed-version)))))
 
 (defn- get-mvn-repo-name
   [path mvn-repos]
@@ -130,14 +128,13 @@
     (let [info-file (fs/path (fs/parent path) "_remote.repositories")
           file-name (fs/file-name path)
           repo-name-finder (fn [s] (second (re-find
-                                             (re-pattern (str file-name #">(\S+)="))
-                                             s)))]
+                                            (re-pattern (str file-name #">(\S+)="))
+                                            s)))]
       (some #(let [repo-name (repo-name-finder %)]
                (when (contains? mvn-repos repo-name)
                  repo-name))
-           (fs/read-all-lines info-file)))
+            (fs/read-all-lines info-file)))
     (catch Exception _ nil)))
-
 
 (defn- valid-url?
   [url]
@@ -151,8 +148,8 @@
               url
               (str url "/"))]
     (-> (URI. url)
-      (.resolve path)
-      (str))))
+        (.resolve path)
+        (str))))
 
 (defn- find-mvn-repo-name!
   [mvn-path mvn-repos]
@@ -160,7 +157,6 @@
           (when (valid-url? (join-url url mvn-path))
             repo-name))
         mvn-repos))
-
 
 (defn mvn-repo-info
   "Given a path for a jar in the maven local repo, e.g:
@@ -172,8 +168,8 @@
   (let [{:keys [resolved-path snapshot]} (resolve-snapshot path)
         mvn-path (str (fs/relativize cache-dir resolved-path))
         repo-name (or
-                    (get-mvn-repo-name resolved-path mvn-repos)
-                    (find-mvn-repo-name! mvn-path mvn-repos))
+                   (get-mvn-repo-name resolved-path mvn-repos)
+                   (find-mvn-repo-name! mvn-path mvn-repos))
         repo-url (get-in mvn-repos [repo-name :url])
         repo-url (cond
                    (nil? repo-url) (throw+ "Maven repo not found"
@@ -182,18 +178,17 @@
                                             :file path})
                    ((complement string/ends-with?) repo-url "/") (str repo-url "/")
                    :else repo-url)]
-     (cond-> {:mvn-repo repo-url
-              :mvn-path mvn-path
-              :url (str repo-url (fs/relativize cache-dir resolved-path))}
-       snapshot (assoc :snapshot snapshot))))
-
+    (cond-> {:mvn-repo repo-url
+             :mvn-path mvn-path
+             :url (str repo-url (fs/relativize cache-dir resolved-path))}
+      snapshot (assoc :snapshot snapshot))))
 
 (defn git-remote-url
   [repo-root-path]
   (string/trim
-    (:out
-      (sh/with-sh-dir (str repo-root-path)
-        (sh/sh "git" "remote" "get-url" "origin")))))
+   (:out
+    (sh/with-sh-dir (str repo-root-path)
+      (sh/sh "git" "remote" "get-url" "origin")))))
 
 ; See
 ; https://github.com/clojure/tools.gitlibs/blob/v2.4.172/src/main/clojure/clojure/tools/gitlibs/impl.clj#L83
@@ -201,9 +196,8 @@
   "Relative path to the git dir for a given URL"
   [url]
   (str (fs/relativize
-         (fs/path (:gitlibs/dir @gitlibs-config/CONFIG) "_repos")
-         (gli/git-dir url))))
-
+        (fs/path (:gitlibs/dir @gitlibs-config/CONFIG) "_repos")
+        (gli/git-dir url))))
 
 (defn paths-to-gitdeps
   [deps-data]
@@ -227,15 +221,14 @@
 
 (def partial-sha? (complement full-sha?))
 
-
 (defn- expand-hash
   [git-deps lib node]
   (let [node-data (r/sexpr node)
         tag (or (:tag node-data)
                 (:git/tag node-data))
         full-sha (:rev (first (filter #(and
-                                         (= (str lib) (:lib %))
-                                         (= tag (:tag %)))
+                                        (= (str lib) (:lib %))
+                                        (= tag (:tag %)))
                                       git-deps)))]
     (if full-sha
       (cond-> node
@@ -263,10 +256,9 @@
     (map fs/canonicalize deps-include)
     (let [exclude? (fn [f] (some #(fs/same-file? f %) deps-exclude))]
       (filter (every-pred deps-file? (complement exclude?))
-        (concat
-          (fs/glob dir "**deps.edn")
-          (when bb? (fs/glob dir "**bb.edn")))))))
-
+              (concat
+               (fs/glob dir "**deps.edn")
+               (when bb? (fs/glob dir "**bb.edn")))))))
 
 (defn- valid-deps-file?
   [f]
@@ -290,20 +282,19 @@
                   git-deps-paths (paths-to-gitdeps deps)
                   partial-sha-paths (filter #(partial-sha? (get-in deps %))
                                             git-deps-paths)]]
-        (as-> (r/parse-string (slurp my-deps)) nodes
-          (reduce
-            (fn [acc path] (r/update-in acc path (partial expand-hash git-deps (last path))))
-            nodes
-            partial-sha-paths)
-          (spit my-deps (str nodes))))))
+      (as-> (r/parse-string (slurp my-deps)) nodes
+        (reduce
+         (fn [acc path] (r/update-in acc path (partial expand-hash git-deps (last path))))
+         nodes
+         partial-sha-paths)
+        (spit my-deps (str nodes))))))
 
 (defn str->keyword
   [s]
   (-> s
-    (string/replace  ":" "")
-    (string/split #"/")
-    (->> (apply keyword))))
-
+      (string/replace  ":" "")
+      (string/split #"/")
+      (->> (apply keyword))))
 
 (defn mvn?
   [[_ {:keys [mvn/version]}]]
@@ -340,28 +331,25 @@
   "Given a basis, returns all maven repos"
   [basis]
   (merge
-    (into {} (comp
-              (filter mvn?)
-              (map val)
-              (mapcat :paths)
-              (map artifact->pom)
-              (map get-repos))
-          (:libs basis))
-    mvn/standard-repos
-    (:mvn/repos basis)))
-
-
-
+   (into {} (comp
+             (filter mvn?)
+             (map val)
+             (mapcat :paths)
+             (map artifact->pom)
+             (map get-repos))
+         (:libs basis))
+   mvn/standard-repos
+   (:mvn/repos basis)))
 
 (defn- dep-path
   [^Dependency dep]
   (str
-    (fs/path
-      @mvn/cached-local-repo
-      (string/replace (.getGroupId dep) "." "/")
-      (.getArtifactId dep)
-      (.getVersion dep)
-      (format "%s-%s.pom" (.getArtifactId dep) (.getVersion dep)))))
+   (fs/path
+    @mvn/cached-local-repo
+    (string/replace (.getGroupId dep) "." "/")
+    (.getArtifactId dep)
+    (.getVersion dep)
+    (format "%s-%s.pom" (.getArtifactId dep) (.getVersion dep)))))
 
 (defn- version-range?
   [v]
@@ -419,40 +407,38 @@
                  (concat (rest new-deps) (get-deps dep)))
           deps)))))
 
-
 (defn get-parent
- [pom-path]
- (when-let [parent (some-> (pom pom-path) (.getParent))]
+  [pom-path]
+  (when-let [parent (some-> (pom pom-path) (.getParent))]
     (let [parent-path
           (fs/path
-            @mvn/cached-local-repo
-            (string/replace (.getGroupId parent) "." "/")
-            (.getArtifactId parent)
-            (.getVersion parent)
-            (format "%s-%s.pom" (.getArtifactId parent) (.getVersion parent)))]
+           @mvn/cached-local-repo
+           (string/replace (.getGroupId parent) "." "/")
+           (.getArtifactId parent)
+           (.getVersion parent)
+           (format "%s-%s.pom" (.getArtifactId parent) (.getVersion parent)))]
       (when (fs/exists? parent-path)
         (str parent-path)))))
-
 
 (defn get-parent-poms
   "Given a pom file, recursively returns all parent POMs"
   [pom-path]
   (loop [parents #{}
          new-parent (get-parent pom-path)]
-     (if (nil? new-parent)
-       parents
-       (recur (conj parents new-parent)
-              (get-parent new-parent)))))
+    (if (nil? new-parent)
+      parents
+      (recur (conj parents new-parent)
+             (get-parent new-parent)))))
 
 (comment
 
   (fixed-snapshot-path
-    (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-SNAPSHOT.jar")
-    "2022.04.26-20220502.201054-5")
+   (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-SNAPSHOT.jar")
+   "2022.04.26-20220502.201054-5")
 
   (get-maven-repos
-    (deps/create-basis {:user nil
-                        :project (str (fs/expand-home "~/projects/clj-demo-project/deps.edn"))}))
+   (deps/create-basis {:user nil
+                       :project (str (fs/expand-home "~/projects/clj-demo-project/deps.edn"))}))
 
   (expand-shas! (fs/expand-home "~/projects/clojure-lsp"))
 
@@ -464,13 +450,11 @@
   (get-management-deps (fs/expand-home "~/.m2/repository/com/google/firebase/firebase-admin/9.2.0/firebase-admin-9.2.0.pom"))
   (get-parent-poms (fs/expand-home "~/.m2/repository/io/grpc/grpc-bom/1.55.1/pom.xml"))
 
+  (mvn-repo-info
+   (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-SNAPSHOT.jar"))
 
   (mvn-repo-info
-    (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-SNAPSHOT.jar"))
-
-  (mvn-repo-info
-    (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar"))
-
+   (fs/expand-home "~/.m2/repository/clj-kondo/clj-kondo/2022.04.26-SNAPSHOT/clj-kondo-2022.04.26-20220502.201054-5.jar"))
 
   (get-deps-files (fs/canonicalize ".") {:bb? true :deps-exclude ["templates/default/deps.edn"]})
   (get-deps-files "." {:bb? true :deps-include [""]})

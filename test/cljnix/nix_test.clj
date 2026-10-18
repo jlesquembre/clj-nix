@@ -1,10 +1,10 @@
 (ns cljnix.nix-test
   (:require
-    [clojure.test :refer [deftest is use-fixtures]]
-    [babashka.fs :as fs]
-    [cljnix.test-helpers :as h]
-    [cljnix.nix :as nix]
-    [matcher-combinators.test]))
+   [clojure.test :refer [deftest is use-fixtures]]
+   [babashka.fs :as fs]
+   [cljnix.test-helpers :as h]
+   [cljnix.nix :as nix]
+   [matcher-combinators.test]))
 
 (def all-deps '{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
                        io.github.babashka/fs {:git/sha "7adcefeb773bd786408cdc788582f145f79626a6"}

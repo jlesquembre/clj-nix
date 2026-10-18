@@ -1,4 +1,9 @@
-{ stdenv, python311Packages, pkgs, ... }:
+{
+  stdenv,
+  python311Packages,
+  pkgs,
+  ...
+}:
 
 let
   inherit (pkgs) lib;
@@ -10,23 +15,24 @@ let
     specialArgs = { inherit pkgs; };
   };
 
-  rewriteSource = decl:
+  rewriteSource =
+    decl:
     let
       prefix = lib.strings.concatStringsSep "/" (lib.lists.take 4 (lib.strings.splitString "/" decl));
       path = lib.strings.removePrefix prefix decl;
       url = "https://github.com/jlesquembre/clj-nix/blob/main${path}";
     in
-    { name = url; url = url; };
+    {
+      name = url;
+      url = url;
+    };
 
   options = pkgs.nixosOptionsDoc {
     options = builtins.removeAttrs eval.options [ "_module" ];
     warningsAreErrors = false;
-    transformOptions = opt: (
-      opt // { declarations = map rewriteSource opt.declarations; }
-    );
+    transformOptions = opt: (opt // { declarations = map rewriteSource opt.declarations; });
   };
 in
-
 
 stdenv.mkDerivation {
   pname = "omics-platform-docs";
@@ -34,7 +40,10 @@ stdenv.mkDerivation {
 
   src = ../../.;
 
-  buildInputs = with  python311Packages; [ mkdocs-material mkdocs ];
+  buildInputs = with python311Packages; [
+    mkdocs-material
+    mkdocs
+  ];
 
   buildPhase = ''
     mv extra-pkgs/docs/mkdocs.yaml .

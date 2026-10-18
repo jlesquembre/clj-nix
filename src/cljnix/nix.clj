@@ -1,33 +1,30 @@
 (ns cljnix.nix
   (:require
-    [clojure.java.io :as io]
-    [babashka.fs :as fs]
-    [clj-commons.byte-streams :as bs]
-    [cljnix.utils :refer [throw+]])
+   [clojure.java.io :as io]
+   [babashka.fs :as fs]
+   [clj-commons.byte-streams :as bs]
+   [cljnix.utils :refer [throw+]])
   (:import
-    [java.io ByteArrayOutputStream]
-    [java.nio ByteBuffer ByteOrder]
-    [java.nio.file Files]
-    [java.security MessageDigest]
-    [java.util Base64]))
-
+   [java.io ByteArrayOutputStream]
+   [java.nio ByteBuffer ByteOrder]
+   [java.nio.file Files]
+   [java.security MessageDigest]
+   [java.util Base64]))
 
 (def narVersionMagic1 "nix-archive-1")
 
 ; TODO probably, a better solution would be to use the .gitignore file (if present)
 (def ^:dynamic
   *path-filter*
- "Takes 1 argument, the path name. If true, the element will not be included in
+  "Takes 1 argument, the path name. If true, the element will not be included in
  the NAR file"
- #{".git"
-   ".clj-kondo/.cache"})
-
+  #{".git"
+    ".clj-kondo/.cache"})
 
 (declare serialize-entry)
 (declare serialize')
 (declare open!)
 (declare close!)
-
 
 ;; NAR serialization algorithm
 ;; See https://edolstra.github.io/pubs/phd-thesis.pdf (Figure 5.2, page 101)
@@ -46,7 +43,7 @@
    pad(s)"
   [n sink]
   (let [pad (mod (- 8 n)
-               8)]
+                 8)]
     (when-not (zero? pad)
       (bs/transfer (byte-array pad) sink))))
 
@@ -60,7 +57,6 @@
     (pad n sink)
     sink))
 
-
 (defn serialize-entry
   "NAR serialization algorithm
    serializeEntry(name,fso)"
@@ -73,7 +69,6 @@
       (str! "node")
       (serialize' path)
       (close!)))
-
 
 (defmulti serialize''
   "NAR serialization algorithm
@@ -94,9 +89,9 @@
       (str! "type")
       (str! "regular")
       (cond-> (fs/executable? path)
-              (->
-                (str! "executable")
-                (str! "")))
+        (->
+         (str! "executable")
+         (str! "")))
       (str! "contents")
       (str! (bs/to-byte-array (fs/file path))))
   sink)
@@ -109,7 +104,6 @@
       (str! "target")
       (str! (str (Files/readSymbolicLink path)))))
 
-
 (defmethod serialize'' :directory
   [sink path]
   (-> sink
@@ -121,7 +115,6 @@
     (serialize-entry sink entry))
   sink)
 
-
 (defn serialize'
   "NAR serialization algorithm
    serialize'(fso)"
@@ -131,7 +124,6 @@
       (serialize'' path)
       (close!)))
 
-
 (defn serialize
   "NAR serialization algorithm
    serialize(fso)"
@@ -140,20 +132,19 @@
       (str! narVersionMagic1)
       (serialize' (fs/path path))))
 
-
 ;;;
 ;;; Helpers for the NAR algorithm
 ;;;
 
 (def ^:private OPEN
   (let [a (byte-array 9 (int-n 1))]
-   (aset-byte a 8 40)
-   a))
+    (aset-byte a 8 40)
+    a))
 
 (def ^:private CLOSE
   (let [a (byte-array 9 (int-n 1))]
-   (aset-byte a 8 41)
-   a))
+    (aset-byte a 8 41)
+    a))
 
 (defn- open!
   [sink]
@@ -167,16 +158,15 @@
   (bs/transfer (byte-array 7) sink)
   sink)
 
-
 (defn- sri-hash
   [^ByteArrayOutputStream data]
   (let [digester (doto (MessageDigest/getInstance "SHA-256")
                    (.update data))]
     (str
-      "sha256-"
-      (.encodeToString
-        (Base64/getEncoder)
-        (.digest digester)))))
+     "sha256-"
+     (.encodeToString
+      (Base64/getEncoder)
+      (.digest digester)))))
 ;;;
 ;;; Public API
 ;;;
@@ -193,10 +183,10 @@
   [path]
   (let [path (fs/expand-home path)]
     (sri-hash
-      (cond
-        (fs/directory? path) (make-nar path)
-        (fs/regular-file? path) (fs/read-all-bytes path)
-        :else (throw+ "Only can generate hash for directories and regular files" {:file path})))))
+     (cond
+       (fs/directory? path) (make-nar path)
+       (fs/regular-file? path) (fs/read-all-bytes path)
+       :else (throw+ "Only can generate hash for directories and regular files" {:file path})))))
 
 (comment
 
@@ -217,8 +207,7 @@
   (-> (make-nar "/tmp/foo")
       (bs/print-bytes))
 
-
   (bs/print-bytes
-    (->> (bs/to-byte-array  (io/file "/home/jlle/projects/nix/tests/case.nar"))
-         (take 200)
-         (byte-array))))
+   (->> (bs/to-byte-array  (io/file "/home/jlle/projects/nix/tests/case.nar"))
+        (take 200)
+        (byte-array))))

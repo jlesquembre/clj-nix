@@ -1,18 +1,16 @@
 (ns cljnix.bootstrap
   (:require
-    [clojure.tools.deps.util.maven :as mvn]
-    [clojure.tools.deps.cli.api :as tools]
-    [clojure.tools.deps :as deps]
-    [clojure.tools.gitlibs.config :as gitlibs-config]
-    [clojure.data.json :as json]
-    [babashka.fs :as fs]
-    [cljnix.utils :refer [throw+] :as utils]
-    [cljnix.nix :refer [nix-hash]]))
-
+   [clojure.tools.deps.util.maven :as mvn]
+   [clojure.tools.deps.cli.api :as tools]
+   [clojure.tools.deps :as deps]
+   [clojure.tools.gitlibs.config :as gitlibs-config]
+   [clojure.data.json :as json]
+   [babashka.fs :as fs]
+   [cljnix.utils :refer [throw+] :as utils]
+   [cljnix.nix :refer [nix-hash]]))
 
 (def mvn-path (deref mvn/cached-local-repo))
 (def gitlib-path (fs/path (:gitlibs/dir @gitlibs-config/CONFIG) "libs"))
-
 
 (defn- map-comparator
   [a b]
@@ -42,7 +40,6 @@
                    :hash (nix-hash repo-root)
                    :url (utils/git-remote-url repo-root))))
 
-
 (defn nixify-dep
   [path]
   (cond
@@ -55,7 +52,6 @@
   (= (select-keys a [:rev :url])
      (select-keys b [:rev :url])))
 
-
 (defn nixify-classpath
   [deps-path]
   (let [options {:user nil :project deps-path}
@@ -63,17 +59,17 @@
         {:keys [classpath-roots]} (deps/create-basis options)]
 
     (transduce
-      (comp
-        (filter fs/absolute?)
-        (map nixify-dep))
-      (completing
-        (fn [acc v]
-          (if (same-git-dep? (peek acc) v)
-            (update-in acc [(dec (count acc)) :paths] #(into % (:paths v)))
-            (conj acc v)))
-        #(into [] (sort-by :url %)))
-      []
-      classpath-roots)))
+     (comp
+      (filter fs/absolute?)
+      (map nixify-dep))
+     (completing
+      (fn [acc v]
+        (if (same-git-dep? (peek acc) v)
+          (update-in acc [(dec (count acc)) :paths] #(into % (:paths v)))
+          (conj acc v)))
+      #(into [] (sort-by :url %)))
+     []
+     classpath-roots)))
 
 (defn as-json
   [{:keys [deps-path]}]
