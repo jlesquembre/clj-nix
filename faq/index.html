@@ -751,16 +751,19 @@ possible solution is to wrap the binary:</p>
 <p>If after creating an application using the <code>customJdk</code> function, you might see an error like the following:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure
 </code></pre></div>
-<p>This could be caused by a missing JDK module, such as <code>jdk.crypto.ec</code>, which is required for many <code>https</code> connections.
+<p>This could be caused by a missing JDK module, such as <code>jdk.crypto.ec</code>, which is required for many <code>https</code> connections on JDK 21 and older.
 Add the missing modules explicitly:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="ss">custom-jdk</span> <span class="o">=</span> pkgs<span class="o">.</span>customJdk <span class="p">{</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  <span class="ss">cljDrv</span> <span class="o">=</span> clj<span class="p">;</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  <span class="ss">jdkBase</span> <span class="o">=</span> pkgs<span class="o">.</span>jdk17_headless<span class="p">;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  <span class="ss">jdkBase</span> <span class="o">=</span> pkgs<span class="o">.</span>jdk21_headless<span class="p">;</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  <span class="ss">locales</span> <span class="o">=</span> <span class="s2">&quot;en&quot;</span><span class="p">;</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  <span class="ss">java-opts</span> <span class="o">=</span> <span class="p">[</span> <span class="p">];</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>  <span class="ss">extraJdkModules</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;java.security.jgss&quot;</span> <span class="s2">&quot;java.security.sasl&quot;</span> <span class="s2">&quot;jdk.crypto.ec&quot;</span> <span class="p">];</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">};</span>
 </code></pre></div>
+<p>From JDK 22 on, the elliptic-curve provider is part of <code>java.base</code>, and
+<code>jdk.crypto.ec</code> is an empty module, deprecated for removal: leave it out of
+<code>extraJdkModules</code> there.</p>
 
 
 

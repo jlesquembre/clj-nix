@@ -842,7 +842,7 @@ container. We can use a headless JDK to reduce the size, let's try that:</p>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  <span class="ss">projectSrc</span> <span class="o">=</span> <span class="l">./.</span><span class="p">;</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  <span class="ss">name</span> <span class="o">=</span> <span class="s2">&quot;me.lafuente/cljdemo&quot;</span><span class="p">;</span>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  <span class="ss">main-ns</span> <span class="o">=</span> <span class="s2">&quot;demo.core&quot;</span><span class="p">;</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  <span class="ss">jdkRunner</span> <span class="o">=</span> pkgs<span class="o">.</span>jdk17_headless<span class="p">;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  <span class="ss">jdkRunner</span> <span class="o">=</span> pkgs<span class="o">.</span>jdk_headless<span class="p">;</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">};</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>nix<span class="w"> </span>build<span class="w"> </span>.#clj-tuto
