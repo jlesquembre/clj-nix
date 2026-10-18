@@ -9,13 +9,13 @@ let
 in
 
 
-{ babashka ? pkgs.babashka-unwrapped    # Babashka version to use
-, system_ ? system                          # The build system
-, pkg                                   # Path to the directory with the package
-, debug ? true                          # Run in debug mode
-, outputs ? [ "out" ]                   # Outputs to provide
-, override ? null                       # Optional override
-, ...                                   # Catch user-supplied env vars
+{ babashka ? pkgs.babashka    # Babashka version to use
+, system_ ? system            # The build system
+, pkg                         # Path to the directory with the package
+, debug ? true                # Run in debug mode
+, outputs ? [ "out" ]         # Outputs to provide
+, override ? null             # Optional override
+, ...                         # Catch user-supplied env vars
 }@attrs:
 
 let

@@ -1,27 +1,28 @@
-{ lib
-, mkCljBin
-, mkGraalBin
-, fetchFromGitHub
-, fetchurl
-, fetchpatch
-, rlwrap
-, makeWrapper
-, writeShellApplication
-, graalvmPackages
-, nix-package-updater
-, srcFromJson
-, writeScriptBin
-, writers
-, deps-lock
-, coreutils
-, git
-, jq
+{
+  lib,
+  mkCljBin,
+  mkGraalBin,
+  fetchFromGitHub,
+  fetchurl,
+  fetchpatch,
+  makeWrapper,
+  writeShellApplication,
+  graalvmPackages,
+  nix-package-updater,
+  srcFromJson,
+  writeScriptBin,
+  writers,
+  deps-lock,
+  coreutils,
+  git,
+  jq,
 }:
 
-{ graalvm ? graalvmPackages.graalvm-ce
-, withFeatures ? [ ]
-, bbLean ? false
-, wrap ? true
+{
+  graalvm ? graalvmPackages.graalvm-ce,
+  withFeatures ? [ ],
+  bbLean ? false,
+  wrap ? true,
 }:
 let
   # See
@@ -56,20 +57,16 @@ let
 
 in
 
-assert
-(
-  lib.assertMsg
-    ((builtins.length invalid-features) == 0)
-    ''
-      Invalid babashka features: ${lib.strings.concatStringsSep ", " invalid-features}
-    ''
+assert (
+  lib.assertMsg ((builtins.length invalid-features) == 0) ''
+    Invalid babashka features: ${lib.strings.concatStringsSep ", " invalid-features}
+  ''
 );
 
 let
-  feature-exports =
-    lib.strings.concatStringsSep
-      "\n"
-      (map (f: ''export BABASHKA_FEATURE_${f}="true"'') features);
+  feature-exports = lib.strings.concatStringsSep "\n" (
+    map (f: ''export BABASHKA_FEATURE_${f}="true"'') features
+  );
 
   projectInfo = srcFromJson ./src.json;
 
@@ -79,74 +76,71 @@ let
     license = lib.licenses.epl10;
   };
 
-  babashka-unwrapped =
-    mkCljBin {
-      inherit (projectInfo) version;
-      projectSrc = projectInfo.src;
-      lockfile = ./deps-lock.json;
-      enableLeiningen = true;
+in
+mkCljBin {
+  inherit (projectInfo) version;
+  projectSrc = projectInfo.src;
+  lockfile = ./deps-lock.json;
+  enableLeiningen = true;
 
-      name = "babashka/babashka";
-      main-ns = "babashka.main";
-      jdkRunner = graalvm;
-      patches = [
-        # TODO: Drop after next babashka version bump includes
-        # https://github.com/babashka/babashka/commit/25cf3c9607a8cde13bf5ba61b523b7a79ccca44e
-        (fetchpatch {
-          url = "https://github.com/babashka/babashka/commit/25cf3c9607a8cde13bf5ba61b523b7a79ccca44e.patch";
-          hash = "sha256-ZEomsrb0jqE0FImxaaKaFb8FvykHq93cyaYCg4ks244=";
-        })
-      ];
-      buildCommand =
-        ''
-          ${if bbLean then "export BABASHKA_LEAN=true" else ""}
-          ${feature-exports}
-          bash script/uberjar
+  name = "babashka/babashka";
+  main-ns = "babashka.main";
+  jdkRunner = graalvm;
+  patches = [
+    # TODO: Drop after next babashka version bump includes
+    # https://github.com/babashka/babashka/commit/25cf3c9607a8cde13bf5ba61b523b7a79ccca44e
+    (fetchpatch {
+      url = "https://github.com/babashka/babashka/commit/25cf3c9607a8cde13bf5ba61b523b7a79ccca44e.patch";
+      hash = "sha256-ZEomsrb0jqE0FImxaaKaFb8FvykHq93cyaYCg4ks244=";
+    })
+  ];
+  buildCommand = ''
+    ${if bbLean then "export BABASHKA_LEAN=true" else ""}
+    ${feature-exports}
+    bash script/uberjar
 
-          export GRAALVM_HOME="${graalvm}"
-          bash script/compile
-        '';
+    export GRAALVM_HOME="${graalvm}"
+    bash script/compile
+  '';
 
-      # The binary is `bb`, not the artifactId `babashka`
-      meta = meta // { mainProgram = "bb"; };
+  # The binary is `bb`, not the artifactId `babashka`
+  meta = meta // {
+    mainProgram = "bb";
+  };
 
-      outputs = [ "out" ];
-      installPhase =
-        ''
-          mkdir -p $out/bin
-          cp bb $out/bin
-        '';
+  outputs = [ "out" ];
+  installPhase = ''
+    mkdir -p $out/bin
+    cp bb $out/bin
+  '';
 
-      passthru.updateScript = writers.writeBashBin "update-babashka"
-        {
-          makeWrapperArgs = let bin-path = lib.makeBinPath [ jq coreutils git deps-lock ]; in [
+  passthru.updateScript =
+    writers.writeBashBin "update-babashka"
+      {
+        makeWrapperArgs =
+          let
+            bin-path = lib.makeBinPath [
+              jq
+              coreutils
+              git
+              deps-lock
+            ];
+          in
+          [
             "--prefix"
             "PATH"
             ":"
             "${bin-path}"
           ];
-        }
-        ''
-          ${nix-package-updater} extra-pkgs/babashka/src.json
-          VERSION=$(jq -r '.version' extra-pkgs/babashka/src.json)
-          TMP_DIR=$(mktemp -d)
-          git clone --depth 1 --branch "v$VERSION" --recursive https://github.com/babashka/babashka "$TMP_DIR/bb"
-          cd "$TMP_DIR/bb"
-          deps-lock --lein --deps-exclude resources/META-INF/babashka/deps.edn
-          cd -
-          cp "$TMP_DIR/bb/deps-lock.json" extra-pkgs/babashka/deps-lock.json
-        '';
-    };
-in
-if wrap then
-  writeShellApplication
-  {
-    name = "bb";
-    inherit meta;
-    runtimeInputs = [ babashka-unwrapped rlwrap ];
-    text = ''
-      rlwrap bb "$@"
-    '';
-  }
-else
-  babashka-unwrapped
+      }
+      ''
+        ${nix-package-updater} extra-pkgs/babashka/src.json
+        VERSION=$(jq -r '.version' extra-pkgs/babashka/src.json)
+        TMP_DIR=$(mktemp -d)
+        git clone --depth 1 --branch "v$VERSION" --recursive https://github.com/babashka/babashka "$TMP_DIR/bb"
+        cd "$TMP_DIR/bb"
+        deps-lock --lein --deps-exclude resources/META-INF/babashka/deps.edn
+        cd -
+        cp "$TMP_DIR/bb/deps-lock.json" extra-pkgs/babashka/deps-lock.json
+      '';
+}
