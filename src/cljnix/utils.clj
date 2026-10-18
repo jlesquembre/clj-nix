@@ -51,6 +51,15 @@
   (when (= "pom" (fs/extension pom-path))
     (read-model-file (io/file (str pom-path)) {:mvn/repos mvn/standard-repos})))
 
+(defn- parse-pom-model
+  ^Model [pom-path]
+  (try
+    (when (= "pom" (fs/extension pom-path))
+      (with-open [in (io/input-stream (str pom-path))]
+        (.read (MavenXpp3Reader.) in)))
+    (catch Exception _
+      nil)))
+
 ;; Snapshot jar can be
 ;; foo-123122312.jar
 ;; foo-SNAPSHOT.jar
@@ -354,6 +363,38 @@
       (.getVersion dep)
       (format "%s-%s.pom" (.getArtifactId dep) (.getVersion dep)))))
 
+(defn- version-range?
+  [v]
+  (and (string? v)
+       (re-find #"[\[\]\(\)]" v)))
+
+(defn pom-version-ranges
+  "Returns all Maven version ranges referenced by a POM.
+   Includes regular dependencies, dependencyManagement deps and parent version."
+  [pom-path]
+  (let [model (or (try
+                    (read-model-file (io/file (str pom-path)) {:mvn/repos mvn/standard-repos})
+                    (catch Exception _ nil))
+                  (parse-pom-model pom-path))
+        parent (some-> model .getParent)
+        deps (concat (or (some-> model .getDependencies) [])
+                     (or (some-> model .getDependencyManagement .getDependencies) []))
+        dep-ranges
+        (keep (fn [^Dependency dep]
+                (let [version (.getVersion dep)]
+                  (when (version-range? version)
+                    {:pom (str pom-path)
+                     :lib (str (.getGroupId dep) "/" (.getArtifactId dep))
+                     :version version})))
+              deps)
+        parent-range
+        (when-let [version (some-> parent .getVersion)]
+          (when (version-range? version)
+            [{:pom (str pom-path)
+              :lib (str (.getGroupId parent) "/" (.getArtifactId parent))
+              :version version
+              :parent? true}]))]
+    (into [] (concat dep-ranges parent-range))))
 
 (defn- get-deps
   [pom-path]

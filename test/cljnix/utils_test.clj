@@ -132,6 +132,23 @@
   (is (= :foo/bar (utils/str->keyword "foo/bar")))
   (is (= :foo/bar (utils/str->keyword ":foo/bar"))))
 
+(deftest pom-version-ranges-test
+  (fs/with-temp-dir [tmp-dir {:prefix "pom-ranges"}]
+    (let [pom-path (fs/path tmp-dir "demo-1.0.pom")]
+      (spit (str pom-path)
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\n  <modelVersion>4.0.0</modelVersion>\n  <groupId>com.example</groupId>\n  <artifactId>demo</artifactId>\n  <version>1.0.0</version>\n  <parent>\n    <groupId>com.example</groupId>\n    <artifactId>demo-parent</artifactId>\n    <version>[1.0,2.0)</version>\n  </parent>\n  <dependencyManagement>\n    <dependencies>\n      <dependency>\n        <groupId>org.example</groupId>\n        <artifactId>managed</artifactId>\n        <version>(,3.0]</version>\n      </dependency>\n    </dependencies>\n  </dependencyManagement>\n  <dependencies>\n    <dependency>\n      <groupId>org.example</groupId>\n      <artifactId>direct</artifactId>\n      <version>[4.0,5.0)</version>\n    </dependency>\n    <dependency>\n      <groupId>org.example</groupId>\n      <artifactId>fixed</artifactId>\n      <version>1.2.3</version>\n    </dependency>\n  </dependencies>\n</project>\n")
+      (is (= #{{:pom (str pom-path)
+                :lib "com.example/demo-parent"
+                :version "[1.0,2.0)"
+                :parent? true}
+               {:pom (str pom-path)
+                :lib "org.example/managed"
+                :version "(,3.0]"}
+               {:pom (str pom-path)
+                :lib "org.example/direct"
+                :version "[4.0,5.0)"}}
+             (set (utils/pom-version-ranges pom-path)))))))
+
 (comment
   (def spit-helper (h/make-spit-helper "/tmp/foo"))
   (spit-helper "deps.edn" deps-data)
