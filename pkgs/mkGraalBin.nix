@@ -49,16 +49,19 @@ let
     "graalvmXmx"
   ];
 
-  extra-attrs' =
-    lib.filterAttrs
-      (k: v: !((builtins.elem k other-attrs) && (is-empty v)))
-      extra-attrs;
+  extra-attrs' = lib.filterAttrs (k: v:
+    let
+      inOtherAttrs = builtins.elem k other-attrs;
+    in
+      # Keep the attribute unless it's listed in other-attrs AND is empty
+      !inOtherAttrs || !(is-empty v)
+  ) extra-attrs;
 
   graal-build-time =
-    let version = "1.0.5"; in
+    let version = "1.0.6"; in
     fetchurl {
       url = "https://repo.clojars.org/com/github/clj-easy/graal-build-time/${version}/graal-build-time-${version}.jar";
-      hash = "sha256-M6/U27a5n/QGuUzGmo8KphVnNa2K+LFajP5coZiFXoY=";
+      hash = "sha256-IQTd330QP1zB40sI2CsbYhcWjudengHSYd22B4ZueLw=";
     };
 
 in
