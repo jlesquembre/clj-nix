@@ -6,6 +6,8 @@ on:
 
 jobs:
   clojure-deps:
+    # Forks have no GH_TOKEN_FOR_UPDATES, so the job would only fail there
+    if: github.repository_owner == 'jlesquembre'
     runs-on: ubuntu-latest
 
     steps:
