@@ -1,6 +1,6 @@
 (ns integration.fake-git-test
   (:require
-   [clojure.test :refer [deftest is use-fixtures]]
+   [clojure.test :refer [deftest is]]
    [babashka.fs :as fs]
    [babashka.process :as ps]
    [cljnix.test-helpers :as h]

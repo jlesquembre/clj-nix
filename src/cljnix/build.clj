@@ -2,7 +2,7 @@
   (:require
    [clojure.java.io :as io]
    [clojure.string :as string]
-   [clojure.tools.deps :as deps]
+   [clojure.tools.deps.edn :as deps-edn]
    [clojure.tools.build.api :as b]))
 
 (defn remove-timestamp!
@@ -19,7 +19,7 @@
   [deps]
   (-> deps
       io/file
-      deps/slurp-deps
+      deps-edn/read-deps
       :paths
       (or ["src"])))
 
