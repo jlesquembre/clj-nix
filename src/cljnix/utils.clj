@@ -9,6 +9,7 @@
    [clojure.tools.gitlibs.config :as gitlibs-config]
    [clojure.tools.gitlibs.impl :as gli]
    [clojure.tools.deps :as deps]
+   [clojure.tools.deps.edn :as deps-edn]
    [babashka.fs :as fs]
    [babashka.http-client :as http]
    [version-clj.core :as version]
@@ -45,6 +46,7 @@
       (printerrln "Error parsing [skiping]" pom-path))))
 
 ; Alternative implementation
+#_{:clj-kondo/ignore [:unused-private-var]}
 (defn- pom'
   ^Model [pom-path]
   (when (= "pom" (fs/extension pom-path))
@@ -263,7 +265,7 @@
 (defn- valid-deps-file?
   [f]
   (try
-    (deps/slurp-deps (fs/file f))
+    (deps-edn/read-deps (fs/file f))
     true
     (catch clojure.lang.ExceptionInfo _
       (printerrln "Ignoring invalid deps.edn file:" (fs/file f))
@@ -278,7 +280,7 @@
     (doseq [my-deps (->> dep-paths
                          (filter valid-deps-file?)
                          (mapv fs/file))
-            :let [deps (deps/slurp-deps my-deps)
+            :let [deps (deps-edn/read-deps my-deps)
                   git-deps-paths (paths-to-gitdeps deps)
                   partial-sha-paths (filter #(partial-sha? (get-in deps %))
                                             git-deps-paths)]]

@@ -1,2 +1,0 @@
-{:linters {;; for  nubank/matcher-combinators
-           :unresolved-symbol {:exclude [(clojure.test/is [match?])]}}}
