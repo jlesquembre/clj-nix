@@ -33,6 +33,12 @@
             jdkRunner = pkgs.jdk17_headless;
           };
 
+          mkCljLib-test = cljpkgs.mkCljLib {
+            projectSrc = ./.;
+            name = "me.lafuente/cljdemo";
+            version = "1.0.0";
+          };
+
           customJdk-test = cljpkgs.customJdk {
             cljDrv = self.packages."${system}".mkCljBin-test;
             locales = "en,es";
