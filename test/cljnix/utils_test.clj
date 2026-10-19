@@ -11,11 +11,7 @@
                       babashka/fs {:mvn/version "0.1.5"}
                       javax.activation/javax.activation-api {:mvn/version "1.2.0"}}})
 
-(defn deps-cache-fixture [f]
-  (h/prep-deps my-deps)
-  (f))
-
-(use-fixtures :once deps-cache-fixture)
+(use-fixtures :once (h/deps-cache-fixture my-deps))
 
 (deftest mvn-repo-info-test
   (is (= {:mvn-path "org/clojure/clojure/1.11.1/clojure-1.11.1.jar"
