@@ -18,7 +18,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
 
       - name: Update babashka version
-        run: "nix run .#babashka-unwrapped.updateScript"
+        run: "nix run .#babashka.updateScript"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
