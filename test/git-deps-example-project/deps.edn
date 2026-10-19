@@ -1,0 +1,9 @@
+;; maestro.plugin.build pulls in tools.build by :git/tag and two revisions
+;; of the same monorepo libs, so resolving the basis runs `git tag`,
+;; `git rev-parse` and `git merge-base`, which fake-git answers offline.
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.4"}
+        protosens/maestro.plugin.build
+        {:deps/root "module/maestro.plugin.build"
+         :git/sha "b9ecc401e480060aac19c246dc160056452707d7"
+         :git/url "https://github.com/protosens/monorepo.cljc"}}}

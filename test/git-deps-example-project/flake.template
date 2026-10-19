@@ -1,0 +1,39 @@
+# vi: ft=nix
+{
+  description = "A clj-nix flake with git dependencies";
+
+  inputs = {
+    clj-nix.url = "{{cljnixUrl}}";
+    # clj-nix's locked nixpkgs, so every run builds the same derivations
+    nixpkgs.follows = "clj-nix/nixpkgs";
+  };
+  outputs =
+    {
+      self,
+      nixpkgs,
+      clj-nix,
+    }:
+    let
+      supportedSystems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "x86_64-linux"
+      ];
+    in
+    {
+      packages = nixpkgs.lib.genAttrs supportedSystems (
+        system:
+        let
+          cljpkgs = clj-nix.packages.${system};
+        in
+        {
+          mkCljLib-test = cljpkgs.mkCljLib {
+            projectSrc = ./.;
+            name = "me.lafuente/gitdeps";
+            version = "1.0.0";
+          };
+        }
+      );
+    };
+}
