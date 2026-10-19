@@ -23,6 +23,10 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@main
 
+      - name: Formatting
+        run: |
+          nix develop --command format-check
+
       - name: Unit tests
         run: |
           nix develop --command tests-unit

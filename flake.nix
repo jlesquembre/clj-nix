@@ -78,6 +78,8 @@
               pkgs.envsubst
               pkgs.mustache-go
               pkgs.diffutils
+              pkgs.nixfmt
+              pkgs.cljfmt
             ];
             commands = [
               {
@@ -92,6 +94,24 @@
                   (cd ./templates/default && nix run ../..#deps-lock)
                   (cd ./test/leiningen-example-project && nix run ../..#deps-lock -- --lein --lein-profiles foobar && mv deps-lock.json deps-lock-foobar-profile.json)
                   (cd ./test/leiningen-example-project && nix run ../..#deps-lock -- --lein)
+                '';
+              }
+              {
+                name = "format";
+                category = "formatting";
+                help = "Format Nix files with nixfmt and Clojure sources with cljfmt";
+                command = ''
+                  git ls-files -z '*.nix' | xargs -0 nixfmt &&
+                  cljfmt fix src test
+                '';
+              }
+              {
+                name = "format-check";
+                category = "formatting";
+                help = "Check that `format` would change nothing";
+                command = ''
+                  git ls-files -z '*.nix' | xargs -0 nixfmt --check &&
+                  cljfmt check src test
                 '';
               }
               {
