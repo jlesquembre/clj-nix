@@ -3,6 +3,7 @@
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.tools.deps.edn :as deps-edn]
+   [clojure.tools.deps.util.maven :as mvn]
    [clojure.tools.build.api :as b]))
 
 (defn remove-timestamp!
@@ -50,7 +51,10 @@
                    (symbol lib-name)
                    (symbol lib-name lib-name))]
     {:src-dirs (get-paths "deps.edn")
-     :basis (b/create-basis {:project "deps.edn"})
+     ;; Use the local repo prepared by mkDepsCache ($HOME/.m2/repository),
+     ;; even if the project sets its own :mvn/local-repo
+     :basis (b/create-basis {:project "deps.edn"
+                             :extra {:mvn/local-repo @mvn/cached-local-repo}})
      :lib-name lib-name
      :output-jar (format "target/%s-%s.jar"
                          (name lib-name)
