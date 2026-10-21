@@ -38,6 +38,15 @@
      "v0.0.2"}
    #(-> % :out set)))
 
+(deftest fake-git-tags-untagged-rev-test
+  (fake-git-test
+   [{:rev "rev1"
+     :tag "v0.0.1"}
+    {:rev "rev2"}]
+   "tag --sort=v:refname"
+   #{"v0.0.1"}
+   #(-> % :out set)))
+
 (deftest fake-git-rev-parse-tag-test
   (fake-git-test
    [{:rev "rev1"
