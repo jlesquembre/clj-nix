@@ -3564,14 +3564,14 @@
       "hash": "sha256-rkESl3FrvI5gSnn0w1ByVj5akuTv6yHd/YQ5XHMMKAg="
     },
     {
-      "mvn-path": "io/github/nextjournal/markdown/0.7.225/markdown-0.7.225.jar",
+      "mvn-path": "io/github/nextjournal/markdown/0.7.228/markdown-0.7.228.jar",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-01Q7heAKDEs4rzv0fXVP9nHNtPpBW41AyHj6xJ5cF8c="
+      "hash": "sha256-ew8zfoto88A3AVgeqXMmu/3oHwtKb2IE/1PlFPbHDcI="
     },
     {
-      "mvn-path": "io/github/nextjournal/markdown/0.7.225/markdown-0.7.225.pom",
+      "mvn-path": "io/github/nextjournal/markdown/0.7.228/markdown-0.7.228.pom",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-RN6tBDfqAS7KULbgOdjSWMAX6ShIjNdLtAjNb+fqnXc="
+      "hash": "sha256-qKY0Sp0jzxtRybZQvC9JRK8ruzSzdCJFAm84nI782vo="
     },
     {
       "mvn-path": "io/github/swirrl/dogstatsd/0.1.39/dogstatsd-0.1.39.jar",
@@ -3892,11 +3892,6 @@
       "mvn-path": "junit/junit/3.8.1/junit-3.8.1.pom",
       "mvn-repo": "https://repo1.maven.org/maven2/",
       "hash": "sha256-5o8zND2DI5jzyKp4r82AjVa3wQIN5NOtjOR5CQle6QQ="
-    },
-    {
-      "mvn-path": "junit/junit/4.13.2/junit-4.13.2.pom",
-      "mvn-repo": "https://repo1.maven.org/maven2/",
-      "hash": "sha256-Vptpd+5GA8llwcRsMFj6bpaSkbAWDraWTdCSzYnq3ZQ="
     },
     {
       "mvn-path": "karma-reporter/karma-reporter/3.1.0/karma-reporter-3.1.0.jar",
@@ -5599,14 +5594,14 @@
       "hash": "sha256-QlP1QpT2BOTYetGxJoec53qJPxEgfVT0tELa5F2a3QQ="
     },
     {
-      "mvn-path": "org/babashka/babashka.impl.java/0.1.22/babashka.impl.java-0.1.22.jar",
+      "mvn-path": "org/babashka/babashka.impl.java/0.1.23/babashka.impl.java-0.1.23.jar",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-Cm9LqHd9SxR/RnKGiiCkLHvIImCRwtorFecc23QFNpU="
+      "hash": "sha256-qbxbGwBJXPHpNZ8vnuw/YwgTZZiUNPyXWiNWHGjtZMI="
     },
     {
-      "mvn-path": "org/babashka/babashka.impl.java/0.1.22/babashka.impl.java-0.1.22.pom",
+      "mvn-path": "org/babashka/babashka.impl.java/0.1.23/babashka.impl.java-0.1.23.pom",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-TPy5wR2XJMEINc4tcjRHkhKWLt4kTqSz4WtcydLq/LI="
+      "hash": "sha256-wFJEAUhwnpY8sXm+KvwQGuQVm31CUSBXYpG0TXe9TeY="
     },
     {
       "mvn-path": "org/babashka/cli/0.12.91/cli-0.12.91.jar",
@@ -5619,14 +5614,14 @@
       "hash": "sha256-GOm1BZ4Y57ceXAMRday66MGVQ5VIwT7epmKfI6r2DlE="
     },
     {
-      "mvn-path": "org/babashka/http-client/0.4.25/http-client-0.4.25.jar",
+      "mvn-path": "org/babashka/http-client/0.4.26/http-client-0.4.26.jar",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-YXYxaD0GbDCBxTDIvqlztWPCgkX6BnPzvc6IEWFb/so="
+      "hash": "sha256-Tb0imQcTNAhb1tWnr9a++IItE2bGb5/u/mbR2gQEGU0="
     },
     {
-      "mvn-path": "org/babashka/http-client/0.4.25/http-client-0.4.25.pom",
+      "mvn-path": "org/babashka/http-client/0.4.26/http-client-0.4.26.pom",
       "mvn-repo": "https://repo.clojars.org/",
-      "hash": "sha256-e22tNuWvwY/t1CI7j0iL/Hp6b7AC6ie0eB2I388SUR4="
+      "hash": "sha256-4SwbD/T/ZDkJ0atrB4POWuILhuguWnyTzLCJ0lho2Pw="
     },
     {
       "mvn-path": "org/babashka/impl-graal-features/0.0.1/impl-graal-features-0.0.1.jar",
@@ -7877,11 +7872,6 @@
       "mvn-path": "org/graalvm/truffle/truffle-compiler/25.0.2/truffle-compiler-25.0.2.pom",
       "mvn-repo": "https://repo1.maven.org/maven2/",
       "hash": "sha256-+jEe0MDLYu+1DCNQOKQSSUln6GxCElPsK80/udk+0r8="
-    },
-    {
-      "mvn-path": "org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.pom",
-      "mvn-repo": "https://repo1.maven.org/maven2/",
-      "hash": "sha256-/eOGp5BRc6GxA95quCBydYS1DQ4yKC4nl3h8IKZP+pM="
     },
     {
       "mvn-path": "org/hsqldb/hsqldb/2.5.1/hsqldb-2.5.1.jar",
