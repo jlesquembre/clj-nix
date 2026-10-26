@@ -33,8 +33,8 @@
     "hash": "sha256-HPvn4scG4lHZJJLPpXV5ZqbQ17aFZ64AC4fmF5B2HHs="
   },
   {
-    "url": "https://repo.clojars.org/org/babashka/http-client/0.4.25/http-client-0.4.25.jar",
-    "hash": "sha256-YXYxaD0GbDCBxTDIvqlztWPCgkX6BnPzvc6IEWFb/so="
+    "url": "https://repo.clojars.org/org/babashka/http-client/0.4.26/http-client-0.4.26.jar",
+    "hash": "sha256-Tb0imQcTNAhb1tWnr9a++IItE2bGb5/u/mbR2gQEGU0="
   },
   {
     "url": "https://repo.clojars.org/org/clj-commons/byte-streams/0.3.4/byte-streams-0.3.4.jar",
