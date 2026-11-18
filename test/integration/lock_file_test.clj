@@ -2,6 +2,7 @@
   (:require
    [clojure.test :refer [deftest is]]
    [babashka.fs :as fs]
+   [clojure.string :as string]
    [cljnix.test-helpers :as h]
    [cljnix.core :as c]
    [matcher-combinators.test]
@@ -149,3 +150,27 @@
            (m/embeds [{:mvn-path "org/clojure/clojure/1.11.0-alpha1/clojure-1.11.0-alpha1.jar"
                        :mvn-repo default-mvn-url}])
            (:mvn-deps (c/lock-file project-dir)))))))
+
+(deftest mvn-local-repo-test
+  ;; https://github.com/jlesquembre/clj-nix/issues/168
+  ;; Lock paths are relative to the local repo, wherever it is
+  (let [deps {:deps {'org.clojure/data.json {:mvn/version "2.5.2"}}}
+        lock (fn [local-repo?]
+               (fs/with-temp-dir [project-dir {:prefix "dummy_project"}]
+                 (let [spit-helper (h/make-spit-helper project-dir)]
+                   (spit-helper "deps.edn"
+                                (cond-> deps
+                                  local-repo? (assoc :mvn/local-repo
+                                                     (str (fs/path project-dir ".m2" "repository")))))
+                   (->> (c/lock-file project-dir)
+                        :mvn-deps
+                        (map #(select-keys % [:mvn-path :mvn-repo :hash]))
+                        (set)))))
+        default-lock (lock false)
+        local-repo-lock (lock true)]
+    (is (match?
+         (m/embeds #{{:mvn-path "org/clojure/data.json/2.5.2/data.json-2.5.2.jar"}
+                     {:mvn-path "org/clojure/pom.contrib/1.4.0/pom.contrib-1.4.0.pom"}})
+         default-lock))
+    (is (not-any? #(string/includes? (:mvn-path %) "../") local-repo-lock))
+    (is (= default-lock local-repo-lock))))

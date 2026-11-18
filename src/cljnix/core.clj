@@ -28,6 +28,15 @@
    (fs/exists? "/nix/store")
    (System/getenv "CLJNIX_ADD_NIX_STORE")))
 
+(defn- mvn-local-repo
+  "Maven local repo used by tools.deps for a basis: :mvn/local-repo if set
+   (a relative path is resolved like Maven does, against the working
+   directory), ~/.m2/repository otherwise"
+  [basis]
+  (if-let [local-repo (:mvn/local-repo basis)]
+    (str (fs/absolutize local-repo))
+    @mvn/cached-local-repo))
+
 (defn maven-deps
   [basis mvn-repos]
   (into []
@@ -284,7 +293,11 @@
 
        (let [basis (deps/create-basis options)
              mvn-repos (utils/get-maven-repos basis)
-             mvn-deps (maven-deps basis mvn-repos)
+             local-repo (mvn-local-repo basis)
+             ; Lock paths are relative to the local repo, and parent and
+             ; management POMs are looked up in it
+             mvn-deps (with-redefs [mvn/cached-local-repo (delay local-repo)]
+                        (maven-deps basis mvn-repos))
              git-deps (git-deps basis)
              _ (make-cache! {:mvn-deps mvn-deps
                              :git-deps git-deps
