@@ -7,12 +7,26 @@
 
 (defn- check-main-class
   [args]
-  (or
-   (check/main-gen-class
-    (interleave
-     [:lib-name :version :main-ns]
-     args))
-   (throw (ex-info "main-ns class does not specify :gen-class" {:args args}))))
+  (let [[_ _ main-ns] args
+        _ (when (empty? main-ns)
+            (throw (ex-info "main-ns is required, e.g. demo.core" {:args args})))
+        {:keys [status file src-dirs]}
+        (check/main-gen-class
+         (interleave
+          [:lib-name :version :main-ns]
+          args))]
+    (case status
+      :ok true
+      :not-found
+      (throw (ex-info
+              (str "main-ns " main-ns " not found: no " file " in the :paths "
+                   (pr-str (vec src-dirs)) " of deps.edn. "
+                   "Check the main-ns name; with flakes, is the file tracked by git?")
+              {:args args :file file :src-dirs src-dirs}))
+      :no-gen-class
+      (throw (ex-info
+              (str "main-ns " main-ns " does not specify :gen-class in its ns form")
+              {:args args :file file :src-dirs src-dirs})))))
 
 (defn- str->json
   [s]
