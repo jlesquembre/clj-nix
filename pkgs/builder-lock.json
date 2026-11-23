@@ -185,8 +185,8 @@
     "hash": "sha256-dKElSPDWqtE8coZmKIwegSAcJL0Fu05OyMFVhRezeac="
   },
   {
-    "url": "https://repo1.maven.org/maven2/org/clojure/clojure/1.12.6/clojure-1.12.6.jar",
-    "hash": "sha256-IbV42ziajnSyhs55xKf4bsZB4m2IsS8Y1pAwkWsOGMo="
+    "url": "https://repo1.maven.org/maven2/org/clojure/clojure/1.12.7/clojure-1.12.7.jar",
+    "hash": "sha256-l90aZ52WxCYTO05LfTnuGtjEmtfvXF16r2kbVuavjwo="
   },
   {
     "url": "https://repo1.maven.org/maven2/org/clojure/core.async/1.8.741/core.async-1.8.741.jar",
@@ -237,20 +237,20 @@
     "hash": "sha256-Ki0Xaapc7VqkDpLI/1aOonUTmLDqRVIDCHdOwjF6vO4="
   },
   {
-    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps.cli/0.31.162/tools.deps.cli-0.31.162.jar",
-    "hash": "sha256-SwW+EIRoWn5xZ4ucml8qzNERIeyskgpLdYFlFZAU9j8="
+    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps.cli/0.32.167/tools.deps.cli-0.32.167.jar",
+    "hash": "sha256-f8dgad3B1O3L5AC5X5nk1r7h2WXuA0sm/2i6SUnW/Y8="
   },
   {
-    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps.edn/0.9.48/tools.deps.edn-0.9.48.jar",
-    "hash": "sha256-0VUCOrny9Uxu1p4gsxHReGVlVOD8Yp7W8e6KoqH99pk="
+    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps.edn/0.10.63/tools.deps.edn-0.10.63.jar",
+    "hash": "sha256-HXvEDCBP7jnGiOYOjEfG3ADtZhZGTdyrCKwUTvLZA64="
   },
   {
     "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps.maven-s3-transporter/0.1.4/tools.deps.maven-s3-transporter-0.1.4.jar",
     "hash": "sha256-EmjDo2nPeg5Dy6vsuJEzUpbkt7zy7X7n/v2gH/9oBBw="
   },
   {
-    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps/0.31.1646/tools.deps-0.31.1646.jar",
-    "hash": "sha256-qnlFGdzcdFBJXMXQJdmKBE6KrGoK2A56Hh71SgtQfbg="
+    "url": "https://repo1.maven.org/maven2/org/clojure/tools.deps/0.32.1650/tools.deps-0.32.1650.jar",
+    "hash": "sha256-UBfvbuLBWURmKXka85uOQfpHawW3XB+b9678Dq+xTYQ="
   },
   {
     "url": "https://repo1.maven.org/maven2/org/clojure/tools.gitlibs/2.6.217/tools.gitlibs-2.6.217.jar",
